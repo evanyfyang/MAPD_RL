@@ -1,0 +1,6 @@
+lightning==2.4.0
+
+boost
+pybind11
+
+stable-baselines3[extra]
