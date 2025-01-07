@@ -27,24 +27,31 @@ class MultiAgentPickupEnv(gym.Env):
                 low=-np.inf, high=np.inf, shape=(agent_num_higher_bound, self.grid_size[0], self.grid_size[1]), dtype=np.float32
             ),
             "free_agents_loc": gym.spaces.Box(
-                low=-np.inf, high=np.inf, shape=(agent_num_higher_bound), dtype=np.float32
+                low=-np.inf, high=np.inf, shape=(agent_num_higher_bound, 2), dtype=np.float32
             ),
             "tasks_grid": gym.spaces.Box(
                 low=-np.inf, high=np.inf, shape=(task_num, self.grid_size[0], self.grid_size[1]), dtype=np.float32
             ),
             "tasks_loc": gym.spaces.Box(
-                low=-np.inf, high=np.inf, shape=(task_num, 3), dtype=np.float32
+                low=-np.inf, high=np.inf, shape=(task_num, 5), dtype=np.float32
             ),
             "free_agents_num": gym.spaces.Discrete(agent_num_higher_bound),
             "delivering_agents_num": gym.spaces.Discrete(agent_num_higher_bound),
             "tasks_num": gym.spaces.Discrete(task_num)
         })
 
+        self.task_id_map = {}
+        self.free_agent_id_map = {}
+        self.delivering_agent_id_map = {}
+        self.agent_task_pair = {}
+
         # self.observation_space = gym.spaces.Box(
         #     low=-np.inf, high=np.inf, shape=(obs_dim,), dtype=np.float32
         # )
-        # self.action_space = gym.spaces.Discrete(action_dim)
+        self.action_space = gym.spaces.MultiDiscrete([task_num] * agent_num_higher_bound)
         self.eval_data_path = eval_data_path
+        self.last_task_id = []
+        self.last_total_service_time = 0
 
     def read_grid(self, grid_path):
         with open(grid_path, 'r') as f:
@@ -110,20 +117,110 @@ class MultiAgentPickupEnv(gym.Env):
     def build_state(self, status):
         if status.allFinished == 1 and status.valid == True:
             done = True
+            return None, done
         else:
             done = False
 
+        self.task_id_map.clear()
+        self.free_agent_id_map.clear()
+        self.delivering_agent_id_map.clear()
+        self.agent_task_pair.clear()
+
         timestep = status.agents_all[0].start_timestep
+        agent_task_pair = status.agent_task_pair
+        self.agent_task_pair = agent_task_pair
         paths = status.solution
         paths = [[path[i].location for i in range(len(path))][timestep:] for path in paths]
-        free_agents = [i for i in range(len(status.agents_all)) if status.agents_all[i].is_delivering == False]
+    
+        delivering_agents_grid = np.repeat(self.grid, self.agent_num_higher_bound, axis=0)
+        free_agents_grid = np.repeat(self.grid, self.agent_num_higher_bound, axis=0)
+        tasks_grid = np.repeat(self.grid, self.task_num, axis=0)
+        free_agents_loc = np.zeros((self.agent_num_higher_bound, 2), dtype=np.float32)
+        tasks_loc = np.zeros((self.task_num, 5), dtype=np.float32)
+
+        delivering_agents = []
         
-        delivering_paths = [paths[i] for i in range(paths) if i not in free_agents]
-
-
-
-        return None
+        free_agent_cnt = 0
+        delivering_agent_cnt = 0
         
+        for i in range(len(status.agents_all)):
+            is_delivering = status.agents_all[i].is_delivering
+            location = self.loc(status.agents_all[i].start_location)
+            if is_delivering:
+                self.delivering_agent_id_map[delivering_agent_cnt] = i
+                for j in range(len(paths[i])-1):
+                    ploc = self.loc(paths[i][j])
+                    delivering_agents_grid[delivering_agent_cnt, ploc[0], ploc[1]] = j+1
+                ploc = self.loc(paths[i][-1])
+                delivering_agents_grid[delivering_agent_cnt, ploc[0], ploc[1]] = -len(paths[i])
+                delivering_agents.append(i)
+                delivering_agent_cnt += 1
+            else:
+                self.free_agent_id_map[free_agent_cnt] = i
+                free_agents_grid[free_agent_cnt, location[0], location[1]] = 1
+                free_agents_loc[free_agent_cnt] = np.array(location, dtype=np.float32)
+                free_agent_cnt += 1
+
+        delivering_tasks = [item[1][0] for item in agent_task_pair.items() if item[0] in delivering_agents] 
+
+        # delivering task will not change, so we can compute its service time
+        # some free tasks are assigned in last turn, compute their service time as part of the reward
+        # the free tasks which are not assigned in last turn, do not compute their service time, they 
+        # are not carried by any agent and will be reassigned in this turn
+        delivering_reward = 0
+        free_reward = 0
+
+        task_cnt = 0
+        for task in status.tasks:
+            task_id = task.task_id
+            pickup, delivery = task.goal_arr[:2]
+            if task_id not in delivering_tasks:
+                pickup = self.loc(pickup)
+                delivery = self.loc(delivery)
+                release_time = task.release_time
+                self.task_id_map[task_cnt] = task_id
+                tasks_grid[task_cnt, pickup[0], pickup[1]] = 1
+                tasks_grid[task_cnt, delivery[0], delivery[1]] = 2
+                tasks_loc[task_cnt] = np.array([release_time] + pickup + delivery, dtype=np.float32)
+                task_cnt += 1
+
+                if task_id in self.last_task_id:
+                    free_reward += task.estimate_service_time
+            else:
+                delivering_reward += task.estimate_service_time
+
+        #  calculate reward
+        finished_service_time = status.finished_service_time
+        reward = finished_service_time + delivering_reward + free_reward
+
+        return {
+            "free_agents_grid": free_agents_grid,
+            "delivering_agents_grid": delivering_agents_grid,
+            "free_agents_loc": free_agents_loc,
+            "tasks_grid": tasks_grid,
+            "tasks_loc": tasks_loc,
+            "free_agents_num": free_agent_cnt,
+            "delivering_agents_num": delivering_agent_cnt,
+            "tasks_num": task_cnt
+        }, reward, done
+
+    def decode_action(self, action):
+        action_list = action.tolist()
+        free_agents_num = len(self.free_agent_id_map)
+        delivering_num = len(self.delivering_agent_id_map)
+        agent_tasks = [[] for i in range(len(free_agents_num + delivering_num))]
+        for k, v in self.free_agent_id_map.items():
+            agent_tasks[v] = [self.task_id_map[action_list[k]]]
+        
+        for k, v in self.agent_task_pair:
+            if k in self.delivering_id_map.keys():
+                agent_tasks[k] = [v[0]]
+
+        self.last_task_id.clear()
+        for k, v in agent_tasks:
+            self.last_task_id.append(v[0])
+        return agent_tasks
+
     def reset(self):
         if self.training: 
             agents, tasks, task_frequency, task_release_time = self.generate_agent_tasks()
@@ -140,12 +237,15 @@ class MultiAgentPickupEnv(gym.Env):
 
         # construct state
         self.step_count = 0
-        self.state = np.random.randn(self.obs_dim).astype(np.float32)
+        self.state, _, _ = self.build_state(status)
         return self.state
 
     def step(self, action):
+        agent_tasks = self.decode_action(action)
+        status = self.solver.update(agent_tasks)
+        self.state, reward, done = self.build_state(status)
         self.step_count += 1
-        reward = np.random.randn()  # 这里是随机示例，请替换为你的逻辑
-        done = self.step_count >= self.max_steps
-        next_state = np.random.randn(self.obs_dim).astype(np.float32) if not done else None
-        return next_state, reward, done, {}
+
+        # if self.step_count >= self.max_steps:
+        #     done = True
+        return self.state, reward, done, {}

@@ -42,7 +42,7 @@ public:
     int delta_cost;
     bool is_delivered = false;
     float relatedness;
-    int pick_up_time = 0, delivery_time = 0;
+    int pick_up_time = 0, delivery_time = 0, estimated_service_time = 0;
     std::map<Key, handle_t> ta; 
     boost::heap::pairing_heap<TaskAssignment, boost::heap::compare<CompareTaskAssignment>> assignment_heap;
     

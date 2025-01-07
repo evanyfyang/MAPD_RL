@@ -196,6 +196,7 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("task_id", &Task::task_id)
         .def_readwrite("goal_arr", &Task::goal_arr)
         .def_readwrite("release_time", &Task::release_time)
+		.def_readwrite("estimated_service_time", &Task::estimated_service_time)
         // 其余字段和 boost::heap 都不绑
         ;
 
@@ -233,13 +234,6 @@ PYBIND11_MODULE(mapf_solver, m) {
     // 4) 绑定 AgentTaskStatus
     py::class_<AgentTaskStatus>(m, "AgentTaskStatus")
         .def(py::init<>())  // 无参构造
-        .def(py::init<int>())
-        .def(py::init<const std::map<int, Task>&, 
-                      const std::vector<int>&, 
-                      const std::vector<Agent>&, 
-                      const std::vector<Path>&,
-                      const std::map<int, std::pair<int,int>>&,
-                      int>())
         .def_readwrite("tasks", &AgentTaskStatus::tasks)
         .def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks)
         .def_readwrite("agents_all", &AgentTaskStatus::agents_all)
@@ -247,6 +241,7 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("allFinished", &AgentTaskStatus::allFinished)
         .def_readwrite("agent_task_pair", &AgentTaskStatus::agent_task_pair)
         .def_readwrite("valid", &AgentTaskStatus::valid)
+		.def_readwrite("finished_service_time", &AgentTaskStatus::finished_service_time)
         ;
 
 	py::class_<PBSSolver>(m, "PBSSolver")

@@ -24,13 +24,15 @@ class AgentTaskStatus
 		int allFinished;
 		std::map<int, pair<int,int>> agent_task_pair;
 		bool valid;
+		int finished_service_time;
 		AgentTaskStatus(const std::map<int, Task>& tasks, const vector<int>& delivering_tasks, 
 			const vector<Agent>& agents_all, const vector<Path>& solution,
-			const std::map<int, pair<int,int>>& agent_task_pair, int allFinished): 
+			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int allFinished): 
 			tasks(tasks), delivering_tasks(delivering_tasks), agents_all(agents_all), 
-			solution(solution), agent_task_pair(agent_task_pair), allFinished(allFinished){this->valid=true;}
+			solution(solution), agent_task_pair(agent_task_pair), finished_service_time(finished_service_time), 
+			allFinished(allFinished){this->valid=true;}
 
-		AgentTaskStatus(int allFinished):allFinished(allFinished){this->valid=true;}
+		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;}
 
 		AgentTaskStatus(){this->valid=false;}
 };
@@ -77,6 +79,7 @@ public:
 	int mkspan;
 	int fltime;
 	int fltime_tp;
+	int finished_release_time;
 	int last_plan_timestep;
 	int task_plan_time;
 
@@ -95,6 +98,7 @@ private:
 	bool move_after_assignment();
 	void update_agent_tasks(const vector<vector<int>>& agent_tasks);
 	AgentTaskStatus get_agent_tasks();
+	void estimate_service_time();
 
 };	
 

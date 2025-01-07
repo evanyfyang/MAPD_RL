@@ -96,6 +96,7 @@ void KivaSystemOnline::initialize(int simulation_time)
 	mkspan = 0;
 	fltime = 0;
 	fltime_tp = 0;
+	finished_release_time = 0;
 	last_plan_timestep = 0;
 	task_plan_time = 0;
 
@@ -431,6 +432,9 @@ bool KivaSystemOnline::move_after_assignment()
 			fltime += t;
 			mkspan = std::max(t, mkspan);
 			num_finished_tasks++;
+			auto it = current_tasks.find(task_sequences[id].front());
+			Task finished_task = it->second;
+			finished_release_time += finished_task.release_time;
 			current_tasks.erase(current_tasks.find(task_sequences[id].front()));
 			agents_finish_sequence[id].push_back(task_sequences[id].front());
 			task_sequences[id].erase(task_sequences[id].begin());
@@ -483,10 +487,9 @@ void KivaSystemOnline::update_agent_tasks(const vector<vector<int>>& agent_tasks
 				break;
 			int task_id = task_sequences[i][j];
 
-			// check wheter task is delivering, no need now
-			// if (task_id == agent_task_pair[i].first) {
-			// 	continue;
-			// }
+			if (task_id == agent_task_pair[i].first) {
+				continue;
+			}
 			int release_time = current_tasks[task_id].release_time;
 			for (int idx = 0; idx < current_tasks[task_id].goal_arr.size(); idx++)
 			{
@@ -606,12 +609,37 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 		TasksLoader tl(current_tasks, delivering_tasks, current_assigned_endpoints, deferred_task);
 		AgentsLoader al(G, starts, delivering_agents, task_sequences, solver.solution);
 		// return currernt_tasks, delivering_tasks, al.agents_all, solver.solution
-		AgentTaskStatus status = AgentTaskStatus(current_tasks, delivering_tasks, al.agents_all, paths, agent_task_pair, 0);
+		AgentTaskStatus status = AgentTaskStatus(current_tasks, delivering_tasks, al.agents_all, paths, agent_task_pair, fltime-finished_release_time, 0);
 		return status;
 	}
 	return AgentTaskStatus();
 }
 
+void KivaSystemOnline::estimate_service_time()
+{
+	for (int i = 0; i < num_of_drives; i++)
+	{
+		for (int j = 0; j < task_sequences[i].size(); j++)
+		{
+			int task_id = task_sequences[i][j];
+			vector<int> goal_arr = current_tasks[task_id].goal_arr;
+			int pickup = goal_arr[0];
+			int delivery = goal_arr[1];
+
+			bool ondelivery = false;
+			for (int k = 0; k < solver.solution[i].size(); k++)
+			{
+				if (solver.solution[i][k].location == pickup)	
+					ondelivery = true;
+				if (solver.solution[i][k].location == delivery && ondelivery )
+				{
+					current_tasks[task_id].estimated_service_time = k + timestep - current_tasks[task_id].release_time;
+					break;
+				}
+			}
+		}
+	}
+}
 
 AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<vector<int>>& agent_tasks)
 {
@@ -619,12 +647,13 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 	{
 		update_agent_tasks(agent_tasks);
 		solve();
+		estimate_service_time();
 		deferred_task = false;
 
 		// if finished, move_after_assignment() = false
 		if (!move_after_assignment())
 		{
-			return AgentTaskStatus(1);
+			return AgentTaskStatus(fltime-finished_release_time, 1);
 		}
 
 		timestep++;
@@ -667,7 +696,7 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 
 		if (!move_after_assignment())
 		{
-			return AgentTaskStatus(1);
+			return AgentTaskStatus(fltime-finished_release_time, 1);
 		}
 	}
 
