@@ -1,6 +1,8 @@
 #include "KivaSystemOnline.h"
 #include "PBS.h"
 #include <random>
+#include <csignal>
+
 
 KivaSystemOnline::KivaSystemOnline(KivaGrid& G, MAPFSolver& solver): BasicSystem(G, solver), G(G) {}
 
@@ -47,7 +49,7 @@ KivaSystemOnline::~KivaSystemOnline()
 // 	return true;
 // }
 
-bool KivaSystemOnline::load_tasks(const vector<vector<int>>& tasks, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period) 
+bool KivaSystemOnline::load_tasks(vector<vector<int>>& tasks, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period) 
 {
 	this->task_frequency = task_frequency;
 	this->task_release_period = task_release_period;
@@ -57,20 +59,24 @@ bool KivaSystemOnline::load_tasks(const vector<vector<int>>& tasks, vector<int>&
 
 	if (new_agents.size() > 0)
 		G.update_agents(new_agents);
+		num_of_drives = new_agents.size();
 
     for (size_t i = 0; i < tasks.size(); ++i) {
         int release_time = tasks[i][0];
-        vector<int> arr(tasks[i].begin() + 1, tasks[i].end()); 
+        vector<int> arr;
+		arr.clear();
 
-        for (size_t j = 0; j < arr.size(); ++j) {
-            arr[j] = G.endpoints[arr[j]];  
-        }
+		for (size_t j = 1; j < tasks[i].size(); j++)
+		{
+			arr.push_back(G.endpoints[tasks[i][j]]);
+		}
+		if (arr.size() < 2)
+				cout << "wrong" << endl;
 
         all_tasks.push_back(Task(i + 1, release_time, arr));
 
-        vector<int> full_task = arr;
-        full_task.insert(full_task.begin(), release_time);
-        all_tasks_list[i + 1] = full_task;
+        arr.push_back(release_time);	
+        all_tasks_list[i + 1] = arr;
 
         total_release_time += release_time;
     }
@@ -152,7 +158,7 @@ void KivaSystemOnline::generate_tasks()
 		}
 	}
 	if (count != 0)
-		cout << "Generate " << count << " new tasks " << endl;
+		std::cout << "Generate " << count << " new tasks " << endl;
 }
 
 int KivaSystemOnline::choose_good_endpoint(vector<int> current_assigned_endpoints, int last_task_endpoint)
@@ -190,165 +196,165 @@ int KivaSystemOnline::choose_good_endpoint(vector<int> current_assigned_endpoint
 	}
 }
 
-void KivaSystemOnline::update_goal_locations()
-{	
-	// run LNS for one second, given start pos and current release tasks
-	vector<int> delivering_tasks;
-	// std::map<int, vector<int>> delivering_agents;
-	// std::map<int, pair<int,int>> agent_task_pair;
-	new_agents.clear();
-	assigned_agents.clear();
-	free_agents.clear();
-	// if agent is currently delivering a task, then we remove this task from LNS 
-	if (REPLAN)
-	{
-		for (int i = 0; i < num_of_drives; i++)
-		{
-			if (task_sequences[i].empty())
-			{
-				goal_locations[i].clear();
-				agents_task_sequences[i].clear();
-				continue;
-			}
-			else
-			{
-				vector<int>::iterator iter = find(current_tasks[task_sequences[i].front()].goal_arr.begin(), 
-					current_tasks[task_sequences[i].front()].goal_arr.end(), goal_locations[i].front().first);
-				if ( goal_locations[i].size() > 1 && current_tasks[task_sequences[i].front()].goal_arr.size() != 1 &&  iter != current_tasks[task_sequences[i].front()].goal_arr.begin()
-					&& iter != current_tasks[task_sequences[i].front()].goal_arr.end())
-				{
-					int idx = iter - current_tasks[task_sequences[i].front()].goal_arr.begin();
-					delivering_tasks.push_back(task_sequences[i].front());
-					vector<int> goal_subarr;
-					while (iter != current_tasks[task_sequences[i].front()].goal_arr.end())
-					{
-						goal_subarr.push_back(*iter);
-						iter++;
-					}
+// void KivaSystemOnline::update_goal_locations()
+// {	
+// 	// run LNS for one second, given start pos and current release tasks
+// 	vector<int> delivering_tasks;
+// 	// std::map<int, vector<int>> delivering_agents;
+// 	// std::map<int, pair<int,int>> agent_task_pair;
+// 	new_agents.clear();
+// 	assigned_agents.clear();
+// 	free_agents.clear();
+// 	// if agent is currently delivering a task, then we remove this task from LNS 
+// 	if (REPLAN)
+// 	{
+// 		for (int i = 0; i < num_of_drives; i++)
+// 		{
+// 			if (task_sequences[i].empty())
+// 			{
+// 				goal_locations[i].clear();
+// 				agents_task_sequences[i].clear();
+// 				continue;
+// 			}
+// 			else
+// 			{
+// 				vector<int>::iterator iter = find(current_tasks[task_sequences[i].front()].goal_arr.begin(), 
+// 					current_tasks[task_sequences[i].front()].goal_arr.end(), goal_locations[i].front().first);
+// 				if ( goal_locations[i].size() > 1 && current_tasks[task_sequences[i].front()].goal_arr.size() != 1 &&  iter != current_tasks[task_sequences[i].front()].goal_arr.begin()
+// 					&& iter != current_tasks[task_sequences[i].front()].goal_arr.end())
+// 				{
+// 					int idx = iter - current_tasks[task_sequences[i].front()].goal_arr.begin();
+// 					delivering_tasks.push_back(task_sequences[i].front());
+// 					vector<int> goal_subarr;
+// 					while (iter != current_tasks[task_sequences[i].front()].goal_arr.end())
+// 					{
+// 						goal_subarr.push_back(*iter);
+// 						iter++;
+// 					}
 					
-					delivering_agents.insert(make_pair(i, goal_subarr));
-					agent_task_pair.insert(make_pair(i, make_pair(task_sequences[i].front(), idx)));
-				}
-			}
-			if (!new_agent_finish || (new_agent_finish && !current_tasks.empty()))
-				task_sequences[i].clear();
-			goal_locations[i].clear();
-			agents_task_sequences[i].clear();
-		}
-	}
+// 					delivering_agents.insert(make_pair(i, goal_subarr));
+// 					agent_task_pair.insert(make_pair(i, make_pair(task_sequences[i].front(), idx)));
+// 				}
+// 			}
+// 			if (!new_agent_finish || (new_agent_finish && !current_tasks.empty()))
+// 				task_sequences[i].clear();
+// 			goal_locations[i].clear();
+// 			agents_task_sequences[i].clear();
+// 		}
+// 	}
 	
-	if (timestep == 0)
-	{
-		for (int i =0; i < starts.size(); i++)
-			current_assigned_endpoints.push_back(G.agent_home_locations[i]);
-	}
+// 	if (timestep == 0)
+// 	{
+// 		for (int i =0; i < starts.size(); i++)
+// 			current_assigned_endpoints.push_back(G.agent_home_locations[i]);
+// 	}
 
-	if (((REPLAN && !new_agent_finish) || (new_agent_finish && !current_tasks.empty())) && apply_lns)
-	{
-		TasksLoader tl(current_tasks, delivering_tasks, current_assigned_endpoints, deferred_task);
-		AgentsLoader al(G, starts, delivering_agents, task_sequences, solver.solution);
-		LNS lns(G, tl, al, 2, 1, 2, neighborhood_size); 
-		// lns.run(1); 
-		// lns.run_HBH_greedy();
-		// lns.run_Hungarian_greedy();
-		// flowtime_init_tp = calculate_flowtime_tp(task_sequences);
-		// LNS lns(G, tl, al, 2, 1, 2, neighborhood_size); 
-		if (use_LNS)
-		{
-			lns.run(1); 
-		}
-		else
-		{
-			lns.run_Hungarian_greedy();
-		}
-	}
+// 	if (((REPLAN && !new_agent_finish) || (new_agent_finish && !current_tasks.empty())) && apply_lns)
+// 	{
+// 		TasksLoader tl(current_tasks, delivering_tasks, current_assigned_endpoints, deferred_task);
+// 		AgentsLoader al(G, starts, delivering_agents, task_sequences, solver.solution);
+// 		// LNS lns(G, tl, al, 2, 1, 2, neighborhood_size); 
+// 		// lns.run(1); 
+// 		// lns.run_HBH_greedy();
+// 		// lns.run_Hungarian_greedy();
+// 		// flowtime_init_tp = calculate_flowtime_tp(task_sequences);
+// 		// LNS lns(G, tl, al, 2, 1, 2, neighborhood_size); 
+// 		if (use_LNS)
+// 		{
+// 			lns.run(1); 
+// 		}
+// 		else
+// 		{
+// 			lns.run_Hungarian_greedy();
+// 		}
+// 	}
 
-	for (int i = 0; i < num_of_drives; i++)
-	{
-		int idx = remained_agents[i];
-		int current_task_size = 0;
-		if (delivering_agents.find(i) != delivering_agents.end())
-		{
-			int task_id = agent_task_pair[i].first;
-			int task_idx = agent_task_pair[i].second;
-			// if (REPLAN && !new_agent_finish)
-			if (((REPLAN && !new_agent_finish) || (new_agent_finish && !current_tasks.empty())) && apply_lns)
-				task_sequences[i].insert(task_sequences[i].begin(), task_id);
-			int release_time = current_tasks[task_id].release_time;
-			for (int idx = task_idx; idx < current_tasks[task_id].goal_arr.size(); idx++)
-			{
-				int loc = current_tasks[task_id].goal_arr[idx];
-				goal_locations[i].push_back(make_pair(loc, release_time));
-			}
-			agents_task_sequences[i].push_back(current_tasks[task_id]);
-			current_task_size++;
-		}
-		for (int j = 0; j < task_sequences[i].size(); j++)
-		{
-			if (current_task_size >= task_truncated_size)
-				break;
-			int task_id = task_sequences[i][j];
-			if (task_id == agent_task_pair[i].first) {
-				continue;
-			}
-			int release_time = current_tasks[task_id].release_time;
-			for (int idx = 0; idx < current_tasks[task_id].goal_arr.size(); idx++)
-			{
-				int loc = current_tasks[task_id].goal_arr[idx];
-				goal_locations[i].push_back(make_pair(loc, release_time));
-			}
-			agents_task_sequences[i].push_back(current_tasks[task_id]);
-			current_task_size++;
-		}
-		if (goal_locations[i].empty())
-			free_agents.push_back(i);
-	}
+// 	for (int i = 0; i < num_of_drives; i++)
+// 	{
+// 		int idx = remained_agents[i];
+// 		int current_task_size = 0;
+// 		if (delivering_agents.find(i) != delivering_agents.end())
+// 		{
+// 			int task_id = agent_task_pair[i].first;
+// 			int task_idx = agent_task_pair[i].second;
+// 			// if (REPLAN && !new_agent_finish)
+// 			if (((REPLAN && !new_agent_finish) || (new_agent_finish && !current_tasks.empty())) && apply_lns)
+// 				task_sequences[i].insert(task_sequences[i].begin(), task_id);
+// 			int release_time = current_tasks[task_id].release_time;
+// 			for (int idx = task_idx; idx < current_tasks[task_id].goal_arr.size(); idx++)
+// 			{
+// 				int loc = current_tasks[task_id].goal_arr[idx];
+// 				goal_locations[i].push_back(make_pair(loc, release_time));
+// 			}
+// 			agents_task_sequences[i].push_back(current_tasks[task_id]);
+// 			current_task_size++;
+// 		}
+// 		for (int j = 0; j < task_sequences[i].size(); j++)
+// 		{
+// 			if (current_task_size >= task_truncated_size)
+// 				break;
+// 			int task_id = task_sequences[i][j];
+// 			if (task_id == agent_task_pair[i].first) {
+// 				continue;
+// 			}
+// 			int release_time = current_tasks[task_id].release_time;
+// 			for (int idx = 0; idx < current_tasks[task_id].goal_arr.size(); idx++)
+// 			{
+// 				int loc = current_tasks[task_id].goal_arr[idx];
+// 				goal_locations[i].push_back(make_pair(loc, release_time));
+// 			}
+// 			agents_task_sequences[i].push_back(current_tasks[task_id]);
+// 			current_task_size++;
+// 		}
+// 		if (goal_locations[i].empty())
+// 			free_agents.push_back(i);
+// 	}
 	
-	// Collect all task endpoints
-	for (auto itr = current_tasks.begin();itr != current_tasks.end(); itr++)
-    {
-        Task task = itr->second;
-        int task_id = itr->first;
-        int i = 0;
-        for (; i < task.goal_arr.size(); i++)
-        {
-            if (find(current_assigned_endpoints.begin(), current_assigned_endpoints.end(), task.goal_arr[i]) != current_assigned_endpoints.end()) {
-                continue;
-            }
-			current_assigned_endpoints.push_back(task.goal_arr[i]);
-        }
-    }
+// 	// Collect all task endpoints
+// 	for (auto itr = current_tasks.begin();itr != current_tasks.end(); itr++)
+//     {
+//         Task task = itr->second;
+//         int task_id = itr->first;
+//         int i = 0;
+//         for (; i < task.goal_arr.size(); i++)
+//         {
+//             if (find(current_assigned_endpoints.begin(), current_assigned_endpoints.end(), task.goal_arr[i]) != current_assigned_endpoints.end()) {
+//                 continue;
+//             }
+// 			current_assigned_endpoints.push_back(task.goal_arr[i]);
+//         }
+//     }
 
-	// // Assign endpoints to non-free agents
-	// for (int i = 0; i < num_of_drives; i++)
-	// {
-	// 	if (goal_locations[i].size() == 0)
-	// 		continue;
-	// 	int loc = choose_good_endpoint(current_assigned_endpoints, goal_locations[i][goal_locations[i].size()-1].first);
-	// 	if (loc == -1)
-	// 		loc = G.agent_home_locations[i];
-	// 	goal_locations[i].push_back(make_pair(loc, 0));
-	// 	current_assigned_endpoints.push_back(loc);
-	// }
+// 	// // Assign endpoints to non-free agents
+// 	// for (int i = 0; i < num_of_drives; i++)
+// 	// {
+// 	// 	if (goal_locations[i].size() == 0)
+// 	// 		continue;
+// 	// 	int loc = choose_good_endpoint(current_assigned_endpoints, goal_locations[i][goal_locations[i].size()-1].first);
+// 	// 	if (loc == -1)
+// 	// 		loc = G.agent_home_locations[i];
+// 	// 	goal_locations[i].push_back(make_pair(loc, 0));
+// 	// 	current_assigned_endpoints.push_back(loc);
+// 	// }
 
-	// Assign endpoints to free agents
-	for (int k : free_agents)
-	{
-		int loc = choose_good_endpoint(current_assigned_endpoints, starts[k].location);
-		if (loc == -1)
-			loc = G.agent_home_locations[k];
-		current_assigned_endpoints.push_back(loc);
-		goal_locations[k].push_back(make_pair(loc, 0));
-	}
+// 	// Assign endpoints to free agents
+// 	for (int k : free_agents)
+// 	{
+// 		int loc = choose_good_endpoint(current_assigned_endpoints, starts[k].location);
+// 		if (loc == -1)
+// 			loc = G.agent_home_locations[k];
+// 		current_assigned_endpoints.push_back(loc);
+// 		goal_locations[k].push_back(make_pair(loc, 0));
+// 	}
 
-	// remember old endpoints
-	current_assigned_endpoints.clear();
-	for (int i = 0; i < num_of_drives; i++)
-	{
-		int	loc = goal_locations[i][goal_locations[i].size()-1].first;
-		current_assigned_endpoints.push_back(loc);
-	}
-}
+// 	// remember old endpoints
+// 	current_assigned_endpoints.clear();
+// 	for (int i = 0; i < num_of_drives; i++)
+// 	{
+// 		int	loc = goal_locations[i][goal_locations[i].size()-1].first;
+// 		current_assigned_endpoints.push_back(loc);
+// 	}
+// }
 
 int KivaSystemOnline::calculate_flowtime_tp(vector<vector<int>> finish_task_sequence)
 {
@@ -547,7 +553,31 @@ void KivaSystemOnline::update_agent_tasks(const vector<vector<int>>& agent_tasks
 		int	loc = goal_locations[i][goal_locations[i].size()-1].first;
 		current_assigned_endpoints.push_back(loc);
 	}
+	
+	// for (int i = 0; i < num_of_drives; i++)
+	// {
+	// 	cout << i << ": ";
+	// 	cout << starts[i].location << " ";
+	// 	for (int j = 0; j < goal_locations[i].size(); j++)
+	// 	{
+	// 		cout << goal_locations[i][j].first << ' ';
+	// 	}
+	// 	cout << endl;
+	// }		
 
+}
+
+void KivaSystemOnline::check_current_tasks()
+{	
+	for (auto it = current_tasks.begin(); it != current_tasks.end(); ++it) 
+	{
+        if (it->second.goal_arr.size() < 2)
+		{
+			cout << current_tasks.size() << endl;
+			raise(SIGTRAP);
+			cout << "task wrong" << endl;
+		}
+    }
 }
 
 AgentTaskStatus KivaSystemOnline::get_agent_tasks()
@@ -563,41 +593,57 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 
 	for (int i = 0; i < num_of_drives; i++)
 	{
-		bool is_delivering = false;
+		// bool is_delivering = false;
 		if (task_sequences[i].empty())
 		{
 			goal_locations[i].clear();
 			agents_task_sequences[i].clear();
+			// check_current_tasks();
 			continue;
 		}
-		else
+		else if (current_tasks.count(task_sequences[i].front()))
 		{
+
 			vector<int>::iterator iter = find(current_tasks[task_sequences[i].front()].goal_arr.begin(), 
 				current_tasks[task_sequences[i].front()].goal_arr.end(), goal_locations[i].front().first);
 			if ( goal_locations[i].size() > 1 && current_tasks[task_sequences[i].front()].goal_arr.size() != 1 &&  iter != current_tasks[task_sequences[i].front()].goal_arr.begin()
 				&& iter != current_tasks[task_sequences[i].front()].goal_arr.end())
 			{
+				// if (!current_tasks.count(task_sequences[i].front()))
+				// {
+				// 	raise(SIGTRAP);
+				// }
 				int idx = iter - current_tasks[task_sequences[i].front()].goal_arr.begin();
 				delivering_tasks.push_back(task_sequences[i].front());
 				vector<int> goal_subarr;
+				// check_current_tasks();
 				while (iter != current_tasks[task_sequences[i].front()].goal_arr.end())
 				{
 					goal_subarr.push_back(*iter);
 					iter++;
 				}
-				is_delivering = true;
+				// check_current_tasks();
+				// is_delivering = true;
 				delivering_agents.insert(make_pair(i, goal_subarr));
+				// check_current_tasks();
 				agent_task_pair.insert(make_pair(i, make_pair(task_sequences[i].front(), idx)));
+				// check_current_tasks();
+				
 			}
+			// check_current_tasks();
 		}
-		// if (!new_agent_finish || (new_agent_finish && !current_tasks.empty()))
-		// 	task_sequences[i].clear();
-		if (!is_delivering)
+		// check_current_tasks();
+		if (!new_agent_finish || (new_agent_finish && !current_tasks.empty()))
 			task_sequences[i].clear();
+		// if (!is_delivering)
+		// 	task_sequences[i].clear();
 		goal_locations[i].clear();
 		agents_task_sequences[i].clear();
+		// check_current_tasks();
 	}
 
+	// check_current_tasks();
+	
 	if (timestep == 0)
 	{
 		for (int i =0; i < starts.size(); i++)
@@ -606,10 +652,29 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 
 	if (((!new_agent_finish) || (new_agent_finish && !current_tasks.empty())))
 	{
+		// check_current_tasks();
 		TasksLoader tl(current_tasks, delivering_tasks, current_assigned_endpoints, deferred_task);
 		AgentsLoader al(G, starts, delivering_agents, task_sequences, solver.solution);
+		// check_current_tasks();
+		// cout<<starts<<endl;
+		// cout<<num_of_drives<<endl;
 		// return currernt_tasks, delivering_tasks, al.agents_all, solver.solution
-		AgentTaskStatus status = AgentTaskStatus(current_tasks, delivering_tasks, al.agents_all, paths, agent_task_pair, fltime-finished_release_time, 0);
+		AgentTaskStatus status = AgentTaskStatus(tl.tasks_all, delivering_tasks, al.agents_all, paths, agent_task_pair, fltime-finished_release_time, timestep, 0);
+		for (int pp = 0; pp < paths.size();pp ++)
+		{
+			if (paths[pp].size() <= timestep)
+				cout << "wrong" << endl;
+		}
+
+		for (int tp = 0; tp < tl.tasks_all.size(); tp++)
+		{
+			if (tl.tasks_all[tp].goal_arr.size() < 2)
+			{
+				cout << current_tasks[tl.tasks_all[tp].task_id].goal_arr.size() << endl;
+				cout << "wrong" << endl;
+			}
+				
+		}
 		return status;
 	}
 	return AgentTaskStatus();
@@ -643,13 +708,14 @@ void KivaSystemOnline::estimate_service_time()
 
 AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<vector<int>>& agent_tasks)
 {
-	if(timestep != 0)
+	if(timestep != 0 || agent_tasks.size()>0)
 	{
 		update_agent_tasks(agent_tasks);
+		// check_current_tasks();
 		solve();
+		// check_current_tasks();
 		estimate_service_time();
-		deferred_task = false;
-
+		// check_current_tasks();
 		// if finished, move_after_assignment() = false
 		if (!move_after_assignment())
 		{
@@ -658,6 +724,8 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 
 		timestep++;
 	}
+
+	// check_current_tasks();
 	
 
 	for (; timestep < simulation_time; timestep ++)
@@ -669,7 +737,9 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 		if (all_tasks.size() != 0 && (timestep == 0 || timestep % task_release_period == 0))
 		{
 			generate_tasks();
+			// check_current_tasks();
 			update_start_locations();
+			// check_current_tasks();
 			AgentTaskStatus status = get_agent_tasks();
 			if (status.valid) 
 				return status;
@@ -687,17 +757,24 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 			}	
 			if (new_agent_finish || deferred_task)
 			{	
+				// check_current_tasks();
 				update_start_locations();
+				// check_current_tasks();
 				AgentTaskStatus status = get_agent_tasks();
+				deferred_task = false;
 				if (status.valid) 
 					return status;
 			}
 		}
 
+		// check_current_tasks();
+
 		if (!move_after_assignment())
 		{
 			return AgentTaskStatus(fltime-finished_release_time, 1);
 		}
+
+		// check_current_tasks();
 	}
 
 	return AgentTaskStatus();
@@ -706,140 +783,140 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 
 
 
-void KivaSystemOnline::simulate(int simulation_time)
-{
-	clock_t t = clock();
-	std::cout << "*** Simulating " << seed << " ***" << std::endl;
-	this->simulation_time = simulation_time;
-	initialize(simulation_time);
+// void KivaSystemOnline::simulate(int simulation_time)
+// {
+// 	clock_t t = clock();
+// 	std::cout << "*** Simulating " << seed << " ***" << std::endl;
+// 	this->simulation_time = simulation_time;
+// 	initialize(simulation_time);
 
-	int mkspan = 0;
-	int fltime = 0;
-	int fltime_tp = 0;
-	int last_plan_timestep = 0;
-	int task_plan_time = 0;
-	agents_finish_task_goal_arr.resize(num_of_drives);
+// 	int mkspan = 0;
+// 	int fltime = 0;
+// 	int fltime_tp = 0;
+// 	int last_plan_timestep = 0;
+// 	int task_plan_time = 0;
+// 	agents_finish_task_goal_arr.resize(num_of_drives);
 	
-	for (; timestep < simulation_time; timestep ++)
-	{
-		double task_planning_runtime = 0;
-		double path_planning_runtime = 0;
+// 	for (; timestep < simulation_time; timestep ++)
+// 	{
+// 		double task_planning_runtime = 0;
+// 		double path_planning_runtime = 0;
 
-		std::cout << "Timestep " << timestep << std::endl;
-		if (REPLAN)
-		{	
-			new_agent_finish = false;
-			if (all_tasks.size() != 0 && (timestep == 0 || timestep % task_release_period == 0))
-			{
-				generate_tasks(); // get current tasks
-				update_start_locations();
-				clock_t task_planning_time = clock();
-				update_goal_locations(); // get task sequence, goal locations and agents_task_sequences
-				task_planning_runtime = (double)(std::clock() - task_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
-				clock_t path_planning_time = clock();
-				solve();
-				node_expanded += solver.node_expanded;
-				path_planning_runtime = (double)(std::clock() - path_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
-				last_plan_timestep = timestep;
-				path_planning_timestep.push_back(timestep);
-				task_plan_time++;
-			}
-			else
-			{
-				for (int k = 0; k < num_of_drives; k++)
-				{
-					// any non-free agent finishes their current goals
-					if ((find(free_agents.begin(), free_agents.end(), k)==free_agents.end() && goal_locations[k].size() == 1))
-					{
-						new_agent_finish = true;
-						break;
-					}
-				}	
-				if (new_agent_finish || deferred_task)
-				{
-					update_start_locations();
-					apply_lns = true;
-					clock_t task_planning_time = clock();
-					update_goal_locations();
-					task_planning_runtime = (double)(std::clock() - task_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
-					clock_t path_planning_time = clock();
-					solve();
-					node_expanded += solver.node_expanded;
-					path_planning_timestep.push_back(timestep);
-					path_planning_runtime = (double)(std::clock() - path_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
-					last_plan_timestep = timestep;
-					task_plan_time++;
-					deferred_task = false;
-				}
-				apply_lns = true;
-			}
-		}
+// 		std::cout << "Timestep " << timestep << std::endl;
+// 		if (REPLAN)
+// 		{	
+// 			new_agent_finish = false;
+// 			if (all_tasks.size() != 0 && (timestep == 0 || timestep % task_release_period == 0))
+// 			{
+// 				generate_tasks(); // get current tasks
+// 				update_start_locations();
+// 				clock_t task_planning_time = clock();
+// 				update_goal_locations(); // get task sequence, goal locations and agents_task_sequences
+// 				task_planning_runtime = (double)(std::clock() - task_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
+// 				clock_t path_planning_time = clock();
+// 				solve();
+// 				node_expanded += solver.node_expanded;
+// 				path_planning_runtime = (double)(std::clock() - path_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
+// 				last_plan_timestep = timestep;
+// 				path_planning_timestep.push_back(timestep);
+// 				task_plan_time++;
+// 			}
+// 			else
+// 			{
+// 				for (int k = 0; k < num_of_drives; k++)
+// 				{
+// 					// any non-free agent finishes their current goals
+// 					if ((find(free_agents.begin(), free_agents.end(), k)==free_agents.end() && goal_locations[k].size() == 1))
+// 					{
+// 						new_agent_finish = true;
+// 						break;
+// 					}
+// 				}	
+// 				if (new_agent_finish || deferred_task)
+// 				{
+// 					update_start_locations();
+// 					apply_lns = true;
+// 					clock_t task_planning_time = clock();
+// 					update_goal_locations();
+// 					task_planning_runtime = (double)(std::clock() - task_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
+// 					clock_t path_planning_time = clock();
+// 					solve();
+// 					node_expanded += solver.node_expanded;
+// 					path_planning_timestep.push_back(timestep);
+// 					path_planning_runtime = (double)(std::clock() - path_planning_time) * 1.0/ (CLOCKS_PER_SEC/1000);
+// 					last_plan_timestep = timestep;
+// 					task_plan_time++;
+// 					deferred_task = false;
+// 				}
+// 				apply_lns = true;
+// 			}
+// 		}
 		
-		// record time
-		task_planning_time_list.push_back(task_planning_runtime);
-		path_planning_time_list.push_back(path_planning_runtime);
+// 		// record time
+// 		task_planning_time_list.push_back(task_planning_runtime);
+// 		path_planning_time_list.push_back(path_planning_runtime);
 		
-		// move drives
-		auto new_finished_tasks = move();
-		int old = num_of_tasks;
+// 		// move drives
+// 		auto new_finished_tasks = move();
+// 		int old = num_of_tasks;
 
-		// update tasks
-		int prev_finish_tasks = num_finished_tasks;
-		for (auto task : new_finished_tasks)
-		{
-			int id, loc, t;
-			std::tie(id, loc, t) = task;
-			if (find(G.agent_home_locations.begin(), G.agent_home_locations.end(), loc) != G.agent_home_locations.end())
-				continue;
-			finished_tasks[id].emplace_back(loc, t);
-			num_of_tasks++;
-			if (agents_task_sequences[id].empty())
-				continue;
-			vector<int> curr_task_goal = agents_task_sequences[id].front().goal_arr;
-			int num_of_curr_task_goal = curr_task_goal.size();
-			int left_ptr = num_of_curr_task_goal-1;
-			int right_ptr = finished_tasks[id].size()-1;
-			int start = 0;
-			while (start < num_of_curr_task_goal)
-			{
-				list<Key>::iterator it = finished_tasks[id].begin();
-				std::advance(it, right_ptr--);
-				if (curr_task_goal[left_ptr--] == it->first)
-					start++;
-				else
-					break;	
-			}
-			// this task could be a pickup loc, or some dummy loc
-			if (start == num_of_curr_task_goal)
-			{
-				agents_finish_task_goal_arr[id].push_back(curr_task_goal);
-				fltime += t;
-				mkspan = std::max(t, mkspan);
-				num_finished_tasks++;
-				current_tasks.erase(current_tasks.find(task_sequences[id].front()));
-				agents_finish_sequence[id].push_back(task_sequences[id].front());
-				task_sequences[id].erase(task_sequences[id].begin());
-				agents_task_sequences[id].erase(agents_task_sequences[id].begin());
-			}
-		}
+// 		// update tasks
+// 		int prev_finish_tasks = num_finished_tasks;
+// 		for (auto task : new_finished_tasks)
+// 		{
+// 			int id, loc, t;
+// 			std::tie(id, loc, t) = task;
+// 			if (find(G.agent_home_locations.begin(), G.agent_home_locations.end(), loc) != G.agent_home_locations.end())
+// 				continue;
+// 			finished_tasks[id].emplace_back(loc, t);
+// 			num_of_tasks++;
+// 			if (agents_task_sequences[id].empty())
+// 				continue;
+// 			vector<int> curr_task_goal = agents_task_sequences[id].front().goal_arr;
+// 			int num_of_curr_task_goal = curr_task_goal.size();
+// 			int left_ptr = num_of_curr_task_goal-1;
+// 			int right_ptr = finished_tasks[id].size()-1;
+// 			int start = 0;
+// 			while (start < num_of_curr_task_goal)
+// 			{
+// 				list<Key>::iterator it = finished_tasks[id].begin();
+// 				std::advance(it, right_ptr--);
+// 				if (curr_task_goal[left_ptr--] == it->first)
+// 					start++;
+// 				else
+// 					break;	
+// 			}
+// 			// this task could be a pickup loc, or some dummy loc
+// 			if (start == num_of_curr_task_goal)
+// 			{
+// 				agents_finish_task_goal_arr[id].push_back(curr_task_goal);
+// 				fltime += t;
+// 				mkspan = std::max(t, mkspan);
+// 				num_finished_tasks++;
+// 				current_tasks.erase(current_tasks.find(task_sequences[id].front()));
+// 				agents_finish_sequence[id].push_back(task_sequences[id].front());
+// 				task_sequences[id].erase(task_sequences[id].begin());
+// 				agents_task_sequences[id].erase(agents_task_sequences[id].begin());
+// 			}
+// 		}
 		
-		if (screen > 0)
-		{
-			std::cout << num_of_tasks - old << " goals just finished" << std::endl;
-			std::cout << num_of_tasks << " goals finished in total" << std::endl;
-			std::cout << num_finished_tasks << " tasks finished in total" << std::endl;
-		}
-		throughput_accumulate.push_back(num_finished_tasks);
-		if (num_finished_tasks == total_num_of_tasks) {
-			break;
-		}
-		int curr_finish_tasks = num_finished_tasks - prev_finish_tasks;
-		throughput_per_timestep.push_back(curr_finish_tasks);
-	}
-	update_start_locations();
-	double runtime = (std::clock() - t) * 1.0/ (CLOCKS_PER_SEC/1000);
-	std::cout << std::endl << "Done! " << std::endl;
-	std::cout << num_finished_tasks << std::endl;
-	cout<< "Makespan:  " << mkspan << " Flowtime:  " << (double)(fltime  - total_release_time)/total_num_of_tasks<< " Runtime: " << runtime/mkspan << " ms" << " Nodes: "<< (double)(node_expanded)/total_num_of_tasks <<endl;
-	save_results();
-}
+// 		if (screen > 0)
+// 		{
+// 			std::cout << num_of_tasks - old << " goals just finished" << std::endl;
+// 			std::cout << num_of_tasks << " goals finished in total" << std::endl;
+// 			std::cout << num_finished_tasks << " tasks finished in total" << std::endl;
+// 		}
+// 		throughput_accumulate.push_back(num_finished_tasks);
+// 		if (num_finished_tasks == total_num_of_tasks) {
+// 			break;
+// 		}
+// 		int curr_finish_tasks = num_finished_tasks - prev_finish_tasks;
+// 		throughput_per_timestep.push_back(curr_finish_tasks);
+// 	}
+// 	update_start_locations();
+// 	double runtime = (std::clock() - t) * 1.0/ (CLOCKS_PER_SEC/1000);
+// 	std::cout << std::endl << "Done! " << std::endl;
+// 	std::cout << num_finished_tasks << std::endl;
+// 	std::cout<< "Makespan:  " << mkspan << " Flowtime:  " << (double)(fltime  - total_release_time)/total_num_of_tasks<< " Runtime: " << runtime/mkspan << " ms" << " Nodes: "<< (double)(node_expanded)/total_num_of_tasks <<endl;
+// 	save_results();
+// }

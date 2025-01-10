@@ -6,9 +6,9 @@ import numpy as np
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from typing import Dict
 
-class CustomFeatureExtractor(BaseFeaturesExtractor):
+class MAPDFeatureExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, hidden_size: int = 128):
-        super(CustomFeatureExtractor, self).__init__(observation_space, features_dim=hidden_size)
+        super(MAPDFeatureExtractor, self).__init__(observation_space, features_dim=hidden_size)
         
         # Observation space properties
         self.free_agents_grid_space = observation_space.spaces["free_agents_grid"]
@@ -44,11 +44,46 @@ class CustomFeatureExtractor(BaseFeaturesExtractor):
         encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_size, nhead=8)
         self.shared_transformer = nn.TransformerEncoder(encoder_layer, num_layers=3)
 
-        # Final fully connected layer
-        self.final_fc = nn.Sequential(
-            nn.Linear(hidden_size * 2 + 3, hidden_size),
-            nn.ReLU()
+        self.init_net()
+
+    def init_net(self):
+        def init_weights_orthogonal2(m):
+            if isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+        def init_cnn_kaiming(m):
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+        
+        self.shared_conv.apply(init_cnn_kaiming)
+        self.free_agent_mlp.apply(init_weights_orthogonal2)
+        self.delivering_agent_mlp.apply(init_weights_orthogonal2)
+        self.task_mlp.apply(init_weights_orthogonal2)
+        self.delivering_agent_mlp.apply(init_weights_orthogonal2)
+        self.shared_transformer.apply(init_cnn_kaiming)
+
+    def pack_obs(self, combined_feature, free_agents_num, delivering_agents_num, tasks_num):
+        batch_size = combined_feature.shape[0]
+        seq_len = combined_feature.shape[1]
+        hidden_size = combined_feature.shape[2]
+        combined_feature = combined_feature.reshape(batch_size, seq_len * hidden_size)
+
+        obs = torch.cat(
+            [
+                combined_feature, 
+                free_agents_num, 
+                delivering_agents_num, 
+                tasks_num
+            ],
+            dim=1 
         )
+        return obs
+
 
     def forward(self, observations: Dict[str, torch.Tensor]) -> torch.Tensor:
         device = next(self.parameters()).device
@@ -106,6 +141,6 @@ class CustomFeatureExtractor(BaseFeaturesExtractor):
         combined_mask = combined_mask == 0  # 转换为 mask 格式 (0: keep, 1: mask)
 
         # 通过共享 Transformer
-        combined_embedding = self.shared_transformer(combined_features, src_key_padding_mask=combined_mask)  # (seq_len, batch_size, hidden_size)
+        combined_embedding = self.shared_transformer(combined_features, src_key_padding_mask=combined_mask).permute(1,0,2)  # (seq_len, batch_size, hidden_size)
 
-        return combined_embedding, free_agents_num, delivering_agents_num, tasks_num
+        return self.pack_obs(combined_embedding, free_agents_num, delivering_agents_num, tasks_num)

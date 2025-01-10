@@ -1,17 +1,15 @@
 import gymnasium as gym
 import numpy as np
-from ..mapf_solver.mapf_solver import PBSSolver, Agent, Task, AgentTaskStatus
+from mapf_solver.mapf_solver import PBSSolver, Agent, Task, AgentTaskStatus
 import random
+from scipy.optimize import linear_sum_assignment
 
 class MultiAgentPickupEnv(gym.Env):
-    def __init__(self, training=True, obs_dim=4, action_dim=2, max_steps=50, grid_path=None, seed=40, 
+    def __init__(self, training=True, grid_path=None, seed=40, 
             solver="PBS", agent_num_lower_bound=10, agent_num_higher_bound=50, eval_data_path=None, task_num=500):
         super().__init__()
         self.training = training
         self.solver_name = solver
-        self.obs_dim = obs_dim
-        self.action_dim = action_dim
-        self.max_steps = max_steps
         self.step_count = 0
         self.seed = seed
         self.agent_num = (agent_num_lower_bound, agent_num_higher_bound)
@@ -52,6 +50,8 @@ class MultiAgentPickupEnv(gym.Env):
         self.eval_data_path = eval_data_path
         self.last_task_id = []
         self.last_total_service_time = 0
+        self.agent_num_now = 0
+        self.last_service_time = 0
 
     def read_grid(self, grid_path):
         with open(grid_path, 'r') as f:
@@ -73,7 +73,7 @@ class MultiAgentPickupEnv(gym.Env):
                     elif char == '@':
                         grid_np[x, y] = -1
             
-            self.grid = grid_np
+            self.grid = np.expand_dims(grid_np, axis=0)
 
         args = [
             "--map", grid_path,          
@@ -82,9 +82,11 @@ class MultiAgentPickupEnv(gym.Env):
             "--solver",  self.solver_name,
         ]
         self.solver = PBSSolver(args)
+        # print("read grid done")
 
     def generate_agents_tasks(self):
         agent_num = random.randint(self.agent_num[0], self.agent_num[1])
+        self.agent_num_now = agent_num
         task_frequencies = [0.2, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50, 100, 500]
         task_frequency = random.choice(task_frequencies)
         if task_frequency < 1:
@@ -92,7 +94,13 @@ class MultiAgentPickupEnv(gym.Env):
         else:
             task_release_time = 1
 
-        agents = list(random.choices(self.e_map.keys(), agent_num))
+        agents = []
+        endpoint_num = len(self.e_map)
+        while (len(agents) < agent_num):
+            ra = random.randint(0, endpoint_num-1)
+            if ra not in agents:
+                agents.append(ra)
+
         tasks = []
 
         endpoint_num = len(self.e_map) - agent_num
@@ -112,12 +120,12 @@ class MultiAgentPickupEnv(gym.Env):
             
 
     def loc(self, pos):
-        return pos/self.grid_size[0], pos % self.grid_size[0]
+        return int(pos/self.grid_size[1]), pos % self.grid_size[1]
 
     def build_state(self, status):
         if status.allFinished == 1 and status.valid == True:
             done = True
-            return None, done
+            return None, status.finished_service_time, done
         else:
             done = False
 
@@ -126,16 +134,19 @@ class MultiAgentPickupEnv(gym.Env):
         self.delivering_agent_id_map.clear()
         self.agent_task_pair.clear()
 
-        timestep = status.agents_all[0].start_timestep
+        # print(status.agents_all)
+        # print(status.tasks)
+        # print(status.valid)
+        timestep = status.timestep
         agent_task_pair = status.agent_task_pair
         self.agent_task_pair = agent_task_pair
         paths = status.solution
         paths = [[path[i].location for i in range(len(path))][timestep:] for path in paths]
     
-        delivering_agents_grid = np.repeat(self.grid, self.agent_num_higher_bound, axis=0)
-        free_agents_grid = np.repeat(self.grid, self.agent_num_higher_bound, axis=0)
+        delivering_agents_grid = np.repeat(self.grid, self.agent_num[1], axis=0)
+        free_agents_grid = np.repeat(self.grid, self.agent_num[1], axis=0)
         tasks_grid = np.repeat(self.grid, self.task_num, axis=0)
-        free_agents_loc = np.zeros((self.agent_num_higher_bound, 2), dtype=np.float32)
+        free_agents_loc = np.zeros((self.agent_num[1], 2), dtype=np.float32)
         tasks_loc = np.zeros((self.task_num, 5), dtype=np.float32)
 
         delivering_agents = []
@@ -151,6 +162,8 @@ class MultiAgentPickupEnv(gym.Env):
                 for j in range(len(paths[i])-1):
                     ploc = self.loc(paths[i][j])
                     delivering_agents_grid[delivering_agent_cnt, ploc[0], ploc[1]] = j+1
+                if (len(paths[i]) < 1):
+                    breakpoint()
                 ploc = self.loc(paths[i][-1])
                 delivering_agents_grid[delivering_agent_cnt, ploc[0], ploc[1]] = -len(paths[i])
                 delivering_agents.append(i)
@@ -181,17 +194,25 @@ class MultiAgentPickupEnv(gym.Env):
                 self.task_id_map[task_cnt] = task_id
                 tasks_grid[task_cnt, pickup[0], pickup[1]] = 1
                 tasks_grid[task_cnt, delivery[0], delivery[1]] = 2
-                tasks_loc[task_cnt] = np.array([release_time] + pickup + delivery, dtype=np.float32)
+                tasks_loc[task_cnt] = np.array([release_time] + list(pickup) + list(delivery), dtype=np.float32)
                 task_cnt += 1
 
                 if task_id in self.last_task_id:
-                    free_reward += task.estimate_service_time
+                    free_reward += task.estimated_service_time
             else:
-                delivering_reward += task.estimate_service_time
+                delivering_reward += task.estimated_service_time
+
+        # if task_cnt == 0:
+        #     breakpoint()
+        while task_cnt < free_agent_cnt:
+            self.task_id_map[task_cnt] = -1
+            task_cnt += 1
 
         #  calculate reward
         finished_service_time = status.finished_service_time
         reward = finished_service_time + delivering_reward + free_reward
+
+        # print("delivering_agents", list(self.delivering_agent_id_map.keys()))
 
         return {
             "free_agents_grid": free_agents_grid,
@@ -205,25 +226,47 @@ class MultiAgentPickupEnv(gym.Env):
         }, reward, done
 
     def decode_action(self, action):
+        penalty = 0
+        avail_task = 0
+        # if action has two or more agents share a same task, then add a penalty and only remain the first one's task
         action_list = action.tolist()
         free_agents_num = len(self.free_agent_id_map)
         delivering_num = len(self.delivering_agent_id_map)
-        agent_tasks = [[] for i in range(len(free_agents_num + delivering_num))]
+        agent_tasks = [[] for i in range(free_agents_num + delivering_num)]
+
+        assigned_task = []
         for k, v in self.free_agent_id_map.items():
-            agent_tasks[v] = [self.task_id_map[action_list[k]]]
+            task_id = self.task_id_map[action_list[k]]
+            if task_id != -1:
+                if task_id not in assigned_task:
+                    agent_tasks[v] = [task_id]
+                    assigned_task.append(task_id)
+                    avail_task += 1
+                else:
+                    agent_tasks[v] = []
+                    penalty += 2*(self.grid_size[0]+self.grid_size[1])
         
-        for k, v in self.agent_task_pair:
-            if k in self.delivering_id_map.keys():
+        for k, v in self.agent_task_pair.items():
+            if k in self.delivering_agent_id_map.keys():
                 agent_tasks[k] = [v[0]]
 
         self.last_task_id.clear()
-        for k, v in agent_tasks:
-            self.last_task_id.append(v[0])
-        return agent_tasks
+        for agent_task in agent_tasks:
+            for t in agent_task:
+                self.last_task_id.append(t)
 
-    def reset(self):
+        # if avail_task == 0:
+        #     agent_tasks[0] = [self.task_id_map[0]]
+
+        for agent_task in agent_tasks:
+            if -1 in agent_task:
+                breakpoint()
+            
+        return agent_tasks, penalty
+
+    def reset(self, seed=40):
         if self.training: 
-            agents, tasks, task_frequency, task_release_time = self.generate_agent_tasks()
+            agents, tasks, task_frequency, task_release_time = self.generate_agents_tasks()
         else:
             agents = []
             with open(self.eval_data_path, 'r') as f:
@@ -233,19 +276,25 @@ class MultiAgentPickupEnv(gym.Env):
                 lines = [line.strip().split(" ") for line in f]
                 tasks = [[int(line[0]), int(line[1]), int(line[2])] for line in lines]
 
+        # print(self.agent_num_now)
         status = self.solver.update_task(tasks, agents, 5000, task_frequency, task_release_time)
 
         # construct state
         self.step_count = 0
         self.state, _, _ = self.build_state(status)
-        return self.state
+        return self.state, {}
 
     def step(self, action):
-        agent_tasks = self.decode_action(action)
+        agent_tasks, penalty = self.decode_action(action)
+        # print(agent_tasks)
         status = self.solver.update(agent_tasks)
-        self.state, reward, done = self.build_state(status)
+        self.state, service_time, done = self.build_state(status)
         self.step_count += 1
 
+        # normalize reward
+        s_time = service_time - self.last_service_time
+        self.last_service_time = service_time
+        reward = -(s_time+ penalty)/((self.grid_size[0]+self.grid_size[1])*self.agent_num_now)
         # if self.step_count >= self.max_steps:
         #     done = True
-        return self.state, reward, done, {}
+        return self.state, reward, done, False, {}

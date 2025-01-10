@@ -2,6 +2,9 @@ from stable_baselines3.common.policies import ActorCriticPolicy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions import Categorical
+from scipy.optimize import linear_sum_assignment
+import numpy as np
     
 def create_mask(num, max_valid):
     batch_size = num.size(0)
@@ -18,15 +21,23 @@ class GumbelSinkhorn(nn.Module):
         self.iterations = iterations
         self.decay_rate = decay_rate
 
-    def forward(self, logits, free_agents_num, tasks_num, step=None):
+    def hungarian_sampling(self, logits):
+        cost_matrix = -logits
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+        return col_ind
+
+    def forward(self, logits, free_agents_num, tasks_num, step=None, deterministic=False):
         # 动态调整 tau
         tau = self.tau * torch.exp(-self.decay_rate * step) if step is not None else self.tau
 
         # 初始化分布
-        distribution = torch.zeros_like(logits)
+        distribution = torch.zeros_like(logits, device=logits.device)
 
+        agent_size = logits.shape[1]
+    
         # 逐 Batch 计算
         batch_size, _, _ = logits.size()
+        hungarian_action = np.zeros((batch_size, agent_size), dtype=np.int32)
         for b in range(batch_size):
             num_agents = free_agents_num[b].item()
             num_tasks = tasks_num[b].item()
@@ -35,10 +46,15 @@ class GumbelSinkhorn(nn.Module):
                 for _ in range(self.iterations):
                     logits_b = F.softmax(logits_b, dim=1)
                     logits_b = F.softmax(logits_b, dim=0)
+                
+                sample = self.hungarian_sampling(logits_b)
+                hungarian_action[b, :num_agents] = sample
                 distribution[b, :num_agents, :num_tasks] = logits_b
 
-        return distribution
-
+        if deterministic:
+            return distribution, _
+        else:
+            return distribution, torch.from_numpy(hungarian_action).to(logits.device).int()
 
 class MAPDActorCriticPolicy(ActorCriticPolicy):
     def __init__(self, observation_space, action_space, lr_schedule, tau=1.0, iterations=5, decay_rate=2e-4, **kwargs):
@@ -59,6 +75,11 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
             nn.ReLU(),
         )
 
+        self.bmm_mlp = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+        )
+
         # Critic 部分
         self.critic_mlp = nn.Sequential(
             nn.Linear(hidden_size, hidden_size),
@@ -71,6 +92,32 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         )
 
         self.gumbel_sinkhorn = GumbelSinkhorn(tau, iterations, decay_rate)
+        self.init_net()
+
+    def init_net(self):
+        def init_weights_orthogonal2(m):
+            if isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+        def init_weights_orthogonal(m):
+            if isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+        def init_weights_orthogonal0(m):
+            if isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+        
+        self.agent_mlp.apply(init_weights_orthogonal2)
+        self.task_mlp.apply(init_weights_orthogonal2)
+        self.critic_mlp.apply(init_weights_orthogonal2)
+        self.bmm_mlp.apply(init_weights_orthogonal0)
+        self.critic_value_mlp.apply(init_weights_orthogonal)
 
     def split_combined_feature(self, combined_feature, max_free_agents, max_delivering_agents, max_tasks):
         batch_size, _, hidden_size = combined_feature.size()
@@ -97,7 +144,18 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
                 dist[:, task_idx] = -1  # 确保每个任务最多分配一个 agent
         return action
 
-    def forward(self, combined_feature, free_agents_num, delivering_agents_num, tasks_num):
+    def unpack_obs(self, obs, batch_size):
+        hidden_size = self.feature_dim
+        batch_size = obs.shape[0]
+        combined_feature = obs[:,:-3].reshape(batch_size, -1, hidden_size)
+        free_agents_num = obs[:, -3]
+        delivering_agents_num = obs[:, -2]
+        tasks_num = obs[:, -1]
+        return combined_feature, free_agents_num, delivering_agents_num, tasks_num
+
+    def forward(self, obs, deterministic: bool = False):
+        features = self.extract_features(obs)
+        combined_feature, free_agents_num, delivering_agents_num, tasks_num = self.unpack_obs(features)
         # 提取有效数量
         max_free_agents = free_agents_num.max().item()
         max_delivering_agents = delivering_agents_num.max().item()
@@ -115,24 +173,40 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         # Pointer Network for logits
         free_agent_mlp = self.agent_mlp(free_agent_feature)  # (batch_size, max_free_agents, hidden_size)
         task_mlp = self.task_mlp(task_feature)  # (batch_size, max_tasks, hidden_size)
-        logits = torch.bmm(free_agent_mlp, task_mlp.transpose(1, 2))  # 点积计算 logits 矩阵
+        logits = self.bmm_mlp(torch.bmm(free_agent_mlp, task_mlp.transpose(1, 2)))  # 点积计算 logits 矩阵
 
         # Gumbel-Sinkhorn and action
-        distribution = self.gumbel_sinkhorn(logits, free_agents_num, tasks_num, self.step_sim)
-        action = self.greedy_action(distribution, free_agents_mask, tasks_mask)
+        distribution, hungarian_action = self.gumbel_sinkhorn(logits, free_agents_num, tasks_num, self.step_sim, deterministic)
+        
+        action = Categorical(probs=distribution).sample()
+        # action = self.greedy_action(distribution, free_agents_mask, tasks_mask)
 
         # Critic
         critic_feature = self.critic_mlp(combined_feature)
         pooled_feature, _ = torch.max(critic_feature, dim=1)
         value = self.critic_value_mlp(pooled_feature)
 
-        return distribution, action, value
+        log_probs = torch.log(distribution + 1e-10)  # 避免 log(0)
+        valid_mask = torch.bmm(free_agents_mask.unsqueeze(2), tasks_mask.unsqueeze(1))  # (batch_size, max_free_agents, max_tasks)
+        masked_log_probs = log_probs * valid_mask  # 屏蔽无效部分
+        batch_size, x = action.shape
+        indices = torch.arange(batch_size).unsqueeze(1)
+        if deterministic:
+            log_probs = masked_log_probs[indices, torch.arange(x).unsqueeze(0), hungarian_action]
+            return hungarian_action, value, log_probs
+        else:
+            log_probs = masked_log_probs[indices, torch.arange(x).unsqueeze(0), action]
+            return action, value, log_probs
+          
 
-    def evaluate_actions(self, combined_feature, actions, free_agents_num, delivering_agents_num, tasks_num):
+    def evaluate_actions(self, obs, actions):
         """
         评估动作的 log 概率、熵以及 value。
         """
         # 提取最大有效数量
+        features = self.extract_features(obs)
+        combined_feature, free_agents_num, delivering_agents_num, tasks_num = self.unpack_obs(features)
+
         max_free_agents = free_agents_num.max().item()
         max_tasks = tasks_num.max().item()
 
@@ -151,22 +225,35 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         logits = torch.bmm(free_agent_mlp, task_mlp.transpose(1, 2))  # (batch_size, max_free_agents, max_tasks)
 
         # Gumbel-Sinkhorn distribution
-        distribution = self.gumbel_sinkhorn(logits, free_agents_num, tasks_num, self.step_sim)
+        distribution, _ = self.gumbel_sinkhorn(logits, free_agents_num, tasks_num, self.step_sim)
         self.step_sim += 1
 
         # Log probabilities with mask
         log_probs = torch.log(distribution + 1e-10)  # 避免 log(0)
         valid_mask = torch.bmm(free_agents_mask.unsqueeze(2), tasks_mask.unsqueeze(1))  # (batch_size, max_free_agents, max_tasks)
         masked_log_probs = log_probs * valid_mask  # 屏蔽无效部分
-        log_probs_action = torch.sum(masked_log_probs * actions, dim=[1, 2])  # 根据动作计算 log 概率
+        batch_size, x = actions.shape
+        indices = torch.arange(batch_size).unsqueeze(1)
+        log_probs = masked_log_probs[indices, torch.arange(x).unsqueeze(0), actions]
 
         # Entropy with mask
         masked_distribution = distribution * valid_mask  # 屏蔽无效部分
-        entropy = -torch.sum(masked_distribution * log_probs, dim=[1, 2])
+        entropy = -(masked_distribution * log_probs).sum(dim=-1)
 
         # Critic
         critic_feature = self.critic_mlp(combined_feature)  # (batch_size, max_free_agents + max_tasks, hidden_size)
         pooled_feature, _ = torch.max(critic_feature, dim=1)  # MaxPooling
         value = self.critic_value_mlp(pooled_feature)  # (batch_size, 1)
 
-        return log_probs_action, entropy, value
+        return log_probs, entropy, value
+
+def _build(self, lr_schedule):
+    self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs)  # type: ignore[call-arg]
+
+def _predict(self, observation, deterministic: bool = False) -> torch.Tensor:
+    actions, _, _ = self.forward(observation, deterministic)
+    return actions
+
+def predict_values(self, obs) -> torch.Tensor:
+    _, values, _ = self.forward(obs)
+    return values

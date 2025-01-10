@@ -586,6 +586,7 @@ bool PBS::generate_root_node()
             }
         }
     }
+
     for (int i = 0; i < num_of_agents; i++) 
 	{
         initial_rt.clear();
@@ -598,6 +599,18 @@ bool PBS::generate_root_node()
         if (paths[i] != nullptr){
             continue;
         }
+
+        // cout << "old paths: "<<endl;
+        // for (int i = 0; i < num_of_agents; i++)
+        // {   
+        //     cout << i << ": ";
+        //     for (int j = 0; j<old_paths[i].size();j++)
+        //     {
+        //         cout<<old_paths[i][j].location << " ";
+        //     }
+        //     cout << endl;
+        // }
+        
         Path path;
         double path_cost;
         int start_location  = starts[i].location;
@@ -611,16 +624,47 @@ bool PBS::generate_root_node()
         // for (int k = 0; k < goal_locations[i].size(); k++)
         //     cout << goal_locations[i][k].first<< " "<< goal_locations[i][k].second<< endl;
         path = path_planner.run(G, starts[i], goal_locations[i], rt);
+        // cout << "Agent " << i << " planned." << endl;
         node_expanded += path_planner.num_expanded;
 		runtime_plan_paths += (std::clock() - t) * 1.0 / CLOCKS_PER_SEC;
         path_cost = path_planner.path_cost;
         dummy_start->path_cost_list[i] = path_cost;
         dummy_start->vis_goal_time[i] = path_planner.vis_goal_time;
+        //  for test
+        // if (!path.empty())
+        // {
+        //     cout << "new paths: "<<endl;
+        //     for (int k = 0; k < num_of_agents; k++)
+        //     {
+        //         if (paths[k] != nullptr)
+        //         {
+        //             cout << k << ": ";
+                
+        //             for (int l = 0; l<(*paths[l]).size();l++)
+        //             {
+        //                 cout<<(*paths[l])[l].location << " ";
+        //             }
+        //             cout << endl;
+        //         }
+                
+        //     } 
+        //     rt.clear();
+        // }
         rt.clear();
         LL_num_expanded += path_planner.num_expanded;
         LL_num_generated += path_planner.num_generated;
         if (path.empty())
         {
+            cout << "old paths: "<<endl;
+            for (int i = 0; i < num_of_agents; i++)
+            {   
+                cout << i << ": ";
+                for (int j = 0; j<old_paths[i].size();j++)
+                {
+                    cout<<old_paths[i][j].location << " ";
+                }
+                cout << endl;
+            }
             std::cout << "Agent num " << num_of_agents;
             std::cout << "Agent " << i;
             std::cout << "NO SOLUTION EXISTS";
@@ -703,6 +747,8 @@ bool PBS::run(const vector<State>& starts,
     {
         return false;
     } 
+
+    // cout<< "rootnode" << endl;
     
     if (dummy_start->num_of_collisions == 0) //no conflicts at the root node
     {// found a solution (and finish the while look)

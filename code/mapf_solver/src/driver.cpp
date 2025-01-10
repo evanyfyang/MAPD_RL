@@ -7,6 +7,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <pybind11/stl.h>
+#include <boost/any.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
 
@@ -168,11 +169,13 @@ class PBSSolver
         delete system;
     }
 
-	AgentTaskStatus update_task(const vector<vector<int>>& task, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period)
+	AgentTaskStatus update_task(vector<vector<int>>& task, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period)
 	{
-		system->load_tasks(task, new_agents, vm["simulation_time"].as<int>(), task_frequency, task_release_period);
+		// cout<<1<<endl;
+		system->load_tasks(task, new_agents, simulation_time, task_frequency, task_release_period);
 		vector<vector<int>> agent_tasks = {};
 		AgentTaskStatus status = system->simulate_until_next_assignment(agent_tasks);
+		
 		return status;
 	}
 
@@ -241,6 +244,7 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("allFinished", &AgentTaskStatus::allFinished)
         .def_readwrite("agent_task_pair", &AgentTaskStatus::agent_task_pair)
         .def_readwrite("valid", &AgentTaskStatus::valid)
+		.def_readwrite("timestep",&AgentTaskStatus::timestep)
 		.def_readwrite("finished_service_time", &AgentTaskStatus::finished_service_time)
         ;
 

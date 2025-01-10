@@ -6,5 +6,5 @@ CXX_DEFINES = -DBOOST_ALL_NO_LIB -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_PROGRAM_OPT
 
 CXX_INCLUDES = -I/localhome/yya305/2024/MAPD/MAPD_RL/code/mapf_solver/inc -isystem /localhome/yya305/miniconda3/envs/MAPD_RL/lib/python3.11/site-packages/pybind11/include -isystem /localhome/yya305/miniconda3/envs/MAPD_RL/include/python3.11
 
-CXX_FLAGS = -O3 -DNDEBUG -g -fPIC -fvisibility=hidden -flto -fno-fat-lto-objects -std=gnu++14
+CXX_FLAGS = -g -fPIC -fvisibility=hidden -std=gnu++14
 

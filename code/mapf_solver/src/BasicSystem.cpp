@@ -661,6 +661,8 @@ void BasicSystem::solve()
 		unordered_map<int, double> travel_times;
 		update_travel_times(solver.travel_times);
 
+        // 
+        time_limit = 10;
 		bool sol = solver.run(starts, goal_locations, time_limit);
 		update_paths(solver.solution);
 	}
@@ -709,6 +711,7 @@ void BasicSystem::solve()
 				// solver.initial_rt.insertPath2CT(planned_paths[i]);
 			}
 
+            time_limit = 10;
             bool sol = solver.run(new_starts, new_goal_locations, time_limit);
             if (sol)
 			{

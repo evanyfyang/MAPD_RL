@@ -1,34 +1,34 @@
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
-def sample_gumbel(shape, eps=1e-20):
-    U = torch.rand(shape)
-    return -torch.log(-torch.log(U + eps) + eps)
+class GumbelSinkhorn(nn.Module):
+    def __init__(self, tau=1.0, iterations=5, decay_rate=2e-4):
+        super(GumbelSinkhorn, self).__init__()
+        self.tau = tau
+        self.iterations = iterations
+        self.decay_rate = decay_rate
 
-def gumbel_sinkhorn_with_row_mask(log_alpha, mask, n_iters=20, tau=1.0):
-    # 应用掩码，通过将不允许的位置设置为 -inf
-    log_alpha = log_alpha + (mask + 1e-9).log()
-    
-    # 添加 Gumbel 噪声
-    gumbel_noise = sample_gumbel(log_alpha.shape)
-    log_alpha = log_alpha + gumbel_noise
-    
-    # 标记哪些行被完全掩盖
-    row_valid = mask.sum(dim=2) > 0
-    
-    # Sinkhorn 归一化
-    for _ in range(n_iters):
-        # 行归一化，仅对有效行进行
-        log_alpha = log_alpha.masked_fill(~row_valid.unsqueeze(-1), -float('inf'))
-        log_alpha = F.log_softmax(log_alpha, dim=2)
-        
-        # 列归一化
-        log_alpha = F.log_softmax(log_alpha, dim=1)
-    
-    # 对于被掩盖的行，保持为零矩阵
-    log_alpha = log_alpha.masked_fill(~row_valid.unsqueeze(-1), 0.0)
-    
-    return torch.exp(log_alpha)
+    def forward(self, logits, free_agents_num, tasks_num, step=None):
+        # 动态调整 tau
+        tau = self.tau * torch.exp(-self.decay_rate * step) if step is not None else self.tau
+
+        # 初始化分布
+        distribution = torch.zeros_like(logits)
+
+        # 逐 Batch 计算
+        batch_size, _, _ = logits.size()
+        for b in range(batch_size):
+            num_agents = free_agents_num[b].item()
+            num_tasks = tasks_num[b].item()
+            if num_agents > 0 and num_tasks > 0:
+                logits_b = logits[b, :num_agents, :num_tasks] / tau  # 裁剪并缩放
+                for _ in range(self.iterations):
+                    logits_b = F.softmax(logits_b, dim=1)
+                    logits_b = F.softmax(logits_b, dim=0)
+                distribution[b, :num_agents, :num_tasks] = logits_b
+
+        return distribution
 
 # 示例
 batch_size = 2

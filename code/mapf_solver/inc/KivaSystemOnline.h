@@ -17,7 +17,7 @@ typedef std::chrono::duration<float> fsec;
 class AgentTaskStatus
 {
 	public:
-		std::map<int, Task> tasks;
+		vector<Task> tasks;
 		vector<int> delivering_tasks;
 		vector<Agent> agents_all;
 		vector<Path> solution;
@@ -25,11 +25,12 @@ class AgentTaskStatus
 		std::map<int, pair<int,int>> agent_task_pair;
 		bool valid;
 		int finished_service_time;
-		AgentTaskStatus(const std::map<int, Task>& tasks, const vector<int>& delivering_tasks, 
+		int timestep;
+		AgentTaskStatus(const vector<Task>& tasks, const vector<int>& delivering_tasks, 
 			const vector<Agent>& agents_all, const vector<Path>& solution,
-			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int allFinished): 
+			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int timestep, int allFinished): 
 			tasks(tasks), delivering_tasks(delivering_tasks), agents_all(agents_all), 
-			solution(solution), agent_task_pair(agent_task_pair), finished_service_time(finished_service_time), 
+			solution(solution), agent_task_pair(agent_task_pair), finished_service_time(finished_service_time), timestep(timestep),
 			allFinished(allFinished){this->valid=true;}
 
 		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;}
@@ -45,8 +46,9 @@ public:
 	~KivaSystemOnline();
 
 	void simulate(int simulation_time);
+	void check_current_tasks();
 	void simulate(const vector<vector<int>>& goal_sequences);
-	bool load_tasks(const vector<vector<int>>& tasks, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period);
+	bool load_tasks(vector<vector<int>>& tasks, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period);
 	int get_makespan();
 	int get_flowtime() const;
 	int calculate_flowtime_tp(vector<vector<int>> finish_task_sequence);
