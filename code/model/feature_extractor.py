@@ -10,6 +10,7 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, hidden_size: int = 128):
         super(MAPDFeatureExtractor, self).__init__(observation_space, features_dim=hidden_size)
         
+        self.hidden_size = hidden_size
         # Observation space properties
         self.free_agents_grid_space = observation_space.spaces["free_agents_grid"]
         self.delivering_agents_grid_space = observation_space.spaces["delivering_agents_grid"]
@@ -76,9 +77,9 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
         obs = torch.cat(
             [
                 combined_feature, 
-                free_agents_num, 
-                delivering_agents_num, 
-                tasks_num
+                free_agents_num.unsqueeze(1), 
+                delivering_agents_num.unsqueeze(1), 
+                tasks_num.unsqueeze(1)
             ],
             dim=1 
         )
@@ -87,11 +88,11 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
 
     def forward(self, observations: Dict[str, torch.Tensor]) -> torch.Tensor:
         device = next(self.parameters()).device
-        
+        batch_size = observations["free_agents_num"].shape[0]
         # Extract valid counts
-        free_agents_num = observations["free_agents_num"].long().to(device)
-        delivering_agents_num = observations["delivering_agents_num"].long().to(device)
-        tasks_num = observations["tasks_num"].long().to(device)
+        free_agents_num = torch.argmax(observations["free_agents_num"].long().to(device), dim=-1).reshape(batch_size)
+        delivering_agents_num = torch.argmax(observations["delivering_agents_num"].long().to(device), dim=-1).reshape(batch_size)
+        tasks_num = torch.argmax(observations["tasks_num"].long().to(device), dim=-1).reshape(batch_size)
         
         free_agents_grid = observations["free_agents_grid"].to(device)
         delivering_agents_grid = observations["delivering_agents_grid"].to(device)
@@ -101,13 +102,14 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
 
         def extract_valid(grids, num):
             valid_grids = [grids[i, :num[i].item(), :, :] for i in range(batch_size)]
-            max_valid = max([g.size(0) for g in valid_grids])
+            max_num = grids.shape[1]
+            # max_valid = max([g.size(0) for g in valid_grids])
             padded_grids = torch.stack([
-                F.pad(g, (0, 0, 0, 0, 0, max_valid - g.size(0)), value=0)
-                if g.size(0) > 0 else torch.zeros((1, grids.size(2), grids.size(3)), device=device)
+                F.pad(g, (0, 0, 0, 0, 0, max_num - g.size(0)), value=0)
+                if g.size(0) > 0 else torch.zeros((max_num, grids.size(2), grids.size(3)), device=device)
                 for g in valid_grids
             ], dim=0)
-            mask = torch.tensor([[1] * g.size(0) + [0] * (max_valid - g.size(0)) for g in valid_grids], device=device)
+            mask = torch.tensor([[1] * g.size(0) + [0] * (max_num - g.size(0)) for g in valid_grids], device=device)
             return padded_grids, mask  # padded grids and attention mask
 
         # Extract valid grids and masks
@@ -121,7 +123,7 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
             valid_grids = valid_grids.view(b * n, 1, x, y)
             cnn_features = self.shared_conv(valid_grids)  # (b*n, hidden_size)
             mlp_features = mlp(cnn_features)  # (b*n, hidden_size)
-            mlp_features = mlp_features.view(b, n, -1)  # (batch_size, max_valid, hidden_size)
+            mlp_features = mlp_features.view(b, n, self.hidden_size)  # (batch_size, max_valid, hidden_size)
             return mlp_features
 
         free_agents_features = process_grids(free_agents_valid, self.free_agent_mlp)

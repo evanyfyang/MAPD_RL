@@ -7,7 +7,10 @@
 #include <chrono>
 
 void KivaGrid::update_agents(vector<int>& new_agents)
-{
+{	
+	endpoints = former_endpoints;
+	agent_home_locations.clear();
+	
 	for (size_t i = 0; i < new_agents.size(); ++i)
 	{
 		int agent_id = new_agents[i];
@@ -197,6 +200,7 @@ bool KivaGrid::load_Minghua_map(std::string fname)
 	cout << endpoints.size() << " endpoints and " <<
 	agent_home_locations.size() << " home stations." << std::endl;		
     std::cout << "Done! (" << runtime << " s)" << std::endl;
+	former_endpoints = endpoints;
     return true;
 }
 

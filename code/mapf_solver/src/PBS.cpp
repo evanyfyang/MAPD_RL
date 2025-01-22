@@ -880,8 +880,8 @@ bool PBS::run(const vector<State>& starts,
             start = goal.first;
         }
     }
-	if (screen > 0) // 1 or 2
-		print_results();
+	// if (screen > 0) // 1 or 2
+	// 	    ();
 	return solution_found;
 }
 

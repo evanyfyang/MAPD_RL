@@ -8,6 +8,7 @@ class KivaGrid :
 public:
 	vector<int> endpoints;
 	vector<int> agent_home_locations;
+	vector<int> former_endpoints;
 	// vector<int> initial_locations;
 
     bool load_map(string fname);

@@ -1,6 +1,6 @@
 from stable_baselines3 import A2C
 from typing import Any, ClassVar, Optional, TypeVar, Union
-
+import sys
 import torch as th
 from gymnasium import spaces
 from torch.nn import functional as F
@@ -13,6 +13,9 @@ from stable_baselines3.common.utils import explained_variance
 
 
 class A2CMAPD(A2C):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def train(self) -> None:
         """
         Update policy using the currently gathered
@@ -56,6 +59,11 @@ class A2CMAPD(A2C):
 
             loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
 
+            # print("Step/5:", self._n_updates)
+
+            print("Loss: ", loss, "policy_loss:", policy_loss, "entropy_loss", entropy_loss, "value_loss",value_loss)
+            sys.stdout.flush()
+            # breakpoint()
             # Optimization step
             self.policy.optimizer.zero_grad()
             loss.backward()

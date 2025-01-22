@@ -662,7 +662,7 @@ void BasicSystem::solve()
 		update_travel_times(solver.travel_times);
 
         // 
-        time_limit = 10;
+        // time_limit = 10;
 		bool sol = solver.run(starts, goal_locations, time_limit);
 		update_paths(solver.solution);
 	}
@@ -711,7 +711,7 @@ void BasicSystem::solve()
 				// solver.initial_rt.insertPath2CT(planned_paths[i]);
 			}
 
-            time_limit = 10;
+            // time_limit = 10;
             bool sol = solver.run(new_starts, new_goal_locations, time_limit);
             if (sol)
 			{
@@ -902,6 +902,7 @@ void BasicSystem::initialize_solvers()
 	solver.initial_rt.map_size = G.size();
 	solver.initial_rt.k_robust = k_robust;
 	solver.initial_rt.window = INT_MAX;
+    solver.solution.clear();
 }
 
 bool BasicSystem::load_records()

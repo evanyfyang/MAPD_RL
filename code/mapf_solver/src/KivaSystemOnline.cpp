@@ -70,8 +70,8 @@ bool KivaSystemOnline::load_tasks(vector<vector<int>>& tasks, vector<int>& new_a
 		{
 			arr.push_back(G.endpoints[tasks[i][j]]);
 		}
-		if (arr.size() < 2)
-				cout << "wrong" << endl;
+		// if (arr.size() < 2)
+		// 		cout << "wrong" << endl;
 
         all_tasks.push_back(Task(i + 1, release_time, arr));
 
@@ -91,13 +91,21 @@ void KivaSystemOnline::initialize(int simulation_time)
 {
 	this->simulation_time = simulation_time;
 	initialize_solvers();
+	starts.clear();
 	starts.resize(num_of_drives);
+	goal_locations.clear();
 	goal_locations.resize(num_of_drives);
+	paths.clear();
 	paths.resize(num_of_drives);
+	finished_tasks.clear();
 	finished_tasks.resize(num_of_drives);
+	task_sequences.clear();
 	task_sequences.resize(num_of_drives);
+	agents_task_sequences.clear();
 	agents_task_sequences.resize(num_of_drives);
+	agents_finish_sequence.clear();
 	agents_finish_sequence.resize(num_of_drives);
+	agents_finish_task_goal_arr.clear();
 	agents_finish_task_goal_arr.resize(num_of_drives);
 	mkspan = 0;
 	fltime = 0;
@@ -105,21 +113,29 @@ void KivaSystemOnline::initialize(int simulation_time)
 	finished_release_time = 0;
 	last_plan_timestep = 0;
 	task_plan_time = 0;
-
+	num_finished_tasks = 0;
+	num_of_tasks = 0;
+	deferred_task = false;
+	
+	path_len.clear();
+	remained_agents.clear();
 	for (int i = 0; i < num_of_drives; i++) {
 		path_len.push_back(0);
 		remained_agents.push_back(i);
 	}
-	bool succ = load_records(); // continue simulating from the records
-	if (!succ)
-	{
-		timestep = 0;
-		succ = load_locations();
-		if (!succ)
-		{
-			initialize_start_locations();
-		}
-	}
+
+	timestep = 0;
+	initialize_start_locations();
+	// bool succ = load_records(); // continue simulating from the records
+	// if (!succ)
+	// {
+	// 	timestep = 0;
+	// 	succ = load_locations();
+	// 	if (!succ)
+	// 	{
+	// 		initialize_start_locations();
+	// 	}
+	// }
 }
 
 void KivaSystemOnline::initialize_start_locations()
@@ -157,8 +173,8 @@ void KivaSystemOnline::generate_tasks()
 			}
 		}
 	}
-	if (count != 0)
-		std::cout << "Generate " << count << " new tasks " << endl;
+	// if (count != 0)
+	// 	std::cout << "Generate " << count << " new tasks " << endl;
 }
 
 int KivaSystemOnline::choose_good_endpoint(vector<int> current_assigned_endpoints, int last_task_endpoint)
@@ -448,12 +464,12 @@ bool KivaSystemOnline::move_after_assignment()
 		}
 	}
 
-	if (screen > 0)
-	{
-		std::cout << num_of_tasks - old << " goals just finished" << std::endl;
-		std::cout << num_of_tasks << " goals finished in total" << std::endl;
-		std::cout << num_finished_tasks << " tasks finished in total" << std::endl;
-	}
+	// if (screen > 0)
+	// {
+	// 	std::cout << num_of_tasks - old << " goals just finished" << std::endl;
+	// 	std::cout << num_of_tasks << " goals finished in total" << std::endl;
+	// 	std::cout << num_finished_tasks << " tasks finished in total" << std::endl;
+	// }
 	throughput_accumulate.push_back(num_finished_tasks);
 	if (num_finished_tasks == total_num_of_tasks) {
 		return false;
@@ -659,22 +675,30 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 		// cout<<starts<<endl;
 		// cout<<num_of_drives<<endl;
 		// return currernt_tasks, delivering_tasks, al.agents_all, solver.solution
-		AgentTaskStatus status = AgentTaskStatus(tl.tasks_all, delivering_tasks, al.agents_all, paths, agent_task_pair, fltime-finished_release_time, timestep, 0);
-		for (int pp = 0; pp < paths.size();pp ++)
-		{
-			if (paths[pp].size() <= timestep)
-				cout << "wrong" << endl;
-		}
 
-		for (int tp = 0; tp < tl.tasks_all.size(); tp++)
+		int delivering_service_time = 0;
+		for(int ti = 0; ti < delivering_tasks.size(); ti++)
 		{
-			if (tl.tasks_all[tp].goal_arr.size() < 2)
-			{
-				cout << current_tasks[tl.tasks_all[tp].task_id].goal_arr.size() << endl;
-				cout << "wrong" << endl;
-			}
-				
+			int task_id = delivering_tasks[ti];
+			delivering_service_time += current_tasks[task_id].estimated_service_time;
 		}
+		
+		AgentTaskStatus status = AgentTaskStatus(tl.tasks_all, delivering_tasks, al.agents_all, paths, agent_task_pair, fltime-finished_release_time, delivering_service_time, timestep, 0);
+		// for (int pp = 0; pp < paths.size();pp ++)
+		// {
+		// 	if (paths[pp].size() <= timestep)
+		// 		cout << "wrong" << endl;
+		// }
+
+		// for (int tp = 0; tp < tl.tasks_all.size(); tp++)
+		// {
+		// 	if (tl.tasks_all[tp].goal_arr.size() < 2)
+		// 	{
+		// 		cout << current_tasks[tl.tasks_all[tp].task_id].goal_arr.size() << endl;
+		// 		cout << "wrong" << endl;
+		// 	}
+				
+		// }
 		return status;
 	}
 	return AgentTaskStatus();
@@ -730,7 +754,7 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 
 	for (; timestep < simulation_time; timestep ++)
 	{
-		std::cout << "Timestep " << timestep << std::endl;
+		// std::cout << "Timestep " << timestep << std::endl;
 
 		new_agent_finish = false;
 

@@ -1,0 +1,382 @@
+nohup: ignoring input
+=============================================
+Start Training: GPU=3, LR=1e-5, gamma=0.9, tau=1.0, decay_rate=1e-4
+Model Dir: ../models/lr_1e-5_gamma_0.9_tau_1.0_decay_1e-4
+=============================================
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+*** Loading map ***
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+Done! (0 s)
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+Done! (0 s)
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+Done! (0 s)
+Done! (0 s)
+*** Loading map ***
+Map size: 21x35 with 352 endpoints and 0 home stations.
+Done! (0 s)
+*** PreProcessing map ***
+Done! (0 s)
+Done! (0 s)
+Done! (0 s)
+Done! (0 s)
+/localhome/yya305/miniconda3/envs/MAPD_RL/lib/python3.11/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+Using cuda device
+Step:  5
+Loss:  tensor(-56.1285, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-56.5457, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-107.5114, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.8344, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  10
+Loss:  tensor(-42.2788, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-42.5928, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-106.7039, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6279, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  15
+Loss:  tensor(-82.0885, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-82.7001, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-104.4095, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.2231, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  20
+Loss:  tensor(-94.1211, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-94.5367, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-102.7111, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.8311, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  25
+Loss:  tensor(-120.7122, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-121.5736, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-101.5107, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.7228, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  30
+Loss:  tensor(-144.4302, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-145.2056, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-102.5211, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.5506, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  35
+Loss:  tensor(-164.6370, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-165.4827, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-106.3248, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.6914, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  40
+Loss:  tensor(-153.9481, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-154.6092, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-112.6359, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.3221, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  45
+Loss:  tensor(-142.9413, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-143.5164, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-121.9907, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.1503, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  50
+Loss:  tensor(-139.2156, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-139.6644, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-130.6044, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.8974, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  55
+Loss:  tensor(-117.9867, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-118.3039, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-141.3024, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6345, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  60
+Loss:  tensor(-118.3874, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-118.6984, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-151.4383, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6220, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  65
+Loss:  tensor(-113.5724, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-113.8759, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-160.4076, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6068, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  70
+Loss:  tensor(-101.1833, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-101.3956, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-166.8507, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4245, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  75
+Loss:  tensor(-82.6967, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-82.8231, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-172.4154, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2528, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  80
+Loss:  tensor(-74.9999, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-75.1152, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-177.9307, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2306, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  85
+Loss:  tensor(-77.0546, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-77.1479, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-179.4057, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1868, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  90
+Loss:  tensor(-64.1954, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-64.2919, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-180.8589, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1930, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  95
+Loss:  tensor(-85.1024, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-85.2443, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-183.2824, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2837, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  100
+Loss:  tensor(-76.3902, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-76.5294, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-183.5727, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2785, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  105
+Loss:  tensor(-72.5245, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-72.6385, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-189.6833, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2280, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  110
+Loss:  tensor(-64.5916, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-64.6856, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-189.6559, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1879, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  115
+Loss:  tensor(-76.2322, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-76.3642, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-192.2732, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2639, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  120
+Loss:  tensor(-84.2838, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-84.4382, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-191.1396, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3087, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  125
+Loss:  tensor(-89.2488, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-89.4612, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-191.9068, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4249, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  130
+Loss:  tensor(-65.6297, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-65.8015, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-190.5804, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3437, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  135
+Loss:  tensor(-68.8323, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-69.0208, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-189.5891, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3770, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  140
+Loss:  tensor(-62.2900, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-62.4607, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-191.5501, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3413, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  145
+Loss:  tensor(-65.5342, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-65.7601, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-188.1372, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4518, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  150
+Loss:  tensor(-36.4787, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-36.6411, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-185.3428, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3248, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  155
+Loss:  tensor(-33.8319, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-34.0126, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-185.1108, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3614, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  160
+Loss:  tensor(-51.7598, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-51.9780, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-183.6243, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4365, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  165
+Loss:  tensor(-66.3964, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-66.6667, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-185.3712, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.5407, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  170
+Loss:  tensor(-56.8506, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-57.0821, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-183.6401, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4631, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  175
+Loss:  tensor(-65.0191, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-65.3160, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-178.4519, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.5937, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  180
+Loss:  tensor(-41.2180, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-41.4922, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-179.2903, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.5485, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  185
+Loss:  tensor(-51.0538, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-51.3894, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-177.7061, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6711, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  190
+Loss:  tensor(-25.7347, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-26.0499, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-178.5455, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6303, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  195
+Loss:  tensor(-41.2132, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-41.5549, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-179.7646, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6834, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  200
+Loss:  tensor(-50.4456, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-50.8138, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-182.4868, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.7363, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  205
+Loss:  tensor(29.2318, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(29.0205, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-185.8407, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4225, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  210
+Loss:  tensor(38.2691, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(38.1504, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-196.5122, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2372, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  215
+Loss:  tensor(-36.7563, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-36.9111, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-218.0919, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3095, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  220
+Loss:  tensor(1.5122, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(1.3735, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-206.3368, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2774, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  225
+Loss:  tensor(7.7826, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(7.6777, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-224.2207, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2097, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  230
+Loss:  tensor(16.6490, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(16.5775, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-239.4942, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1430, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  235
+Loss:  tensor(-13.9998, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-14.0838, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-268.5862, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1680, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  240
+Loss:  tensor(28.1526, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(28.0859, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-258.1092, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1335, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  245
+Loss:  tensor(13.4179, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(13.3071, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-286.2984, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2215, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  250
+Loss:  tensor(15.1313, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(15.0762, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-317.0955, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1102, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  255
+Loss:  tensor(-7.8029, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-7.8796, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-356.3929, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1535, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  260
+Loss:  tensor(4.4073, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(4.3420, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-348.1704, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1306, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  265
+Loss:  tensor(21.3350, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(21.2601, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-360.9272, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1496, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  270
+Loss:  tensor(-5.4732, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-5.5843, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-412.8347, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2221, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  275
+Loss:  tensor(34.6534, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(34.5345, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-393.8515, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2377, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  280
+Loss:  tensor(-4.3104, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-4.4040, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-441.3424, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1872, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  285
+Loss:  tensor(15.2859, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(15.1940, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-427.8232, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1839, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  290
+Loss:  tensor(22.1469, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(22.0189, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-472.2848, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2559, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  295
+Loss:  tensor(-6.0796, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-6.1764, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-527.0356, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1936, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  300
+Loss:  tensor(3.2406, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(3.1546, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-512.4760, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1719, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  305
+Loss:  tensor(3.2409, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(3.1145, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-545.7074, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2529, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  310
+Loss:  tensor(6.8835, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(6.7671, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-561.1882, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2328, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  315
+Loss:  tensor(9.7908, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(9.6567, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-595.6035, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2682, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  320
+Loss:  tensor(-19.0457, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-19.1514, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-634.1907, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2113, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  325
+Loss:  tensor(10.5074, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(10.3854, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-616.3009, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2439, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  330
+Loss:  tensor(2.8081, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(2.6928, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-641.5206, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2307, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  335
+Loss:  tensor(-2.2846, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-2.3954, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-661.8734, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2217, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  340
+Loss:  tensor(11.5629, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(11.4878, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-657.2986, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1500, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  345
+Loss:  tensor(-0.4467, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-0.5809, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-694.3996, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2684, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  350
+Loss:  tensor(-21.6745, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-21.7833, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-698.3704, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2177, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  355
+Loss:  tensor(18.3173, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(18.1790, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-672.8649, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2766, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  360
+Loss:  tensor(6.7623, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(6.6661, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-720.6904, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1923, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  365
+Loss:  tensor(7.7803, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(7.6593, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-755.6169, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2420, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  370
+Loss:  tensor(5.3140, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(5.2185, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-794.7375, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1911, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  375
+Loss:  tensor(-10.5893, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-10.6608, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-821.7251, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1431, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  380
+Loss:  tensor(3.2981, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(3.1317, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-797.0867, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3329, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  385
+Loss:  tensor(3.4314, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(3.2674, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-811.7041, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3278, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  390
+Loss:  tensor(3.9362, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(3.7753, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-830.8358, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3219, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  395
+Loss:  tensor(-33.6526, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-33.7497, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-858.1123, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.1942, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  400
+Loss:  tensor(-10.9172, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-11.0630, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-834.7797, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2916, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  405
+Loss:  tensor(-19.8595, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-19.9709, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-828.0887, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2228, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  410
+Loss:  tensor(-38.1414, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-38.3374, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-803.1048, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3920, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  415
+Loss:  tensor(7.0672, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(6.9258, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-768.7049, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2829, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  420
+Loss:  tensor(16.3862, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(16.1963, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-805.0537, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3799, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  425
+Loss:  tensor(-29.6941, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-29.8541, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-845.2156, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3200, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  430
+Loss:  tensor(-2.4787, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-2.6903, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-815.5736, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4231, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  435
+Loss:  tensor(17.5786, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(17.4023, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-813.7162, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3525, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  440
+Loss:  tensor(-1.5607, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1.6995, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-861.2843, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2777, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  445
+Loss:  tensor(-41.6017, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-41.7658, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-875.4976, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3282, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  450
+Loss:  tensor(24.7364, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(24.4910, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-840.3691, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4907, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  455
+Loss:  tensor(13.2740, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(13.0701, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-890.0257, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4079, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  460
+Loss:  tensor(-31.5265, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-31.6454, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-928.8652, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2377, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  465
+Loss:  tensor(28.7462, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(28.5174, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-888.3976, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4577, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  470
+Loss:  tensor(-17.2349, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-17.3763, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-939.6992, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2829, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  475
+Loss:  tensor(-14.9177, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-15.0496, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-921.0240, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.2639, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  480
+Loss:  tensor(-26.6297, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-26.7849, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-893.7523, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3104, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  485
+Loss:  tensor(12.6088, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(12.3815, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-859.5934, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.4546, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  490
+Loss:  tensor(-14.7013, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-14.8597, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-890.9094, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.3168, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  495
+Loss:  tensor(-1.0275, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1.2777, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-871.8208, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.5004, device='cuda:0', grad_fn=<MseLossBackward0>)
+------------------------------------
+| time/                 |          |
+|    fps                | 1        |
+|    iterations         | 100      |
+|    time_elapsed       | 3446     |
+|    total_timesteps    | 4000     |
+| train/                |          |
+|    entropy_loss       | -872     |
+|    explained_variance | -0.0114  |
+|    learning_rate      | 1e-05    |
+|    n_updates          | 99       |
+|    policy_loss        | -1.28    |
+|    value_loss         | 0.5      |
+------------------------------------
+Step:  500
+Loss:  tensor(26.2221, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(25.9297, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-883.3066, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.5848, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  505
+Loss:  tensor(-23.5658, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-24.1823, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-884.0368, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.2329, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  510
+Loss:  tensor(-40.3190, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-40.6497, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-826.3005, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.6613, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  515
+Loss:  tensor(-47.2765, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-47.7130, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-752.0870, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.8731, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  520
+Loss:  tensor(-94.0707, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-94.6767, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-713.4359, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.2120, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  525
+Loss:  tensor(-57.6647, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-58.0688, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-680.2950, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(0.8083, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  530
+Loss:  tensor(-66.4595, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-67.2246, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-631.3577, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.5301, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  535
+Loss:  tensor(-80.4295, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-81.5118, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-553.4539, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(2.1646, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  540
+Loss:  tensor(-75.2133, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-75.9457, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-515.1880, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(1.4648, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  545
+Loss:  tensor(-96.6803, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-97.9206, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-482.7498, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(2.4805, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  550
+Loss:  tensor(-136.9022, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-138.8839, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-460.9149, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(3.9635, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  555
+Loss:  tensor(-120.6275, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-122.9802, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-413.3769, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(4.7054, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  560
+Loss:  tensor(-215.8339, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-217.3034, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-383.7402, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(2.9389, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  565
+Loss:  tensor(-205.6931, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-207.7529, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-356.5678, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(4.1197, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  570
+Loss:  tensor(-162.3083, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-163.9822, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-344.4001, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(3.3478, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  575
+Loss:  tensor(-202.2330, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-203.8261, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-321.5189, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(3.1862, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  580
+Loss:  tensor(-39.4757, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-40.8108, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-315.2329, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(2.6700, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  585
+Loss:  tensor(-192.1760, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-194.5447, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-289.9252, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(4.7375, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  590
+Loss:  tensor(-295.0314, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-297.3518, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-284.5080, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(4.6407, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  595
+Loss:  tensor(-209.6672, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-212.3205, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-280.1042, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(5.3066, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  600
+Loss:  tensor(-232.0439, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-235.4597, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-256.7431, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(6.8316, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  605
+Loss:  tensor(-256.3600, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-258.8449, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-253.0553, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(4.9699, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  610
+Loss:  tensor(-326.0675, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-328.9227, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-239.0159, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(5.7103, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  615
+Loss:  tensor(-335.1148, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-338.3027, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-234.4622, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(6.3758, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  620
+Loss:  tensor(-365.5442, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-368.6317, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-228.8029, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(6.1751, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  625
+Loss:  tensor(-422.2838, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-425.8340, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-215.7697, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(7.1003, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  630
+Loss:  tensor(-408.3382, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-412.3539, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-209.3275, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(8.0314, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  635
+Loss:  tensor(-430.8590, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-434.9057, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-201.5293, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(8.0932, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  640
+Loss:  tensor(-500.4954, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-505.1090, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-191.9199, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(9.2271, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  645
+Loss:  tensor(-276.2750, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-279.0039, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-187.5490, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(5.4578, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  650
+Loss:  tensor(-214.5525, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-218.8715, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-177.3301, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(8.6380, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  655
+Loss:  tensor(-349.5721, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-354.2987, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-172.4796, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(9.4532, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  660
+Loss:  tensor(-421.7503, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-426.2501, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-163.8361, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(8.9996, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  665
+Loss:  tensor(-516.4146, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-521.5375, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-166.0930, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(10.2457, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  670
+Loss:  tensor(-371.5897, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-376.5057, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-155.4272, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(9.8320, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  675
+Loss:  tensor(-616.5812, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-622.5420, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-149.3290, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(11.9215, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  680
+Loss:  tensor(-868.0176, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-877.1306, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-150.8218, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(18.2259, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  685
+Loss:  tensor(-70.9102, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-78.2957, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-142.1664, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(14.7710, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  690
+Loss:  tensor(-635.7529, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-643.1335, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-136.1775, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(14.7612, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  695
+Loss:  tensor(-483.0305, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-491.3057, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-131.4554, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(16.5503, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  700
+Loss:  tensor(-393.3740, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-398.0234, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-126.5769, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(9.2988, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  705
+Loss:  tensor(-638.1312, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-645.9551, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-121.5969, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(15.6480, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  710
+Loss:  tensor(-662.9647, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-670.9249, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-119.5011, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(15.9206, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  715
+Loss:  tensor(-630.3024, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-635.4086, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-116.6601, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(10.2125, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  720
+Loss:  tensor(-424.5204, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-428.8835, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-108.0708, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(8.7262, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  725
+Loss:  tensor(-770.1927, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-780.1508, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-102.8010, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(19.9163, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  730
+Loss:  tensor(-1061.7144, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1075.0824, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-101.9148, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(26.7361, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  735
+Loss:  tensor(-581.8004, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-588.4155, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-98.1262, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(13.2303, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  740
+Loss:  tensor(-881.8815, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-893.0656, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-92.3572, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(22.3681, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  745
+Loss:  tensor(-675.3080, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-683.5853, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-90.9607, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(16.5546, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  750
+Loss:  tensor(-1063.5846, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1075.5540, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-88.1280, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(23.9386, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  755
+Loss:  tensor(-799.8797, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-808.8657, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-86.1520, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(17.9719, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  760
+Loss:  tensor(-988.6816, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1000.1120, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-78.3974, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(22.8607, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  765
+Loss:  tensor(-951.8536, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-960.4940, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-74.3417, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(17.2807, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  770
+Loss:  tensor(-225.3364, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-233.1497, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-73.9194, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(15.6266, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  775
+Loss:  tensor(-977.6146, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-991.3250, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-70.7144, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(27.4208, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  780
+Loss:  tensor(-1356.2941, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1371.5293, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-67.7832, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(30.4704, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  785
+Loss:  tensor(-976.2097, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-988.5159, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-63.7680, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(24.6126, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  790
+Loss:  tensor(-680.1295, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-695.8733, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-60.7692, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(31.4876, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  795
+Loss:  tensor(-1000.1516, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1022.6100, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-55.4115, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(44.9169, device='cuda:0', grad_fn=<MseLossBackward0>)
+Step:  800
+Loss:  tensor(-1050.1891, device='cuda:0', grad_fn=<AddBackward0>) policy_loss: tensor(-1062.5482, device='cuda:0', grad_fn=<NegBackward0>) entropy_loss tensor(-55.1558, device='cuda:0', grad_fn=<DivBackward0>) value_loss tensor(24.7182, device='cuda:0', grad_fn=<MseLossBackward0>)

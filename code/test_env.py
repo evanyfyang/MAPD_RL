@@ -42,4 +42,73 @@ while not done:
     done = terminated
     step += 1
 
+obs, info = env.reset()
+
+done = False
+while not done:
+    # 随机采样一个动作
+    task_num = obs['tasks_num']
+    free_agents_num = obs['free_agents_num']
+    print("num", task_num, free_agents_num)
+    action = np.zeros([50], dtype=np.int32)
+    for i in range(free_agents_num):
+        action[i] = i
+    print(f"Step {step}: Taking action {action}")
+
+    # 执行动作
+    obs, reward, terminated, truncated, info = env.step(action)
+    print(f"Reward: {reward}, Done: {terminated or truncated}")
+
+    # 渲染环境（可选）
+    # env.render()
+
+    done = terminated
+    step += 1
+
+obs, info = env.reset()
+
+done = False
+while not done:
+    # 随机采样一个动作
+    task_num = obs['tasks_num']
+    free_agents_num = obs['free_agents_num']
+    print("num", task_num, free_agents_num)
+    action = np.zeros([50], dtype=np.int32)
+    for i in range(free_agents_num):
+        action[i] = i
+    print(f"Step {step}: Taking action {action}")
+
+    # 执行动作
+    obs, reward, terminated, truncated, info = env.step(action)
+    print(f"Reward: {reward}, Done: {terminated or truncated}")
+
+    # 渲染环境（可选）
+    # env.render()
+
+    done = terminated
+    step += 1
+
+obs, info = env.reset()
+
+done = False
+while not done:
+    # 随机采样一个动作
+    task_num = obs['tasks_num']
+    free_agents_num = obs['free_agents_num']
+    print("num", task_num, free_agents_num)
+    action = np.zeros([50], dtype=np.int32)
+    for i in range(free_agents_num):
+        action[i] = i
+    print(f"Step {step}: Taking action {action}")
+
+    # 执行动作
+    obs, reward, terminated, truncated, info = env.step(action)
+    print(f"Reward: {reward}, Done: {terminated or truncated}")
+
+    # 渲染环境（可选）
+    # env.render()
+
+    done = terminated
+    step += 1
+
 env.close()
