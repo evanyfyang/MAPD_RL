@@ -655,19 +655,7 @@ bool PBS::generate_root_node()
         LL_num_generated += path_planner.num_generated;
         if (path.empty())
         {
-            cout << "old paths: "<<endl;
-            for (int i = 0; i < num_of_agents; i++)
-            {   
-                cout << i << ": ";
-                for (int j = 0; j<old_paths[i].size();j++)
-                {
-                    cout<<old_paths[i][j].location << " ";
-                }
-                cout << endl;
-            }
-            std::cout << "Agent num " << num_of_agents;
-            std::cout << "Agent " << i;
-            std::cout << "NO SOLUTION EXISTS";
+            write_log("NO_INITIAL_PATH_FOR_AGENT_" + std::to_string(i));
             return false;
         }
         dummy_start->paths.emplace_back(i, path);
@@ -766,6 +754,7 @@ bool PBS::run(const vector<State>& starts,
 		{  // timeout
 			solution_cost = -1;
 			solution_found = false;
+            write_log("TIMEOUT");
 			break;
 		}
 		PBSNode* curr = pop_node();
@@ -857,6 +846,9 @@ bool PBS::run(const vector<State>& starts,
             {
                 // std::cout << "*******A new nogood ********" << endl;
                 nogood.emplace(std::get<0>(curr->conflict), std::get<1>(curr->conflict));
+                write_log("NOGOOD_CONFLICT_BETWEEN_AGENTS_" + 
+                          std::to_string(std::get<0>(curr->conflict)) + "_AND_" +
+                          std::to_string(std::get<1>(curr->conflict)));
             }
             curr->clear();
         }
@@ -882,6 +874,11 @@ bool PBS::run(const vector<State>& starts,
     }
 	// if (screen > 0) // 1 or 2
 	// 	    ();
+
+    if (!solution_found && dfs.empty()) {
+        write_log("NO_VALID_PRIORITY_ORDERING");
+    }
+
 	return solution_found;
 }
 
@@ -1076,4 +1073,42 @@ void PBS::get_solution()
         avg_path_length += paths[k]->size();
     }
     avg_path_length /= num_of_agents;
+}
+
+void PBS::write_log(const string& error_type) {
+    time_t now = std::time(nullptr);
+    std::string filename = std::to_string(now) + "PBS.txt";
+    string filePath = "/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/log/" + filename;
+    std::ofstream outFile(filePath);
+
+    if (!outFile) {
+        cout << "outFile failed" << endl;
+        return;
+    }
+
+    // 写入基本信息
+    outFile << "Goal locations:" << endl;
+    for (int i = 0; i < num_of_agents; i++) {
+        outFile << i << ": ";
+        outFile << starts[i].location << " ";
+        for (int j = 0; j < goal_locations[i].size(); j++) {
+            outFile << goal_locations[i][j].first << ' ';
+        }
+        outFile << endl;
+    }   
+
+    outFile << endl << endl << "Old Paths:" << endl;
+    for (int i = 0; i < num_of_agents; i++) {   
+        outFile << i << ": ";
+        for (int j = 0; j < old_paths[i].size(); j++) {
+            outFile << old_paths[i][j].location << " ";
+        }
+        outFile << endl;
+    }
+    
+    outFile << "Agent num: " << num_of_agents << endl;
+    outFile << "Error type: " << error_type << endl;
+
+    outFile.close();
+    cout << "Log written to: " << filePath << endl;
 }

@@ -2,6 +2,11 @@
 #include "PBS.h"
 #include <random>
 #include <csignal>
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 
 
 KivaSystemOnline::KivaSystemOnline(KivaGrid& G, MAPFSolver& solver): BasicSystem(G, solver), G(G) {}
@@ -58,8 +63,13 @@ bool KivaSystemOnline::load_tasks(vector<vector<int>>& tasks, vector<int>& new_a
     total_release_time = 0;
 
 	if (new_agents.size() > 0)
+	{
 		G.update_agents(new_agents);
 		num_of_drives = new_agents.size();
+	}
+		
+	// else:
+	// 	num_of_drives = G.agent_home_locations.size();
 
     for (size_t i = 0; i < tasks.size(); ++i) {
         int release_time = tasks[i][0];
@@ -730,13 +740,64 @@ void KivaSystemOnline::estimate_service_time()
 	}
 }
 
+void write_log()
+{
+	
+}
+
+
 AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<vector<int>>& agent_tasks)
 {
 	if(timestep != 0 || agent_tasks.size()>0)
 	{
 		update_agent_tasks(agent_tasks);
 		// check_current_tasks();
-		solve();
+		if(!solve())
+		{
+			time_t now = time(nullptr);
+			std::tm* localTime = std::localtime(&now);
+
+			std::string filename = std::to_string(now) + ".txt";
+
+			string filePath = "/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/log/" + filename;
+			cout << filePath << endl;
+			std::ofstream outFile(filePath);
+
+			// if (outFile)
+			// {
+			if (!outFile)
+			{
+				cout << "outFile failed" << endl;
+			}
+			outFile << "Goal locations:" << endl;
+			for (int i = 0; i < num_of_drives; i++)
+			{
+				outFile << i << ": ";
+				outFile << starts[i].location << " ";
+				for (int j = 0; j < goal_locations[i].size(); j++)
+				{
+					outFile << goal_locations[i][j].first << ' ';
+				}
+				outFile << endl;
+			}	
+
+			outFile << endl << endl << "Old Paths:" << endl;
+			for (int i = 0; i < num_of_drives; i++)
+			{   
+				outFile << i << ": ";
+				for (int j = 0; j<solver.old_paths[i].size();j++)
+				{
+					outFile<<solver.old_paths[i][j].location << " ";
+				}
+				outFile << endl;
+			}
+			outFile.close();
+			return AgentTaskStatus();
+		}
+
+		
+		// }
+		
 		// check_current_tasks();
 		estimate_service_time();
 		// check_current_tasks();

@@ -5,3 +5,4 @@ code/mapf_sovler/CMakeFiles/
 code/mapf_sovler/maps/
 code/mapf_sovler/.vscode/
 code/mapf_sovler/__pycache__/
+*.out

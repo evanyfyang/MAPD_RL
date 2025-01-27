@@ -66,6 +66,8 @@ public:
 		rt.prioritize_start = prioritize_start;
 	}
 
+    void write_log(const string& error_type);
+
 private:
 
     std::vector< Path* > paths;

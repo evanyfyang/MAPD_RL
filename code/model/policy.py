@@ -87,7 +87,7 @@ class GumbelSinkhorn(nn.Module):
                     sample = self.hungarian_sampling(logits_b)
                     hungarian_action[b, :num_agents] = sample
                 distribution[b, :num_agents, :num_tasks] = logits_b
-
+        # breakpoint()
         if not deterministic:
             return distribution, _
         else:
@@ -102,8 +102,8 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         self.step_sim = 0
         # self.max_agent_num = torch.LongTensor([50])
         # self.max_task = torch.LongTensor([500])
-        self.max_agent_num = 50
-        self.max_task = 500
+        self.max_agent_num = max_agent_num
+        self.max_task = max_task
         # Actor 部分
         self.agent_mlp = nn.Sequential(
             nn.Linear(hidden_size, hidden_size),
@@ -340,8 +340,8 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
     def _build(self, lr_schedule):
         self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs)  # type: ignore[call-arg]
 
-    def _predict(self, observation, deterministic: bool = False) -> torch.Tensor:
-        actions, _, _ = self.forward(observation, deterministic)
+    def _predict(self, observation, deterministic: bool = True) -> torch.Tensor:
+        actions, _, _ = self.forward(observation, True)
         return actions
 
     def predict_values(self, obs) -> torch.Tensor:

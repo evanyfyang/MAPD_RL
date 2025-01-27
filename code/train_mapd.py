@@ -38,7 +38,7 @@ def parse_args():
     # ------------- A2C 相关超参数 -------------
     parser.add_argument("--total_timesteps", type=int, default=100000,
                         help="训练总步数 (总采样数).")
-    parser.add_argument("--n_envs", type=int, default=8,
+    parser.add_argument("--n_envs", type=int, default=1,
                         help="同时并行的环境数量 (多进程).")
     parser.add_argument("--learning_rate", type=float, default=1e-4,
                         help="初始学习率.")
@@ -67,7 +67,7 @@ def parse_args():
                         help="agent数量上界.")
     parser.add_argument("--eval_data_path", type=str, default=None,
                         help="评估数据集路径 (可选).")
-    parser.add_argument("--task_num", type=int, default=500,
+    parser.add_argument("--task_num", type=int, default=200,
                         help="生成任务数量 (for MAPD).")
     parser.add_argument("--pos_reward", action="store_true", default=False,
                         help="reward是否加一.")
@@ -97,7 +97,7 @@ def parse_args():
                         help="若指定某模型路径，则只测试该模型.")
     parser.add_argument("--test_env_seed", type=int, default=100,
                         help="测试环境的随机种子.")
-    parser.add_argument("--test_episodes", type=int, default=5,
+    parser.add_argument("--test_episodes", type=int, default=1,
                         help="测试时跑多少回合.")
 
     args = parser.parse_args()
@@ -114,15 +114,10 @@ def linear_schedule(initial_value: float):
     return func
 
 def test_model(model_path, env_kwargs, n_episodes=5, seed=100):
-    """
-    加载指定路径的模型，并在给定的 env 上跑 n_episodes 回合以测试效果。
-    """
     print(f"Loading model from: {model_path}")
     model = A2CMAPD.load(model_path)
 
-    # 构造测试环境
-    test_env = MultiAgentPickupEnv(**env_kwargs)
-    test_env.seed(seed)
+    test_env = MultiAgentPickupEnv(seed=seed, **env_kwargs)
 
     episode_rewards = []
     for ep in range(n_episodes):
@@ -131,17 +126,13 @@ def test_model(model_path, env_kwargs, n_episodes=5, seed=100):
         total_rew = 0.0
         while not done:
             action, _states = model.predict(obs, deterministic=True)
-            obs, reward, done, info = test_env.step(action)
+            obs, reward, done, _, info = test_env.step(action)
             total_rew += reward
-
-            # 如果是多智能体环境，reward和done可能是数组/字典，需要自行处理。
-            # 这里假设是单一 float 并且 `done` 表示一个 episode 结束。
-            # 如果是多智能体，可以在 done 里判断 all(done)
 
         episode_rewards.append(total_rew)
 
     avg_reward = float(np.mean(episode_rewards))
-    print(f"[Test] Episodes: {n_episodes}, Mean Reward: {avg_reward:.2f}")
+    print(f"[Test] Episodes: {n_episodes}, Reward: {avg_reward:.2f}")
     return avg_reward
 
 def main():
@@ -153,30 +144,28 @@ def main():
 
     if args.test_checkpoint is not None:
         env_kwargs = dict(
-            training=False,     # 测试时一般不需要训练模式
+            training=False,     
             grid_path=args.grid_path,
             solver=args.solver,
             agent_num_lower_bound=args.agent_num_lower_bound,
             agent_num_higher_bound=args.agent_num_higher_bound,
             eval_data_path=args.eval_data_path,
-            task_num=args.task_num
+            task_num=args.task_num,
+            pos_reward=args.pos_reward
         )
         test_model(args.test_checkpoint, env_kwargs, n_episodes=args.test_episodes, seed=args.test_env_seed)
         return
     
-    # --------------- 构造 Env ---------------
     env_kwargs = dict(
         training=args.training,
         grid_path=args.grid_path,
         solver=args.solver,
         agent_num_lower_bound=args.agent_num_lower_bound,
         agent_num_higher_bound=args.agent_num_higher_bound,
-        task_num=args.task_num
+        task_num=args.task_num,
+        pos_reward=args.pos_reward
     )
 
-    # 多环境 (vecenv) 初始化:
-    # 如果 n_envs == 1，可直接用 DummyVecEnv
-    # 如果 n_envs > 1，可用 SubprocVecEnv
     if args.n_envs > 1:
         vec_env_cls = SubprocVecEnv
     else:
@@ -209,6 +198,9 @@ def main():
         tau=args.tau,
         iterations=args.iterations,
         decay_rate=args.decay_rate,
+        fix_div=args.fix_div,
+        not_div=args.not_div,
+        max_task=args.task_num
     )
 
     model = A2CMAPD(

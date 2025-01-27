@@ -1,45 +1,100 @@
 #!/usr/bin/env bash
-# 让脚本在遇到错误时退出
+# Exit script if any command fails
 set -e
 
 ########################################
-# 使用说明:
-#   ./run_mapd.sh <gpu_id> <learning_rate> <gamma> <tau> <decay_rate>
-#   例如:
-#     ./run_mapd.sh 0 3e-4 0.99 1.0 1e-4
-#   这表示:
-#     - 使用 GPU 0
-#     - learning_rate = 3e-4
-#     - gamma         = 0.99
-#     - tau           = 1.0
-#     - decay_rate    = 1e-4
-#
-#   其余参数 (optimizer=Adam, ent_coef=0, hidden_size=128, checkpoint_freq=1000, global_seed=40, grid_path=... ) 固定。
-#   脚本会自动在 "../models" 下创建一个带时间戳和超参数信息的目录, 并将 train_mapd.py 的产物保存在其中.
+# Usage:
+#   ./run_mapd.sh -g <gpu_id> -l <learning_rate> -m <gamma> -t <tau> -n <task_num> -p <process_num> [-r] [-f] [-d]
+#   Example:
+#     ./run_mapd.sh -g 0 -l 3e-4 -m 0.99 -t 1.0 -n 10 -p 5 -r -f
+#   Parameters:
+#     -g: GPU ID
+#     -l: learning rate
+#     -m: gamma (discount factor)
+#     -t: tau (target network update rate)
+#     -n: task number
+#     -p: process number
+#     -r: enable position reward (optional)
+#     -f: enable fixed division (optional)
+#     -d: disable division (optional)
 ########################################
 
-if [ $# -lt 5 ]; then
-  echo ": $0 <gpu_id> <learning_rate> <gamma> <tau> <decay_rate>"
+# Initialize default values
+GPU_ID=""
+LEARNING_RATE=""
+GAMMA=""
+TAU=""
+TASK_NUM=""
+PROCESS_NUM=""
+POS_REWARD_FLAG=0
+FIX_DIV_FLAG=0
+NOT_DIV_FLAG=0
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -g)
+      GPU_ID="$2"
+      shift 2
+      ;;
+    -l)
+      LEARNING_RATE="$2"
+      shift 2
+      ;;
+    -m)
+      GAMMA="$2"
+      shift 2
+      ;;
+    -t)
+      TAU="$2"
+      shift 2
+      ;;
+    -n)
+      TASK_NUM="$2"
+      shift 2
+      ;;
+    -p)
+      PROCESS_NUM="$2"
+      shift 2
+      ;;
+    -r)
+      POS_REWARD_FLAG=1
+      shift
+      ;;
+    -f)
+      FIX_DIV_FLAG=1
+      shift
+      ;;
+    -d)
+      NOT_DIV_FLAG=1
+      shift
+      ;;
+    *)
+      echo "Unknown parameter: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Check required parameters
+if [ -z "$GPU_ID" ] || [ -z "$LEARNING_RATE" ] || [ -z "$GAMMA" ] || [ -z "$TAU" ] || [ -z "$TASK_NUM" ] || [ -z "$PROCESS_NUM" ]; then
+  echo "Usage: $0 -g <gpu_id> -l <learning_rate> -m <gamma> -t <tau> -n <task_num> -p <process_num> [-r] [-f] [-d]"
   exit 1
 fi
 
-GPU_ID=$1
-LEARNING_RATE=$2
-GAMMA=$3
-TAU=$4
-DECAY_RATE=$5
-POS_REWARD_FLAG=$6
-FIX_DIV_FLAG=$7
-NOT_DIV_FLAG=$8
-
-# 生成时间戳 (形如 20250110_1030)
+# Generate timestamp (format: 20250110_1030)
 TIMESTAMP=$(date +%Y%m%d_%H%M)
 
-# 构造模型保存目录: ../models/lr_${LEARNING_RATE}_gamma_${GAMMA}_tau_${TAU}_decay_${DECAY_RATE}_${TIMESTAMP}
-MODEL_DIR="../models/lr_${LEARNING_RATE}_gamma_${GAMMA}_tau_${TAU}_decay_${DECAY_RATE}"
+# Construct model save directory
+MODEL_DIR="../models/lr_${LEARNING_RATE}_gamma_${GAMMA}_tau_${TAU}_${POS_REWARD_FLAG}_${FIX_DIV_FLAG}_${NOT_DIV_FLAG}_${PROCESS_NUM}_${TASK_NUM}"
 
-# 创建目录
+# Create directory
 mkdir -p "${MODEL_DIR}"
+
+# Set optional parameters
+POS_REWARD_ARG=""
+FIX_DIV_ARG=""
+NOT_DIV_ARG=""
 
 if [ "$POS_REWARD_FLAG" = "1" ]; then
   POS_REWARD_ARG="--pos_reward"
@@ -53,30 +108,32 @@ if [ "$NOT_DIV_FLAG" = "1" ]; then
   NOT_DIV_ARG="--not_div"
 fi
 
-# 让指定的 GPU 可见
+# Make specified GPU visible
 export CUDA_VISIBLE_DEVICES="${GPU_ID}"
 
 echo "============================================="
-echo "Start Training: GPU=${GPU_ID}, LR=${LEARNING_RATE}, gamma=${GAMMA}, tau=${TAU}, decay_rate=${DECAY_RATE}"
-echo "Model Dir: ${MODEL_DIR}"
+echo "Start Training: GPU=${GPU_ID}, LR=${LEARNING_RATE}, gamma=${GAMMA}, tau=${TAU}"
+echo "Task Number: ${TASK_NUM}, Process Number: ${PROCESS_NUM}"
+echo "Model Directory: ${MODEL_DIR}"
 echo "============================================="
 
 export CUDA_LAUNCH_BLOCKING=1
-# 调用 train_mapd.py
+# Call train_mapd.py
 python train_mapd.py \
   --learning_rate "${LEARNING_RATE}" \
   --gamma "${GAMMA}" \
   --tau "${TAU}" \
-  --decay_rate "${DECAY_RATE}" \
   --ent_coef 0 \
   --hidden_size 128 \
   --checkpoint_freq 1000 \
   --global_seed 40 \
-  --grid_path "/localhome/yya305/2024/MAPD/MAPD_RL/code/mapf_solver/maps/Instances/small/kiva-small.map" \
+  --grid_path "/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/maps/Instances/small/kiva-small.map" \
   --save_dir "${MODEL_DIR}" \
   --training \
+  --task_num "${TASK_NUM}" \
+  --n_envs "${PROCESS_NUM}" \
   ${POS_REWARD_ARG} \
   ${FIX_DIV_ARG} \
   ${NOT_DIV_ARG}
 
-echo "Finished. Saved: ${MODEL_DIR}"
+echo "Training completed. Model saved to: ${MODEL_DIR}"

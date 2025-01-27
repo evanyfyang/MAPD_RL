@@ -107,7 +107,7 @@ class MultiAgentPickupEnv(gym.Env):
 
         endpoint_num = len(self.e_map) - agent_num
 
-        while len(tasks) < self.task_num:
+        while len(tasks) < self.task_num and len(tasks) < 200:
             pickup = random.randint(0, endpoint_num-1)
             delivery = random.randint(0, endpoint_num-1)
             while delivery == pickup:
@@ -127,9 +127,14 @@ class MultiAgentPickupEnv(gym.Env):
     def build_state(self, status):
         if status.allFinished == 1 and status.valid == True:
             done = True
-            return None, status.finished_service_time, done
+            return None, status.finished_service_time, done, True
         else:
             done = False
+
+        if status.valid == False:
+            done = True
+            penalty = self.agent_num_now*(self.grid_size[0]+self.grid_size[1])*2
+            return None, penalty, done, False
 
         self.task_id_map.clear()
         self.free_agent_id_map.clear()
@@ -214,7 +219,7 @@ class MultiAgentPickupEnv(gym.Env):
         finished_service_time = status.finished_service_time
         reward = finished_service_time + delivering_reward + free_reward
 
-        print("id:", self.seed, "free_agents", self.free_agent_id_map.values(), "delivering_agents:", self.delivering_agent_id_map.values(), "delivering_tasks:", delivering_tasks, "free_reward:", free_reward, "delivering_reward:",delivering_reward, "finished_service_time:", finished_service_time)
+        print("id:", self.seed, "free_tasks:", [tti for tti in self.task_id_map.values() if tti != -1],"free_agents", self.free_agent_id_map.values(), "delivering_agents:", self.delivering_agent_id_map.values(), "delivering_tasks:", delivering_tasks, "free_reward:", free_reward, "delivering_reward:",delivering_reward, "finished_service_time:", finished_service_time)
         # print("delivering_agents", list(self.delivering_agent_id_map.keys()))
         sys.stdout.flush()
         return {
@@ -226,7 +231,7 @@ class MultiAgentPickupEnv(gym.Env):
             "free_agents_num": free_agent_cnt,
             "delivering_agents_num": delivering_agent_cnt,
             "tasks_num": task_cnt
-        }, reward, done
+        }, reward, done, True
 
     def decode_action(self, action):
         action = action[:self.agent_num_now]
@@ -264,11 +269,11 @@ class MultiAgentPickupEnv(gym.Env):
 
         # if avail_task == 0:
         #     agent_tasks[0] = [self.task_id_map[0]]
-
+        breakpoint()
         for agent_task in agent_tasks:
             if -1 in agent_task:
                 breakpoint()
-        # print(agent_tasks)
+        print("id:", self.seed, "agent_tasks:",agent_tasks)
         # sys.stdout.flush()
         return agent_tasks, penalty
 
@@ -290,31 +295,42 @@ class MultiAgentPickupEnv(gym.Env):
                 task_num, task_frequency, task_release_time = f.readline().strip().split(" ")
                 task_frequency = float(task_frequency)
                 task_release_time = int(task_release_time)
-                lines = [line.strip().split(" ") for line in f]
+                lines = [line.strip().split() for line in f]
                 tasks = [[int(line[0]), int(line[1]), int(line[2])] for line in lines]
 
-        # print(self.agent_num_now)
-        status = self.solver.update_task(tasks, agents, 5000, task_frequency, task_release_time)
+        
+        if self.training:
+            status = self.solver.update_task(tasks, agents, 5000, task_frequency, task_release_time)
+        else:
+            status = self.solver.update_task(tasks, [], 5000, task_frequency, task_release_time)
+            self.agent_num_now = len(status.agents_all)
 
+        # print(self.agent_num_now)
         # construct state
         self.step_count = 0
-        self.state, _, _ = self.build_state(status)
+        self.state, _, _, _ = self.build_state(status)
         # if True:
         #     breakpoint()
-        return self.state, {}
+        if self.training:
+            return self.state, {}
+        else:
+            return self.state
 
     def step(self, action):
         agent_tasks, penalty = self.decode_action(action)
         # print(agent_tasks)
         status = self.solver.update(agent_tasks)
-        self.state, service_time, done = self.build_state(status)
+        self.state, service_time, done, valid = self.build_state(status)
         self.step_count += 1
 
         # normalize reward
         s_time = service_time - self.last_service_time
         self.last_service_time = service_time
         
-        reward = -(s_time+ penalty)/((self.grid_size[0]+self.grid_size[1])*self.agent_num_now)
+        if valid:
+            reward = -(s_time+ penalty)/((self.grid_size[0]+self.grid_size[1])*self.agent_num_now)
+        else:
+            reward = -1
         if self.pos_reward:
             reward += 1
 

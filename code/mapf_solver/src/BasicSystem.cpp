@@ -370,7 +370,7 @@ list<tuple<int, int, int>> BasicSystem::move()
             if (t > 0)
             {
                 State prev = paths[k][t - 1];
-
+                    
                 if (curr.location == prev.location)
                 {
                     if (G.get_rotate_degree(prev.orientation, curr.orientation) == 2)
@@ -649,7 +649,7 @@ void BasicSystem::update_travel_times(unordered_map<int, double>& travel_times)
 }
 
 
-void BasicSystem::solve()
+bool BasicSystem::solve()
 {
 	LRAStar lra(G, solver.path_planner);
 	lra.simulation_window = simulation_window;
@@ -722,16 +722,121 @@ void BasicSystem::solve()
 					planned_paths[i] = *pt;
 					++pt;
 				}
+                
 				if (check_collisions(planned_paths))
 				{
-					cout << "PLAN FOR ASSIGNED AGENTS COLLISIONS!" << endl;
-					exit(-1);
+					// cout << "PLAN FOR ASSIGNED AGENTS COLLISIONS!" << endl;
+					// exit(-1);
+                    time_t now = std::time(nullptr);
+                    std::tm* localTime = std::localtime(&now);
+
+                    std::string filename = std::to_string(now) + "BasicSystem.txt";
+
+                    string filePath = "/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/log/" + filename;
+                    cout << filePath << endl;
+                    std::ofstream outFile(filePath);
+
+                    // if (outFile)
+                    // {
+                    if (!outFile)
+                    {
+                        cout << "outFile failed" << endl;
+                    }
+                    outFile << "Goal locations:" << endl;
+                    for (int i = 0; i < num_of_drives; i++)
+                    {
+                        outFile << i << ": ";
+                        outFile << starts[i].location << " ";
+                        for (int j = 0; j < goal_locations[i].size(); j++)
+                        {
+                            outFile << goal_locations[i][j].first << ' ';
+                        }
+                        outFile << endl;
+                    }	
+
+                    outFile << endl << endl << "Old Paths:" << endl;
+                    for (int i = 0; i < num_of_drives; i++)
+                    {   
+                        outFile << i << ": ";
+                        for (int j = 0; j<solver.old_paths[i].size();j++)
+                        {
+                            outFile<<solver.old_paths[i][j].location << " ";
+                        }
+                        outFile << endl;
+                    }
+
+                    outFile << endl << endl << "New Paths:" << endl;
+                    for (int i = 0; i < num_of_drives; i++)
+                    {
+                        outFile << i << ": ";
+                        for (int j = 0; j<planned_paths[i].size();j++)
+                        {
+                            outFile<<planned_paths[i][j].location << " ";
+                        }
+                        outFile << endl;
+                    }
+                    
+                    outFile << "PLAN FOR ASSIGNED AGENTS COLLISIONS!";
+                    outFile.close();
+                    return false;
 				}
 			}
             else 
             {
-                cout << "PBS FAILED: PLAN FOR ASSIGNED AGENTS FAILED!" << endl;
-					exit(-1);
+                time_t now = std::time(nullptr);
+                std::tm* localTime = std::localtime(&now);
+
+                std::string filename = std::to_string(now) + "BasicSystem.txt";
+
+                string filePath = "/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/log/" + filename;
+                cout << filePath << endl;
+                std::ofstream outFile(filePath);
+
+                // if (outFile)
+                // {
+                if (!outFile)
+                {
+                    cout << "outFile failed" << endl;
+                }
+                outFile << "Goal locations:" << endl;
+                for (int i = 0; i < num_of_drives; i++)
+                {
+                    outFile << i << ": ";
+                    outFile << starts[i].location << " ";
+                    for (int j = 0; j < goal_locations[i].size(); j++)
+                    {
+                        outFile << goal_locations[i][j].first << ' ';
+                    }
+                    outFile << endl;
+                }	
+
+                outFile << endl << endl << "Old Paths:" << endl;
+                for (int i = 0; i < num_of_drives; i++)
+                {   
+                    outFile << i << ": ";
+                    for (int j = 0; j<solver.old_paths[i].size();j++)
+                    {
+                        outFile<<solver.old_paths[i][j].location << " ";
+                    }
+                    outFile << endl;
+                }
+
+                outFile << endl << endl << "New Paths:" << endl;
+                for (int i = 0; i < num_of_drives; i++)
+                {
+                    outFile << i << ": ";
+                    for (int j = 0; j<planned_paths[i].size();j++)
+                    {
+                        outFile<<planned_paths[i][j].location << " ";
+                    }
+                    outFile << endl;
+                }
+                
+                outFile << "PBS FAILED: PLAN FOR ASSIGNED AGENTS FAILED!" << endl;
+                outFile.close();
+                
+                return false;
+					// exit(-1);
             }
             // if (free_agents.size() == 0)
             // {
@@ -819,7 +924,8 @@ void BasicSystem::solve()
 					 if (check_collisions(planned_paths))
 					 {
 						 cout << "COLLISIONS!" << endl;
-						 exit(-1);
+                         return false;
+						//  exit(-1);
 					 }
 				 }
 				 else
@@ -852,7 +958,8 @@ void BasicSystem::solve()
 			 }
 			 else
 			 {
-                 exit(0);
+                 return false;
+                //  exit(0);
 				 lra.resolve_conflicts(solver.solution);
 				 update_paths(lra.solution);
 			 }
@@ -863,6 +970,7 @@ void BasicSystem::solve()
 	 }
 	 solver.save_results(outfile + "/solver.csv", std::to_string(timestep) + "," 
 										+ std::to_string(num_of_drives) + "," + std::to_string(seed));
+    return true;
 }
 
 bool BasicSystem::solve_by_WHCA(vector<Path>& planned_paths,
