@@ -12,3 +12,51 @@ idea.pptx
 ~*
 maps
 *.out
+
+# Model and data directories
+models/
+data/
+
+# Build outputs
+**/build/
+**/CMakeFiles/
+**/*.o
+**/*.so
+**/*.a
+**/*.out
+**/*.exe
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.egg-info/
+
+# IDE settings
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+
+# Test outputs and logs
+**/log/
+**/logs/
+**/*.log
+**/test_output/
+**/results/
+
+# Map files (if they should be generated or downloaded separately)
+code/mapf_solver/maps/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Temporary files
+*.tmp
+.DS_Store

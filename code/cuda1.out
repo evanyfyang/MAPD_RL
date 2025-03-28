@@ -7457,3 +7457,2943 @@ id: 48 reward: -0.010869565217391304 service_time: 1532 s_time: 28 penalty: 0 ag
 ______________________
 id: 44 reward: 20.006696428571427 service_time: 2458 s_time: -9 penalty: 0 agent_num: 24 done: True
 ______________________
+Step:  3440
+Pretraining Loss:  tensor(0.3086, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.044642857142857144 service_time: 274 s_time: 25 penalty: 0 agent_num: 10 done: False
+______________________
+id: 47 reward: -0.023214285714285715 service_time: 774 s_time: 26 penalty: 0 agent_num: 20 done: False
+______________________
+id: 41 reward: 0.0 service_time: 787 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 44 reward: -0.009615384615384616 service_time: 21 s_time: 21 penalty: 0 agent_num: 39 done: False
+______________________
+id: 52 reward: 0.0 service_time: 140 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.010093167701863354 service_time: 1198 s_time: -13 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: -0.033035714285714286 service_time: 249 s_time: 37 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.017857142857142856 service_time: 1117 s_time: 27 penalty: 0 agent_num: 27 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1115 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 46 reward: -0.011627906976744186 service_time: 425 s_time: 28 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.004343629343629344 service_time: 1546 s_time: 9 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.01746894409937888 service_time: 1372 s_time: 45 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.0 service_time: 1158 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.01838235294117647 service_time: 462 s_time: 35 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.015816326530612244 service_time: 1478 s_time: 31 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.01125776397515528 service_time: 1561 s_time: 29 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3456
+Pretraining Loss:  tensor(0.2331, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.04285714285714286 service_time: 298 s_time: 24 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 787 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.027678571428571427 service_time: 280 s_time: 31 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0 service_time: 774 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.01282051282051282 service_time: 49 s_time: 28 penalty: 0 agent_num: 39 done: False
+______________________
+id: 52 reward: -0.025974025974025976 service_time: 172 s_time: 32 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.009259259259259259 service_time: 1103 s_time: -14 penalty: 0 agent_num: 27 done: False
+______________________
+id: 51 reward: -0.036490683229813664 service_time: 1245 s_time: 47 penalty: 0 agent_num: 23 done: False
+______________________
+id: 40 reward: 0.0 service_time: 1478 s_time: 0 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.00872093023255814 service_time: 446 s_time: 21 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: 0.0 service_time: 1546 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1115 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 43 reward: -0.01207983193277311 service_time: 485 s_time: 23 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: 0.0 service_time: 1372 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.02569686411149826 service_time: 1217 s_time: 59 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.012422360248447204 service_time: 1593 s_time: 32 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3472
+Pretraining Loss:  tensor(0.2357, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 298 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.05032467532467533 service_time: 756 s_time: -31 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: 0.0 service_time: 774 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.030032467532467532 service_time: 209 s_time: 37 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.02142857142857143 service_time: 304 s_time: 24 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.01510989010989011 service_time: 82 s_time: 33 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: 0.0 service_time: 1245 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.005291005291005291 service_time: 1111 s_time: 8 penalty: 0 agent_num: 27 done: False
+______________________
+id: 50 reward: -0.022727272727272728 service_time: 1143 s_time: 28 penalty: 0 agent_num: 22 done: False
+______________________
+id: 46 reward: -0.0070598006644518275 service_time: 463 s_time: 17 penalty: 0 agent_num: 43 done: False
+______________________
+id: 43 reward: -0.019432773109243698 service_time: 522 s_time: 37 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.00043554006968641115 service_time: 1218 s_time: 1 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.013975155279503106 service_time: 1408 s_time: 36 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.030405405405405407 service_time: 1609 s_time: 63 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.011224489795918367 service_time: 1500 s_time: 22 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.009316770186335404 service_time: 1617 s_time: 24 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3488
+Pretraining Loss:  tensor(0.2516, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 298 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.09415584415584416 service_time: 814 s_time: 58 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: 0.011645962732919254 service_time: 1230 s_time: -15 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: -0.03571428571428571 service_time: 344 s_time: 40 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.0 service_time: 209 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.025 service_time: 802 s_time: 28 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.027777777777777776 service_time: 1153 s_time: 42 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: 0.0 service_time: 82 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.0070598006644518275 service_time: 480 s_time: 17 penalty: 0 agent_num: 43 done: False
+______________________
+id: 50 reward: -0.04626623376623377 service_time: 1200 s_time: 57 penalty: 0 agent_num: 22 done: False
+______________________
+id: 40 reward: -0.015306122448979591 service_time: 1530 s_time: 30 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.01833976833976834 service_time: 1647 s_time: 38 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.013198757763975156 service_time: 1442 s_time: 34 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.026785714285714284 service_time: 573 s_time: 51 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.005434782608695652 service_time: 1631 s_time: 14 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.016114982578397212 service_time: 1255 s_time: 37 penalty: 0 agent_num: 41 done: False
+______________________
+Step:  3504
+Pretraining Loss:  tensor(0.2402, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.04107142857142857 service_time: 321 s_time: 23 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.006493506493506494 service_time: 818 s_time: 4 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: -0.020535714285714286 service_time: 825 s_time: 23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.03977272727272727 service_time: 258 s_time: 49 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.0 service_time: 1230 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: -0.033035714285714286 service_time: 381 s_time: 37 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.042328042328042326 service_time: 1217 s_time: 64 penalty: 0 agent_num: 27 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1200 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.011446886446886446 service_time: 107 s_time: 25 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.01287375415282392 service_time: 511 s_time: 31 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.008152173913043478 service_time: 1463 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.008710801393728223 service_time: 1275 s_time: 20 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.01838235294117647 service_time: 608 s_time: 35 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.02857142857142857 service_time: 1586 s_time: 56 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.012548262548262547 service_time: 1673 s_time: 26 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: 0.00038819875776397513 service_time: 1630 s_time: -1 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3520
+Pretraining Loss:  tensor(0.2663, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0035714285714285713 service_time: 319 s_time: -2 penalty: 0 agent_num: 10 done: False
+______________________
+id: 47 reward: -0.02142857142857143 service_time: 849 s_time: 24 penalty: 0 agent_num: 20 done: False
+______________________
+id: 41 reward: 0.0 service_time: 818 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: 0.005434782608695652 service_time: 1223 s_time: -7 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: -0.017857142857142856 service_time: 146 s_time: 39 penalty: 0 agent_num: 39 done: False
+______________________
+id: 49 reward: -0.024107142857142858 service_time: 408 s_time: 27 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.06412337662337662 service_time: 1279 s_time: 79 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: -0.016233766233766232 service_time: 278 s_time: 20 penalty: 0 agent_num: 22 done: False
+______________________
+id: 46 reward: 0.0004152823920265781 service_time: 510 s_time: -1 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.0020408163265306124 service_time: 1590 s_time: 4 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.00723938223938224 service_time: 1688 s_time: 15 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: 0.0 service_time: 1463 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.019021739130434784 service_time: 1679 s_time: 49 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.008928571428571428 service_time: 625 s_time: 17 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: 0.00043554006968641115 service_time: 1274 s_time: -1 penalty: 0 agent_num: 41 done: False
+______________________
+id: 42 reward: -0.05423280423280423 service_time: 1299 s_time: 82 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  3536
+Pretraining Loss:  tensor(0.2735, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 319 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.03896103896103896 service_time: 842 s_time: 24 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: -0.029464285714285714 service_time: 882 s_time: 33 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0015527950310559005 service_time: 1221 s_time: -2 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.025974025974025976 service_time: 310 s_time: 32 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.027678571428571427 service_time: 439 s_time: 31 penalty: 0 agent_num: 20 done: False
+______________________
+id: 46 reward: -0.009136212624584718 service_time: 532 s_time: 22 penalty: 0 agent_num: 43 done: False
+______________________
+id: 44 reward: -0.006868131868131868 service_time: 161 s_time: 15 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: -0.05092592592592592 service_time: 1376 s_time: 77 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.017346938775510204 service_time: 1624 s_time: 34 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.009704968944099378 service_time: 1488 s_time: 25 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.020483193277310924 service_time: 664 s_time: 39 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.02264808362369338 service_time: 1326 s_time: 52 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.019305019305019305 service_time: 1728 s_time: 40 penalty: 0 agent_num: 37 done: False
+______________________
+id: 50 reward: -0.05844155844155844 service_time: 1351 s_time: 72 penalty: 0 agent_num: 22 done: False
+______________________
+id: 48 reward: -0.021350931677018632 service_time: 1734 s_time: 55 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3552
+Pretraining Loss:  tensor(0.2810, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.02857142857142857 service_time: 303 s_time: -16 penalty: 0 agent_num: 10 done: False
+______________________
+id: 52 reward: -0.002435064935064935 service_time: 313 s_time: 3 penalty: 0 agent_num: 22 done: False
+______________________
+id: 41 reward: -0.04220779220779221 service_time: 868 s_time: 26 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.02857142857142857 service_time: 471 s_time: 32 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.02096273291925466 service_time: 1248 s_time: 27 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.02857142857142857 service_time: 914 s_time: 32 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.011904761904761904 service_time: 187 s_time: 26 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.012043189368770765 service_time: 561 s_time: 29 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: 0.0 service_time: 1624 s_time: 0 penalty: 0 agent_num: 35 done: False
+______________________
+id: 50 reward: -0.012987012987012988 service_time: 1367 s_time: 16 penalty: 0 agent_num: 22 done: False
+______________________
+id: 54 reward: 0.00048262548262548264 service_time: 1727 s_time: -1 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: 0.0 service_time: 664 s_time: 0 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: -0.021350931677018632 service_time: 1543 s_time: 55 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.013975155279503106 service_time: 1770 s_time: 36 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.01521164021164021 service_time: 1399 s_time: 23 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.017857142857142856 service_time: 1367 s_time: 41 penalty: 0 agent_num: 41 done: False
+______________________
+Step:  3568
+Pretraining Loss:  tensor(0.2878, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 303 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 868 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.025892857142857145 service_time: 500 s_time: 29 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0015527950310559005 service_time: 1246 s_time: -2 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: 0.0 service_time: 914 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.024350649350649352 service_time: 343 s_time: 30 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.013278388278388278 service_time: 216 s_time: 29 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.011212624584717609 service_time: 588 s_time: 27 penalty: 0 agent_num: 43 done: False
+______________________
+id: 50 reward: -0.07873376623376624 service_time: 1464 s_time: 97 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.009259259259259259 service_time: 1385 s_time: -14 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.01838235294117647 service_time: 699 s_time: 35 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 1641 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.006599378881987578 service_time: 1560 s_time: 17 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.013996138996138996 service_time: 1756 s_time: 29 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.007404181184668989 service_time: 1384 s_time: 17 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.009704968944099378 service_time: 1795 s_time: 25 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3584
+Pretraining Loss:  tensor(0.3100, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 303 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 51 reward: -0.037267080745341616 service_time: 1294 s_time: 48 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.027678571428571427 service_time: 945 s_time: 31 penalty: 0 agent_num: 20 done: False
+______________________
+id: 41 reward: 0.0 service_time: 868 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.022321428571428572 service_time: 525 s_time: 25 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.020292207792207792 service_time: 368 s_time: 25 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.011904761904761904 service_time: 242 s_time: 26 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: -0.004629629629629629 service_time: 1392 s_time: 7 penalty: 0 agent_num: 27 done: False
+______________________
+id: 46 reward: -0.013289036544850499 service_time: 620 s_time: 32 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.01447876447876448 service_time: 1786 s_time: 30 penalty: 0 agent_num: 37 done: False
+______________________
+id: 50 reward: -0.013798701298701298 service_time: 1481 s_time: 17 penalty: 0 agent_num: 22 done: False
+______________________
+id: 43 reward: -0.022584033613445378 service_time: 742 s_time: 43 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: 0.00038819875776397513 service_time: 1794 s_time: -1 penalty: 0 agent_num: 46 done: False
+______________________
+id: 55 reward: -0.00038819875776397513 service_time: 1561 s_time: 1 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.052551020408163264 service_time: 1744 s_time: 103 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.016986062717770034 service_time: 1423 s_time: 39 penalty: 0 agent_num: 41 done: False
+______________________
+Step:  3600
+Pretraining Loss:  tensor(0.3466, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 303 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 52 reward: -0.008116883116883116 service_time: 378 s_time: 10 penalty: 0 agent_num: 22 done: False
+______________________
+id: 41 reward: 0.0 service_time: 868 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.02857142857142857 service_time: 557 s_time: 32 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0 service_time: 945 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.1112012987012987 service_time: 1618 s_time: 137 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.016025641025641024 service_time: 277 s_time: 35 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: -0.015527950310559006 service_time: 1314 s_time: 20 penalty: 0 agent_num: 23 done: False
+______________________
+id: 46 reward: -0.004152823920265781 service_time: 630 s_time: 10 penalty: 0 agent_num: 43 done: False
+______________________
+id: 42 reward: 0.011904761904761904 service_time: 1374 s_time: -18 penalty: 0 agent_num: 27 done: False
+______________________
+id: 54 reward: 0.0009652509652509653 service_time: 1784 s_time: -2 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.0163265306122449 service_time: 1776 s_time: 32 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.025232919254658384 service_time: 1626 s_time: 65 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.022584033613445378 service_time: 785 s_time: 43 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.016692546583850932 service_time: 1837 s_time: 43 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.004790940766550522 service_time: 1412 s_time: -11 penalty: 0 agent_num: 41 done: False
+______________________
+Step:  3616
+Pretraining Loss:  tensor(0.3560, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 303 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.09090909090909091 service_time: 924 s_time: 56 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: 0.0 service_time: 378 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 557 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.007305194805194805 service_time: 1627 s_time: 9 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.059006211180124224 service_time: 1390 s_time: 76 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: -0.013736263736263736 service_time: 307 s_time: 30 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.007475083056478406 service_time: 648 s_time: 18 penalty: 0 agent_num: 43 done: False
+______________________
+id: 47 reward: -0.008035714285714285 service_time: 954 s_time: 9 penalty: 0 agent_num: 20 done: False
+______________________
+id: 54 reward: -0.008687258687258687 service_time: 1802 s_time: 18 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: 0.0 service_time: 1626 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.05886243386243386 service_time: 1463 s_time: 89 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.020483193277310924 service_time: 824 s_time: 39 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.010017421602787456 service_time: 1435 s_time: 23 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.017080745341614908 service_time: 1881 s_time: 44 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.01479591836734694 service_time: 1805 s_time: 29 penalty: 0 agent_num: 35 done: False
+______________________
+Step:  3632
+Pretraining Loss:  tensor(0.4068, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 303 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 924 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.017045454545454544 service_time: 399 s_time: 21 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.0375 service_time: 996 s_time: 42 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.013798701298701298 service_time: 1644 s_time: 17 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.023214285714285715 service_time: 583 s_time: 26 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.010531135531135532 service_time: 330 s_time: 23 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: -0.026397515527950312 service_time: 1424 s_time: 34 penalty: 0 agent_num: 23 done: False
+______________________
+id: 46 reward: -0.009551495016611296 service_time: 671 s_time: 23 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.004591836734693878 service_time: 1814 s_time: 9 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.022683397683397683 service_time: 1849 s_time: 47 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.01436335403726708 service_time: 1663 s_time: 37 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.051587301587301584 service_time: 1541 s_time: 78 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.01132404181184669 service_time: 1461 s_time: 26 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.002329192546583851 service_time: 1887 s_time: 6 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.02100840336134454 service_time: 864 s_time: 40 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3648
+Pretraining Loss:  tensor(0.4001, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.04107142857142857 service_time: 326 s_time: 23 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.03409090909090909 service_time: 945 s_time: 21 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.026785714285714284 service_time: 432 s_time: 33 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.002329192546583851 service_time: 1427 s_time: 3 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: -0.025892857142857145 service_time: 612 s_time: 29 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.021915584415584416 service_time: 1617 s_time: -27 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 996 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.00641025641025641 service_time: 344 s_time: 14 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.008305647840531562 service_time: 691 s_time: 20 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: 0.0 service_time: 1849 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.006097560975609756 service_time: 1475 s_time: 14 penalty: 0 agent_num: 41 done: False
+______________________
+id: 42 reward: -0.016534391534391533 service_time: 1566 s_time: 25 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: -0.009704968944099378 service_time: 1688 s_time: 25 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 1831 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.01203416149068323 service_time: 1918 s_time: 31 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: 0.004201680672268907 service_time: 856 s_time: -8 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3664
+Pretraining Loss:  tensor(0.3941, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 326 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.011363636363636364 service_time: 938 s_time: -7 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.048701298701298704 service_time: 492 s_time: 60 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.01607142857142857 service_time: 1014 s_time: 18 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.030032467532467532 service_time: 1654 s_time: 37 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 612 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.003663003663003663 service_time: 352 s_time: 8 penalty: 0 agent_num: 39 done: False
+______________________
+id: 54 reward: -0.027992277992277992 service_time: 1907 s_time: 58 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.009136212624584718 service_time: 713 s_time: 22 penalty: 0 agent_num: 43 done: False
+______________________
+id: 51 reward: -0.014751552795031056 service_time: 1446 s_time: 19 penalty: 0 agent_num: 23 done: False
+______________________
+id: 55 reward: 0.0 service_time: 1688 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.011243386243386243 service_time: 1583 s_time: 17 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.02003484320557491 service_time: 1521 s_time: 46 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.02153361344537815 service_time: 897 s_time: 41 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: 0.0 service_time: 1918 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 1848 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+Step:  3680
+Pretraining Loss:  tensor(0.3653, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 326 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 938 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.021103896103896104 service_time: 518 s_time: 26 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.023214285714285715 service_time: 1040 s_time: 26 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.046583850931677016 service_time: 1506 s_time: 60 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: 0.0 service_time: 612 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.007305194805194805 service_time: 1663 s_time: 9 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.010073260073260074 service_time: 374 s_time: 22 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.01287375415282392 service_time: 744 s_time: 31 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.007763975155279503 service_time: 1708 s_time: 20 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: 0.002413127413127413 service_time: 1902 s_time: -5 penalty: 0 agent_num: 37 done: False
+______________________
+id: 42 reward: -0.01521164021164021 service_time: 1606 s_time: 23 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: -0.013198757763975156 service_time: 1952 s_time: 34 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.0 service_time: 1521 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.014285714285714285 service_time: 1876 s_time: 28 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.009453781512605041 service_time: 915 s_time: 18 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3696
+Pretraining Loss:  tensor(0.3721, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.04642857142857143 service_time: 352 s_time: 26 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.06168831168831169 service_time: 976 s_time: 38 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: 0.0 service_time: 518 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.06339285714285714 service_time: 683 s_time: 71 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1040 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.0016233766233766235 service_time: 1665 s_time: 2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.013736263736263736 service_time: 404 s_time: 30 penalty: 0 agent_num: 39 done: False
+______________________
+id: 54 reward: -0.00916988416988417 service_time: 1921 s_time: 19 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: 0.0 service_time: 744 s_time: 0 penalty: 0 agent_num: 43 done: False
+______________________
+id: 51 reward: -0.05745341614906832 service_time: 1580 s_time: 74 penalty: 0 agent_num: 23 done: False
+______________________
+id: 53 reward: -0.01916376306620209 service_time: 1565 s_time: 44 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.01746894409937888 service_time: 1753 s_time: 45 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.012755102040816327 service_time: 1901 s_time: 25 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: -0.018518518518518517 service_time: 1634 s_time: 28 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: -0.01125776397515528 service_time: 1981 s_time: 29 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.032563025210084036 service_time: 977 s_time: 62 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3712
+Pretraining Loss:  tensor(0.3733, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.055357142857142855 service_time: 383 s_time: 31 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0016233766233766235 service_time: 975 s_time: -1 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.024350649350649352 service_time: 548 s_time: 30 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.02857142857142857 service_time: 1072 s_time: 32 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: 0.030357142857142857 service_time: 649 s_time: -34 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0016233766233766235 service_time: 1663 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.016534391534391533 service_time: 1659 s_time: 25 penalty: 0 agent_num: 27 done: False
+______________________
+id: 46 reward: -0.024916943521594685 service_time: 804 s_time: 60 penalty: 0 agent_num: 43 done: False
+______________________
+id: 44 reward: -0.013278388278388278 service_time: 433 s_time: 29 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.005822981366459627 service_time: 1768 s_time: 15 penalty: 0 agent_num: 46 done: False
+______________________
+id: 51 reward: -0.06754658385093168 service_time: 1667 s_time: 87 penalty: 0 agent_num: 23 done: False
+______________________
+id: 48 reward: -0.0011645962732919255 service_time: 1984 s_time: 3 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.0 service_time: 1565 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.037644787644787646 service_time: 1999 s_time: 78 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: 0.0020408163265306124 service_time: 1897 s_time: -4 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.01365546218487395 service_time: 1003 s_time: 26 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3728
+Pretraining Loss:  tensor(0.3670, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.010714285714285714 service_time: 377 s_time: -6 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 975 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.03571428571428571 service_time: 689 s_time: 40 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.037337662337662336 service_time: 594 s_time: 46 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: -0.025974025974025976 service_time: 1695 s_time: 32 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: 0.0 service_time: 433 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1072 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 46 reward: -0.009966777408637873 service_time: 828 s_time: 24 penalty: 0 agent_num: 43 done: False
+______________________
+id: 53 reward: -0.013501742160278746 service_time: 1596 s_time: 31 penalty: 0 agent_num: 41 done: False
+______________________
+id: 51 reward: 0.011645962732919254 service_time: 1652 s_time: -15 penalty: 0 agent_num: 23 done: False
+______________________
+id: 55 reward: -0.004270186335403727 service_time: 1779 s_time: 11 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.011583011583011582 service_time: 2023 s_time: 24 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.02295918367346939 service_time: 1942 s_time: 45 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: -0.0205026455026455 service_time: 1690 s_time: 31 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: -0.004270186335403727 service_time: 1995 s_time: 11 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.028361344537815126 service_time: 1057 s_time: 54 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3744
+Pretraining Loss:  tensor(0.3896, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 377 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.06655844155844155 service_time: 1016 s_time: 41 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.016964285714285713 service_time: 670 s_time: -19 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.01948051948051948 service_time: 618 s_time: 24 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: -0.02353896103896104 service_time: 1724 s_time: 29 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.04017857142857143 service_time: 1117 s_time: 45 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.027930402930402932 service_time: 494 s_time: 61 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: -0.07298136645962733 service_time: 1746 s_time: 94 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.0013227513227513227 service_time: 1692 s_time: 2 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: -0.01048136645962733 service_time: 1806 s_time: 27 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.003484320557491289 service_time: 1604 s_time: 8 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.006122448979591836 service_time: 1954 s_time: 12 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.0170265780730897 service_time: 869 s_time: 41 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.013513513513513514 service_time: 2051 s_time: 28 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.025232919254658384 service_time: 2060 s_time: 65 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.014705882352941176 service_time: 1085 s_time: 28 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3760
+Pretraining Loss:  tensor(0.3716, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.06428571428571428 service_time: 413 s_time: 36 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1016 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: 0.008035714285714285 service_time: 1108 s_time: -9 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.0625 service_time: 1801 s_time: 77 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 670 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.0 service_time: 618 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.009615384615384616 service_time: 515 s_time: 21 penalty: 0 agent_num: 39 done: False
+______________________
+id: 53 reward: -0.016550522648083623 service_time: 1642 s_time: 38 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 1971 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+id: 51 reward: 0.0007763975155279503 service_time: 1745 s_time: -1 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.04497354497354497 service_time: 1760 s_time: 68 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: -0.0015527950310559005 service_time: 1810 s_time: 4 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.011583011583011582 service_time: 2075 s_time: 24 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.011627906976744186 service_time: 897 s_time: 28 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.007763975155279503 service_time: 2080 s_time: 20 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.0063025210084033615 service_time: 1097 s_time: 12 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3776
+Pretraining Loss:  tensor(0.3814, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 413 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1016 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: 0.002435064935064935 service_time: 1798 s_time: -3 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.010714285714285714 service_time: 658 s_time: -12 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.048701298701298704 service_time: 678 s_time: 60 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.020535714285714286 service_time: 1131 s_time: 23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.013736263736263736 service_time: 545 s_time: 30 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.01203416149068323 service_time: 1841 s_time: 31 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.009259259259259259 service_time: 1774 s_time: 14 penalty: 0 agent_num: 27 done: False
+______________________
+id: 51 reward: 0.011645962732919254 service_time: 1730 s_time: -15 penalty: 0 agent_num: 23 done: False
+______________________
+id: 54 reward: -0.015444015444015444 service_time: 2107 s_time: 32 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.007763975155279503 service_time: 2100 s_time: 20 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: 0.0 service_time: 1971 s_time: 0 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.009146341463414634 service_time: 1663 s_time: 21 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.014119601328903655 service_time: 931 s_time: 34 penalty: 0 agent_num: 43 done: False
+______________________
+id: 43 reward: -0.01838235294117647 service_time: 1132 s_time: 35 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3792
+Pretraining Loss:  tensor(0.3619, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.09285714285714286 service_time: 465 s_time: 52 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1016 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.011363636363636364 service_time: 692 s_time: 14 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1798 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1131 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: -0.022321428571428572 service_time: 683 s_time: 25 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.014652014652014652 service_time: 577 s_time: 32 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.005398671096345515 service_time: 944 s_time: 13 penalty: 0 agent_num: 43 done: False
+______________________
+id: 51 reward: 0.013198757763975156 service_time: 1713 s_time: -17 penalty: 0 agent_num: 23 done: False
+______________________
+id: 40 reward: -0.022448979591836733 service_time: 2015 s_time: 44 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.012195121951219513 service_time: 1691 s_time: 28 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.010093167701863354 service_time: 1867 s_time: 26 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: 0.0006613756613756613 service_time: 1773 s_time: -1 penalty: 0 agent_num: 27 done: False
+______________________
+id: 54 reward: 0.0009652509652509653 service_time: 2105 s_time: -2 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.0038819875776397515 service_time: 2110 s_time: 10 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.01838235294117647 service_time: 1167 s_time: 35 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3808
+Pretraining Loss:  tensor(0.3862, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.005357142857142857 service_time: 462 s_time: -3 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.10714285714285714 service_time: 1082 s_time: 66 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: -0.02922077922077922 service_time: 1834 s_time: 36 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.04196428571428571 service_time: 730 s_time: 47 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.0 service_time: 692 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.04107142857142857 service_time: 1177 s_time: 46 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.016483516483516484 service_time: 613 s_time: 36 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: -0.04365079365079365 service_time: 1839 s_time: 66 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: 0.0 service_time: 1867 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.015780730897009966 service_time: 982 s_time: 38 penalty: 0 agent_num: 43 done: False
+______________________
+id: 51 reward: -0.03571428571428571 service_time: 1759 s_time: 46 penalty: 0 agent_num: 23 done: False
+______________________
+id: 53 reward: 0.0 service_time: 1691 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.027040816326530614 service_time: 2068 s_time: 53 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: 0.0 service_time: 2110 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.024613899613899613 service_time: 2156 s_time: 51 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: -0.013130252100840336 service_time: 1192 s_time: 25 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3824
+Pretraining Loss:  tensor(0.3797, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0125 service_time: 455 s_time: -7 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.021103896103896104 service_time: 1095 s_time: 13 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: -0.03571428571428571 service_time: 1878 s_time: 44 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.02142857142857143 service_time: 754 s_time: 24 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.049512987012987016 service_time: 753 s_time: 61 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.005291005291005291 service_time: 1831 s_time: -8 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.007783882783882784 service_time: 630 s_time: 17 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.00872093023255814 service_time: 1003 s_time: 21 penalty: 0 agent_num: 43 done: False
+______________________
+id: 51 reward: -0.08462732919254658 service_time: 1868 s_time: 109 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: 0.008928571428571428 service_time: 1167 s_time: -10 penalty: 0 agent_num: 20 done: False
+______________________
+id: 55 reward: -0.01358695652173913 service_time: 1902 s_time: 35 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.021235521235521235 service_time: 2200 s_time: 44 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.006122448979591836 service_time: 2080 s_time: 12 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.014705882352941176 service_time: 1220 s_time: 28 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.018728222996515678 service_time: 1734 s_time: 43 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.013975155279503106 service_time: 2146 s_time: 36 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3840
+Pretraining Loss:  tensor(0.3643, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.10714285714285714 service_time: 515 s_time: 60 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.03571428571428571 service_time: 1117 s_time: 22 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1878 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: 0.025162337662337664 service_time: 722 s_time: -31 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 754 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.022321428571428572 service_time: 1192 s_time: 25 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.04298941798941799 service_time: 1896 s_time: 65 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.005952380952380952 service_time: 643 s_time: 13 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.0038819875776397515 service_time: 1912 s_time: 10 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.01173469387755102 service_time: 2103 s_time: 23 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: 0.0 service_time: 2200 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.006987577639751553 service_time: 2164 s_time: 18 penalty: 0 agent_num: 46 done: False
+______________________
+id: 51 reward: -0.019409937888198756 service_time: 1893 s_time: 25 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: -0.013130252100840336 service_time: 1245 s_time: 25 penalty: 0 agent_num: 34 done: False
+______________________
+id: 46 reward: -0.013704318936877076 service_time: 1036 s_time: 33 penalty: 0 agent_num: 43 done: False
+______________________
+id: 53 reward: -0.008710801393728223 service_time: 1754 s_time: 20 penalty: 0 agent_num: 41 done: False
+______________________
+Step:  3856
+Pretraining Loss:  tensor(0.3762, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.1875 service_time: 620 s_time: 105 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.1185064935064935 service_time: 1190 s_time: 73 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1878 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0017857142857142857 service_time: 1190 s_time: -2 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: -0.030357142857142857 service_time: 788 s_time: 34 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.00641025641025641 service_time: 657 s_time: 14 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: 0.0 service_time: 1896 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 51 reward: -0.016304347826086956 service_time: 1914 s_time: 21 penalty: 0 agent_num: 23 done: False
+______________________
+id: 54 reward: -0.017857142857142856 service_time: 2237 s_time: 37 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.013265306122448979 service_time: 2129 s_time: 26 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: 0.0007763975155279503 service_time: 1910 s_time: -2 penalty: 0 agent_num: 46 done: False
+______________________
+id: 52 reward: -0.04626623376623377 service_time: 779 s_time: 57 penalty: 0 agent_num: 22 done: False
+______________________
+id: 46 reward: -0.009551495016611296 service_time: 1059 s_time: 23 penalty: 0 agent_num: 43 done: False
+______________________
+id: 43 reward: -0.017331932773109245 service_time: 1278 s_time: 33 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.01524390243902439 service_time: 1789 s_time: 35 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.0011645962732919255 service_time: 2167 s_time: 3 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3872
+Pretraining Loss:  tensor(0.3954, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 620 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1190 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 788 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1190 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.021915584415584416 service_time: 806 s_time: 27 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: 0.0 service_time: 1878 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.020146520146520148 service_time: 701 s_time: 44 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.02096273291925466 service_time: 1964 s_time: 54 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.012755102040816327 service_time: 2154 s_time: 25 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: -0.041666666666666664 service_time: 1959 s_time: 63 penalty: 0 agent_num: 27 done: False
+______________________
+id: 54 reward: -0.015444015444015444 service_time: 2269 s_time: 32 penalty: 0 agent_num: 37 done: False
+______________________
+id: 51 reward: 0.002329192546583851 service_time: 1911 s_time: -3 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: -0.016281512605042018 service_time: 1309 s_time: 31 penalty: 0 agent_num: 34 done: False
+______________________
+id: 46 reward: -0.009136212624584718 service_time: 1081 s_time: 22 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.02251552795031056 service_time: 2225 s_time: 58 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.0008710801393728223 service_time: 1787 s_time: -2 penalty: 0 agent_num: 41 done: False
+______________________
+Step:  3888
+Pretraining Loss:  tensor(0.4039, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 620 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.17857142857142858 service_time: 1300 s_time: 110 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: -0.019642857142857142 service_time: 1212 s_time: 22 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.05438311688311688 service_time: 1945 s_time: 67 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 788 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: 0.0 service_time: 701 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: 0.0 service_time: 1911 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.056216931216931214 service_time: 2044 s_time: 85 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.01683673469387755 service_time: 2187 s_time: 33 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.009652509652509652 service_time: 2289 s_time: 20 penalty: 0 agent_num: 37 done: False
+______________________
+id: 52 reward: 0.021103896103896104 service_time: 780 s_time: -26 penalty: 0 agent_num: 22 done: False
+______________________
+id: 55 reward: -0.010869565217391304 service_time: 1992 s_time: 28 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.02468487394957983 service_time: 1356 s_time: 47 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.02700348432055749 service_time: 1849 s_time: 62 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.012043189368770765 service_time: 1110 s_time: 29 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.017857142857142856 service_time: 2271 s_time: 46 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  3904
+Pretraining Loss:  tensor(0.3533, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.05194805194805195 service_time: 1268 s_time: -32 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: 0.0 service_time: 620 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1212 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.028409090909090908 service_time: 815 s_time: 35 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 788 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.01461038961038961 service_time: 1963 s_time: 18 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.016483516483516484 service_time: 737 s_time: 36 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: -0.07298136645962733 service_time: 2005 s_time: 94 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.01984126984126984 service_time: 2074 s_time: 30 penalty: 0 agent_num: 27 done: False
+______________________
+id: 54 reward: -0.016891891891891893 service_time: 2324 s_time: 35 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.005822981366459627 service_time: 2286 s_time: 15 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.009966777408637873 service_time: 1134 s_time: 24 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.017857142857142856 service_time: 2038 s_time: 46 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.025 service_time: 2236 s_time: 49 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: 0.0008710801393728223 service_time: 1847 s_time: -2 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.025735294117647058 service_time: 1405 s_time: 49 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3920
+Pretraining Loss:  tensor(0.3439, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 620 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1268 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 788 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.013392857142857142 service_time: 1227 s_time: 15 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.020292207792207792 service_time: 1988 s_time: 25 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.010093167701863354 service_time: 2018 s_time: 13 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: 0.011363636363636364 service_time: 801 s_time: -14 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.022486772486772486 service_time: 2108 s_time: 34 penalty: 0 agent_num: 27 done: False
+______________________
+id: 54 reward: -0.012548262548262547 service_time: 2350 s_time: 26 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.008305647840531562 service_time: 1154 s_time: 20 penalty: 0 agent_num: 43 done: False
+______________________
+id: 44 reward: -0.031135531135531136 service_time: 805 s_time: 68 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: 0.0007763975155279503 service_time: 2036 s_time: -2 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.03092334494773519 service_time: 1918 s_time: 71 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: 0.002717391304347826 service_time: 2279 s_time: -7 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.018877551020408164 service_time: 2273 s_time: 37 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.01995798319327731 service_time: 1443 s_time: 38 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3936
+Pretraining Loss:  tensor(0.3475, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.0375 service_time: 641 s_time: 21 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.04383116883116883 service_time: 1295 s_time: 27 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0017857142857142857 service_time: 786 s_time: -2 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.032467532467532464 service_time: 841 s_time: 40 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: 0.015422077922077922 service_time: 1969 s_time: -19 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1227 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.020186335403726708 service_time: 2044 s_time: 26 penalty: 0 agent_num: 23 done: False
+______________________
+id: 54 reward: 0.0 service_time: 2350 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 42 reward: -0.03306878306878307 service_time: 2158 s_time: 50 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.004578754578754579 service_time: 815 s_time: 10 penalty: 0 agent_num: 39 done: False
+______________________
+id: 48 reward: -0.02251552795031056 service_time: 2337 s_time: 58 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: 0.0008305647840531562 service_time: 1152 s_time: -2 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.015139751552795032 service_time: 2075 s_time: 39 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.003048780487804878 service_time: 1911 s_time: -7 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.018367346938775512 service_time: 2309 s_time: 36 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.015756302521008403 service_time: 1473 s_time: 30 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3952
+Pretraining Loss:  tensor(0.3876, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 641 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1295 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: -0.01607142857142857 service_time: 1245 s_time: 18 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.041396103896103896 service_time: 892 s_time: 51 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.015178571428571428 service_time: 803 s_time: 17 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.05357142857142857 service_time: 2113 s_time: 69 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.02922077922077922 service_time: 2005 s_time: 36 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.001984126984126984 service_time: 2155 s_time: -3 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: -0.01203416149068323 service_time: 2106 s_time: 31 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.02895752895752896 service_time: 2410 s_time: 60 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: 0.003061224489795918 service_time: 2303 s_time: -6 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.014652014652014652 service_time: 847 s_time: 32 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.016196013289036543 service_time: 1191 s_time: 39 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.008152173913043478 service_time: 2358 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.027874564459930314 service_time: 1975 s_time: 64 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.026785714285714284 service_time: 1524 s_time: 51 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3968
+Pretraining Loss:  tensor(0.3607, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 641 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.027597402597402596 service_time: 1312 s_time: 17 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 803 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.00974025974025974 service_time: 904 s_time: 12 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.020186335403726708 service_time: 2139 s_time: 26 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.06168831168831169 service_time: 2081 s_time: 76 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.005036630036630037 service_time: 858 s_time: 11 penalty: 0 agent_num: 39 done: False
+______________________
+id: 47 reward: -0.010714285714285714 service_time: 1257 s_time: 12 penalty: 0 agent_num: 20 done: False
+______________________
+id: 46 reward: -0.012043189368770765 service_time: 1220 s_time: 29 penalty: 0 agent_num: 43 done: False
+______________________
+id: 42 reward: 0.026455026455026454 service_time: 2115 s_time: -40 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: 0.0 service_time: 2358 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 55 reward: -0.01358695652173913 service_time: 2141 s_time: 35 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: 0.0 service_time: 2410 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.016114982578397212 service_time: 2012 s_time: 37 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.03214285714285714 service_time: 2366 s_time: 63 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.014180672268907563 service_time: 1551 s_time: 27 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  3984
+Pretraining Loss:  tensor(0.3913, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 641 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.1038961038961039 service_time: 1248 s_time: -64 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.026785714285714284 service_time: 937 s_time: 33 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.03660714285714286 service_time: 844 s_time: 41 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.05267857142857143 service_time: 1316 s_time: 59 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: 0.0 service_time: 2115 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 51 reward: -0.02562111801242236 service_time: 2172 s_time: 33 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: 0.03165584415584415 service_time: 2042 s_time: -39 penalty: 0 agent_num: 22 done: False
+______________________
+id: 46 reward: 0.0 service_time: 1220 s_time: 0 penalty: 0 agent_num: 43 done: False
+______________________
+id: 44 reward: -0.01098901098901099 service_time: 882 s_time: 24 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: 0.001530612244897959 service_time: 2363 s_time: -3 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.03426640926640927 service_time: 2481 s_time: 71 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.009704968944099378 service_time: 2166 s_time: 25 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.022127329192546584 service_time: 2415 s_time: 57 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.0 service_time: 2012 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.015756302521008403 service_time: 1581 s_time: 30 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  4000
+Pretraining Loss:  tensor(0.4274, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 641 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1248 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.05803571428571429 service_time: 909 s_time: 65 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.010551948051948052 service_time: 924 s_time: -13 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: -0.052759740259740256 service_time: 2107 s_time: 65 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1316 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0 service_time: 2172 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: 0.0 service_time: 882 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.023255813953488372 service_time: 1276 s_time: 56 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.0034937888198757765 service_time: 2175 s_time: 9 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.02447089947089947 service_time: 2152 s_time: 37 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: -0.005046583850931677 service_time: 2428 s_time: 13 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.0326530612244898 service_time: 2427 s_time: 64 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: 0.0009652509652509653 service_time: 2479 s_time: -2 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.009146341463414634 service_time: 2033 s_time: 21 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.009978991596638655 service_time: 1600 s_time: 19 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  4016
+Pretraining Loss:  tensor(0.4074, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 641 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1248 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: 0.006493506493506494 service_time: 916 s_time: -8 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.11517857142857142 service_time: 1038 s_time: 129 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1316 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0 service_time: 2172 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: 0.0 service_time: 2152 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 50 reward: 0.021103896103896104 service_time: 2081 s_time: -26 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.011904761904761904 service_time: 908 s_time: 26 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.007375776397515528 service_time: 2194 s_time: 19 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.006229235880398671 service_time: 1291 s_time: 15 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.01203416149068323 service_time: 2459 s_time: 31 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.007142857142857143 service_time: 2441 s_time: 14 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: 0.0 service_time: 2033 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.033301158301158304 service_time: 2548 s_time: 69 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: -0.023109243697478993 service_time: 1644 s_time: 44 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  4032
+Pretraining Loss:  tensor(0.3995, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 641 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.025974025974025976 service_time: 1232 s_time: -16 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.022727272727272728 service_time: 944 s_time: 28 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1316 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: -0.09107142857142857 service_time: 1140 s_time: 102 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.016304347826086956 service_time: 2193 s_time: 21 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: -0.012362637362637362 service_time: 935 s_time: 27 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: -0.003968253968253968 service_time: 2158 s_time: 6 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.005612244897959183 service_time: 2452 s_time: 11 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.009551495016611296 service_time: 1314 s_time: 23 penalty: 0 agent_num: 43 done: False
+______________________
+id: 50 reward: -0.011363636363636364 service_time: 2095 s_time: 14 penalty: 0 agent_num: 22 done: False
+______________________
+id: 55 reward: -0.01048136645962733 service_time: 2221 s_time: 27 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.01125776397515528 service_time: 2488 s_time: 29 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.023083623693379792 service_time: 2086 s_time: 53 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.015444015444015444 service_time: 2580 s_time: 32 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: -0.01050420168067227 service_time: 1664 s_time: 20 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  4048
+Pretraining Loss:  tensor(0.3855, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.033928571428571426 service_time: 660 s_time: 19 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.060064935064935064 service_time: 1269 s_time: 37 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: -0.07224025974025974 service_time: 2184 s_time: 89 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.004464285714285714 service_time: 1321 s_time: 5 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.08279220779220779 service_time: 1046 s_time: 102 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.03571428571428571 service_time: 2239 s_time: 46 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.04497354497354497 service_time: 2226 s_time: 68 penalty: 0 agent_num: 27 done: False
+______________________
+id: 49 reward: 0.0035714285714285713 service_time: 1136 s_time: -4 penalty: 0 agent_num: 20 done: False
+______________________
+id: 40 reward: -0.022448979591836733 service_time: 2496 s_time: 44 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.006644518272425249 service_time: 1330 s_time: 16 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.01281055900621118 service_time: 2254 s_time: 33 penalty: 0 agent_num: 46 done: False
+______________________
+id: 44 reward: -0.0260989010989011 service_time: 992 s_time: 57 penalty: 0 agent_num: 39 done: False
+______________________
+id: 48 reward: -0.010869565217391304 service_time: 2516 s_time: 28 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.006533101045296167 service_time: 2101 s_time: 15 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: 0.017857142857142856 service_time: 1630 s_time: -34 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.010617760617760617 service_time: 2602 s_time: 22 penalty: 0 agent_num: 37 done: False
+______________________
+Step:  4064
+Pretraining Loss:  tensor(0.3481, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.07857142857142857 service_time: 704 s_time: 44 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.032467532467532464 service_time: 1289 s_time: 20 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1321 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.016233766233766232 service_time: 2164 s_time: -20 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.017080745341614908 service_time: 2217 s_time: -22 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.0689935064935065 service_time: 1131 s_time: 85 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.004120879120879121 service_time: 1001 s_time: 9 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.015816326530612244 service_time: 2527 s_time: 31 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.01281055900621118 service_time: 2287 s_time: 33 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.006229235880398671 service_time: 1345 s_time: 15 penalty: 0 agent_num: 43 done: False
+______________________
+id: 49 reward: -0.027678571428571427 service_time: 1167 s_time: 31 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: 0.005291005291005291 service_time: 2218 s_time: -8 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: 0.0 service_time: 2516 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.021341463414634148 service_time: 2150 s_time: 49 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.013130252100840336 service_time: 1655 s_time: 25 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.007722007722007722 service_time: 2618 s_time: 16 penalty: 0 agent_num: 37 done: False
+______________________
+Step:  4080
+Pretraining Loss:  tensor(0.3220, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: -0.02922077922077922 service_time: 1307 s_time: 18 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.05892857142857143 service_time: 737 s_time: 33 penalty: 0 agent_num: 10 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1321 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.030032467532467532 service_time: 2201 s_time: 37 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: 0.021915584415584416 service_time: 1104 s_time: -27 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.0 service_time: 2217 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.0013227513227513227 service_time: 2220 s_time: 2 penalty: 0 agent_num: 27 done: False
+______________________
+id: 49 reward: -0.05357142857142857 service_time: 1227 s_time: 60 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: 0.0 service_time: 1001 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 48 reward: -0.02251552795031056 service_time: 2574 s_time: 58 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.009966777408637873 service_time: 1369 s_time: 24 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 2544 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: 0.00043554006968641115 service_time: 2149 s_time: -1 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: 0.003105590062111801 service_time: 2279 s_time: -8 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.008204633204633204 service_time: 2635 s_time: 17 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: -0.018907563025210083 service_time: 1691 s_time: 36 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  4096
+Pretraining Loss:  tensor(0.3041, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.0 service_time: 1307 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: 0.0 service_time: 737 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 52 reward: -0.003246753246753247 service_time: 1108 s_time: 4 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1321 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0016233766233766235 service_time: 2199 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.05357142857142857 service_time: 2286 s_time: 69 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: -0.011446886446886446 service_time: 1026 s_time: 25 penalty: 0 agent_num: 39 done: False
+______________________
+id: 49 reward: -0.04375 service_time: 1276 s_time: 49 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.01521164021164021 service_time: 2243 s_time: 23 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: -0.005434782608695652 service_time: 2293 s_time: 14 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: 0.0016611295681063123 service_time: 1365 s_time: -4 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.00816326530612245 service_time: 2560 s_time: 16 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.02177700348432056 service_time: 2199 s_time: 50 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.007375776397515528 service_time: 2593 s_time: 19 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.008928571428571428 service_time: 1708 s_time: 17 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.022683397683397683 service_time: 2682 s_time: 47 penalty: 0 agent_num: 37 done: False
+______________________
+Step:  4112
+Pretraining Loss:  tensor(0.3275, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: -0.03896103896103896 service_time: 1331 s_time: 24 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: 0.0 service_time: 737 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 50 reward: -0.06493506493506493 service_time: 2279 s_time: 80 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.020535714285714286 service_time: 1299 s_time: 23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.030279503105590064 service_time: 2325 s_time: 39 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.03214285714285714 service_time: 1357 s_time: 36 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.028439153439153438 service_time: 2286 s_time: 43 penalty: 0 agent_num: 27 done: False
+______________________
+id: 52 reward: -0.00974025974025974 service_time: 1120 s_time: 12 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.014652014652014652 service_time: 1058 s_time: 32 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: 0.0005102040816326531 service_time: 2559 s_time: -1 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: 0.00048262548262548264 service_time: 2681 s_time: -1 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.010093167701863354 service_time: 2619 s_time: 26 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.017857142857142856 service_time: 1408 s_time: 43 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.017857142857142856 service_time: 2339 s_time: 46 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.013937282229965157 service_time: 2231 s_time: 32 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: 0.0063025210084033615 service_time: 1696 s_time: -12 penalty: 0 agent_num: 34 done: False
+______________________
+Step:  4128
+Pretraining Loss:  tensor(0.3305, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: -0.1314935064935065 service_time: 1412 s_time: 81 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.039285714285714285 service_time: 759 s_time: 22 penalty: 0 agent_num: 10 done: False
+______________________
+id: 52 reward: -0.03571428571428571 service_time: 1164 s_time: 44 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.017857142857142856 service_time: 1319 s_time: 20 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.07065217391304347 service_time: 2416 s_time: 91 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.044642857142857144 service_time: 2334 s_time: 55 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.014285714285714285 service_time: 1373 s_time: 16 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.014194139194139194 service_time: 1089 s_time: 31 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: 0.0 service_time: 2339 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.0336734693877551 service_time: 2625 s_time: 66 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.013501742160278746 service_time: 2262 s_time: 31 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.007890365448504983 service_time: 1427 s_time: 19 penalty: 0 agent_num: 43 done: False
+______________________
+id: 42 reward: -0.01521164021164021 service_time: 2309 s_time: 23 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.013130252100840336 service_time: 1721 s_time: 25 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.008204633204633204 service_time: 2698 s_time: 17 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.017857142857142856 service_time: 2665 s_time: 46 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4144
+Pretraining Loss:  tensor(0.3155, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: -0.0762987012987013 service_time: 1459 s_time: 47 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: 0.0 service_time: 759 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 52 reward: 0.03814935064935065 service_time: 1117 s_time: -47 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.10403726708074534 service_time: 2550 s_time: 134 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: 0.039285714285714285 service_time: 1275 s_time: -44 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2334 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.01282051282051282 service_time: 1117 s_time: 28 penalty: 0 agent_num: 39 done: False
+______________________
+id: 54 reward: -0.010135135135135136 service_time: 2719 s_time: 21 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.020918367346938777 service_time: 2666 s_time: 41 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.01207983193277311 service_time: 1744 s_time: 23 penalty: 0 agent_num: 34 done: False
+______________________
+id: 47 reward: -0.011607142857142858 service_time: 1386 s_time: 13 penalty: 0 agent_num: 20 done: False
+______________________
+id: 48 reward: -0.01125776397515528 service_time: 2694 s_time: 29 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.04298941798941799 service_time: 2374 s_time: 65 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.006533101045296167 service_time: 2277 s_time: 15 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.023680124223602484 service_time: 2400 s_time: 61 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.02117940199335548 service_time: 1478 s_time: 51 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4160
+Pretraining Loss:  tensor(0.3343, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.012987012987012988 service_time: 1451 s_time: -8 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.0625 service_time: 794 s_time: 35 penalty: 0 agent_num: 10 done: False
+______________________
+id: 49 reward: -0.06339285714285714 service_time: 1346 s_time: 71 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.03896103896103896 service_time: 1165 s_time: 48 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2334 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.010531135531135532 service_time: 1140 s_time: 23 penalty: 0 agent_num: 39 done: False
+______________________
+id: 51 reward: 0.05201863354037267 service_time: 2483 s_time: -67 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.023214285714285715 service_time: 1412 s_time: 26 penalty: 0 agent_num: 20 done: False
+______________________
+id: 53 reward: -0.020905923344947737 service_time: 2325 s_time: 48 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.015816326530612244 service_time: 2697 s_time: 31 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.020483193277310924 service_time: 1783 s_time: 39 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: -0.010093167701863354 service_time: 2426 s_time: 26 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.007890365448504983 service_time: 1497 s_time: 19 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.013198757763975156 service_time: 2728 s_time: 34 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.041005291005291 service_time: 2436 s_time: 62 penalty: 0 agent_num: 27 done: False
+______________________
+id: 54 reward: -0.00723938223938224 service_time: 2734 s_time: 15 penalty: 0 agent_num: 37 done: False
+______________________
+Step:  4176
+Pretraining Loss:  tensor(0.3367, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 794 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.05194805194805195 service_time: 1483 s_time: 32 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2334 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: -0.0633116883116883 service_time: 1243 s_time: 78 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.008540372670807454 service_time: 2472 s_time: -11 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: 0.020535714285714286 service_time: 1323 s_time: -23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 54 reward: 0.0014478764478764478 service_time: 2731 s_time: -3 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: -0.0010504201680672268 service_time: 1785 s_time: 2 penalty: 0 agent_num: 34 done: False
+______________________
+id: 44 reward: -0.0086996336996337 service_time: 1159 s_time: 19 penalty: 0 agent_num: 39 done: False
+______________________
+id: 47 reward: -0.015178571428571428 service_time: 1429 s_time: 17 penalty: 0 agent_num: 20 done: False
+______________________
+id: 40 reward: -0.013265306122448979 service_time: 2723 s_time: 26 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: 0.02513227513227513 service_time: 2398 s_time: -38 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: 0.00038819875776397513 service_time: 2425 s_time: -1 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.017857142857142856 service_time: 2366 s_time: 41 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.0070598006644518275 service_time: 1514 s_time: 17 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.012422360248447204 service_time: 2760 s_time: 32 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4192
+Pretraining Loss:  tensor(0.3556, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 794 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.06655844155844155 service_time: 1524 s_time: 41 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.04285714285714286 service_time: 1371 s_time: 48 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.023214285714285715 service_time: 1455 s_time: 26 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.011363636363636364 service_time: 1229 s_time: -14 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.07142857142857142 service_time: 2564 s_time: 92 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: -0.019688644688644688 service_time: 1202 s_time: 43 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: 0.006613756613756613 service_time: 2388 s_time: -10 penalty: 0 agent_num: 27 done: False
+______________________
+id: 50 reward: -0.1534090909090909 service_time: 2523 s_time: 189 penalty: 0 agent_num: 22 done: False
+______________________
+id: 55 reward: -0.02562111801242236 service_time: 2491 s_time: 66 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.012755102040816327 service_time: 2748 s_time: 25 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.03571428571428571 service_time: 1853 s_time: 68 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.03426640926640927 service_time: 2802 s_time: 71 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.009581881533101045 service_time: 2388 s_time: 22 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.008928571428571428 service_time: 2783 s_time: 23 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.02117940199335548 service_time: 1565 s_time: 51 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4208
+Pretraining Loss:  tensor(0.3764, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.19464285714285715 service_time: 903 s_time: 109 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.1314935064935065 service_time: 1605 s_time: 81 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: 0.0 service_time: 1229 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.013975155279503106 service_time: 2546 s_time: -18 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: 0.05762987012987013 service_time: 2452 s_time: -71 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.016964285714285713 service_time: 1474 s_time: 19 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: -0.020535714285714286 service_time: 1394 s_time: 23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: -0.001984126984126984 service_time: 2391 s_time: 3 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.026020408163265306 service_time: 2799 s_time: 51 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.011904761904761904 service_time: 1228 s_time: 26 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.01207983193277311 service_time: 1876 s_time: 23 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.011583011583011582 service_time: 2826 s_time: 24 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: 0.0 service_time: 2491 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.006533101045296167 service_time: 2403 s_time: 15 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.011645962732919254 service_time: 2813 s_time: 30 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.010382059800664452 service_time: 1590 s_time: 25 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4224
+Pretraining Loss:  tensor(0.3914, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.08392857142857142 service_time: 950 s_time: 47 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.04220779220779221 service_time: 1579 s_time: -26 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.013798701298701298 service_time: 1246 s_time: 17 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.026785714285714284 service_time: 1504 s_time: 30 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: -0.04375 service_time: 1443 s_time: 49 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.04813664596273292 service_time: 2608 s_time: 62 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: 0.021103896103896104 service_time: 2426 s_time: -26 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: 0.0 service_time: 1228 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: 0.0 service_time: 2799 s_time: 0 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: -0.027116402116402115 service_time: 2432 s_time: 41 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.004355400696864111 service_time: 2413 s_time: 10 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.015756302521008403 service_time: 1906 s_time: 30 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.016409266409266408 service_time: 2860 s_time: 34 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.01281055900621118 service_time: 2524 s_time: 33 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.008152173913043478 service_time: 2834 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.009966777408637873 service_time: 1614 s_time: 24 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4240
+Pretraining Loss:  tensor(0.3678, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 950 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.048701298701298704 service_time: 1609 s_time: 30 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: 0.0016233766233766235 service_time: 1244 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: -0.037337662337662336 service_time: 2472 s_time: 46 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1504 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: 0.039285714285714285 service_time: 1399 s_time: -44 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.1063664596273292 service_time: 2745 s_time: 137 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: -0.027930402930402932 service_time: 1289 s_time: 61 penalty: 0 agent_num: 39 done: False
+______________________
+id: 54 reward: 0.0 service_time: 2860 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.006211180124223602 service_time: 2540 s_time: 16 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.007142857142857143 service_time: 2813 s_time: 14 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: 0.0005252100840336134 service_time: 1905 s_time: -1 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: -0.01916376306620209 service_time: 2457 s_time: 44 penalty: 0 agent_num: 41 done: False
+______________________
+id: 42 reward: -0.056216931216931214 service_time: 2517 s_time: 85 penalty: 0 agent_num: 27 done: False
+______________________
+id: 46 reward: -0.010382059800664452 service_time: 1639 s_time: 25 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.013198757763975156 service_time: 2868 s_time: 34 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4256
+Pretraining Loss:  tensor(0.3751, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: -0.09415584415584416 service_time: 1667 s_time: 58 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.008928571428571428 service_time: 955 s_time: 5 penalty: 0 agent_num: 10 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1504 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2472 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: -0.03409090909090909 service_time: 1286 s_time: 42 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.024844720496894408 service_time: 2777 s_time: 32 penalty: 0 agent_num: 23 done: False
+______________________
+id: 40 reward: -0.0413265306122449 service_time: 2894 s_time: 81 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: 0.0009157509157509158 service_time: 1287 s_time: -2 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.02153361344537815 service_time: 1946 s_time: 41 penalty: 0 agent_num: 34 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1399 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 54 reward: -0.015926640926640926 service_time: 2893 s_time: 33 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.008928571428571428 service_time: 2563 s_time: 23 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.004355400696864111 service_time: 2467 s_time: 10 penalty: 0 agent_num: 41 done: False
+______________________
+id: 42 reward: -0.06084656084656084 service_time: 2609 s_time: 92 penalty: 0 agent_num: 27 done: False
+______________________
+id: 48 reward: -0.008152173913043478 service_time: 2889 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.010382059800664452 service_time: 1664 s_time: 25 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4272
+Pretraining Loss:  tensor(0.3721, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0035714285714285713 service_time: 953 s_time: -2 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1667 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: -0.016964285714285713 service_time: 1523 s_time: 19 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1399 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.015422077922077922 service_time: 2491 s_time: 19 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.03493788819875776 service_time: 2732 s_time: -45 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.040584415584415584 service_time: 1336 s_time: 50 penalty: 0 agent_num: 22 done: False
+______________________
+id: 54 reward: 0.0014478764478764478 service_time: 2890 s_time: -3 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: 0.002613240418118467 service_time: 2461 s_time: -6 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.02100840336134454 service_time: 1986 s_time: 40 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: 0.0 service_time: 2563 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 44 reward: -0.033424908424908424 service_time: 1360 s_time: 73 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.004081632653061225 service_time: 2902 s_time: 8 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.01591614906832298 service_time: 2930 s_time: 41 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: 0.0033222591362126247 service_time: 1656 s_time: -8 penalty: 0 agent_num: 43 done: False
+______________________
+id: 42 reward: -0.12764550264550265 service_time: 2802 s_time: 193 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4288
+Pretraining Loss:  tensor(0.3621, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 953 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1667 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1523 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.022727272727272728 service_time: 2519 s_time: 28 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: -0.024350649350649352 service_time: 1366 s_time: 30 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.020186335403726708 service_time: 2758 s_time: 26 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: -0.025892857142857145 service_time: 1428 s_time: 29 penalty: 0 agent_num: 20 done: False
+______________________
+id: 40 reward: -0.01989795918367347 service_time: 2941 s_time: 39 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.006229235880398671 service_time: 1671 s_time: 15 penalty: 0 agent_num: 43 done: False
+______________________
+id: 43 reward: 0.0 service_time: 1986 s_time: 0 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: -0.03183229813664596 service_time: 2645 s_time: 82 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.024390243902439025 service_time: 2517 s_time: 56 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.0019409937888198758 service_time: 2935 s_time: 5 penalty: 0 agent_num: 46 done: False
+______________________
+id: 44 reward: 0.0013736263736263737 service_time: 1357 s_time: -3 penalty: 0 agent_num: 39 done: False
+______________________
+id: 54 reward: -0.032818532818532815 service_time: 2958 s_time: 68 penalty: 0 agent_num: 37 done: False
+______________________
+id: 42 reward: -0.05291005291005291 service_time: 2882 s_time: 80 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4304
+Pretraining Loss:  tensor(0.3508, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.0875 service_time: 1002 s_time: 49 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.03571428571428571 service_time: 1689 s_time: 22 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.04642857142857143 service_time: 1480 s_time: 52 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2519 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.024107142857142858 service_time: 1550 s_time: 27 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.028409090909090908 service_time: 1331 s_time: -35 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.03493788819875776 service_time: 2803 s_time: 45 penalty: 0 agent_num: 23 done: False
+______________________
+id: 54 reward: -0.020752895752895753 service_time: 3001 s_time: 43 penalty: 0 agent_num: 37 done: False
+______________________
+id: 43 reward: -0.022058823529411766 service_time: 2028 s_time: 42 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: -0.008928571428571428 service_time: 2668 s_time: 23 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.018728222996515678 service_time: 2560 s_time: 43 penalty: 0 agent_num: 41 done: False
+______________________
+id: 44 reward: -0.024725274725274724 service_time: 1411 s_time: 54 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.014950166112956811 service_time: 1707 s_time: 36 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: 0.0011645962732919255 service_time: 2932 s_time: -3 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.012244897959183673 service_time: 2965 s_time: 24 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: -0.03968253968253968 service_time: 2942 s_time: 60 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4320
+Pretraining Loss:  tensor(0.3412, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1002 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.12987012987012986 service_time: 1769 s_time: 80 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.022727272727272728 service_time: 1359 s_time: 28 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1550 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2519 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.029464285714285714 service_time: 1513 s_time: 33 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.002329192546583851 service_time: 2800 s_time: -3 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: -0.01050420168067227 service_time: 2048 s_time: 20 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.011224489795918367 service_time: 2987 s_time: 22 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.010382059800664452 service_time: 1732 s_time: 25 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.006987577639751553 service_time: 2686 s_time: 18 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.017421602787456445 service_time: 2600 s_time: 40 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.01436335403726708 service_time: 2969 s_time: 37 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.013513513513513514 service_time: 3029 s_time: 28 penalty: 0 agent_num: 37 done: False
+______________________
+id: 44 reward: -0.007326007326007326 service_time: 1427 s_time: 16 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: 0.032407407407407406 service_time: 2893 s_time: -49 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4336
+Pretraining Loss:  tensor(0.3427, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.0 service_time: 1769 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: 0.0 service_time: 1002 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 52 reward: -0.05519480519480519 service_time: 1427 s_time: 68 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.00625 service_time: 1557 s_time: 7 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0 service_time: 2519 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.025892857142857145 service_time: 1542 s_time: 29 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.016304347826086956 service_time: 2779 s_time: -21 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: -0.003676470588235294 service_time: 2055 s_time: 7 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.009652509652509652 service_time: 3049 s_time: 20 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.008305647840531562 service_time: 1752 s_time: 20 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.01173469387755102 service_time: 3010 s_time: 23 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.012195121951219513 service_time: 2628 s_time: 28 penalty: 0 agent_num: 41 done: False
+______________________
+id: 44 reward: -0.011446886446886446 service_time: 1452 s_time: 25 penalty: 0 agent_num: 39 done: False
+______________________
+id: 48 reward: -0.01281055900621118 service_time: 3002 s_time: 33 penalty: 0 agent_num: 46 done: False
+______________________
+id: 55 reward: -0.01591614906832298 service_time: 2727 s_time: 41 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: -0.06018518518518518 service_time: 2984 s_time: 91 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4352
+Pretraining Loss:  tensor(0.3081, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.06964285714285715 service_time: 1041 s_time: 39 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1769 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 47 reward: 0.0008928571428571428 service_time: 1556 s_time: -1 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.025162337662337664 service_time: 1458 s_time: 31 penalty: 0 agent_num: 22 done: False
+______________________
+id: 50 reward: -0.06412337662337662 service_time: 2598 s_time: 79 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1542 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.040372670807453416 service_time: 2831 s_time: 52 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: 0.0 service_time: 2055 s_time: 0 penalty: 0 agent_num: 34 done: False
+______________________
+id: 44 reward: -0.019688644688644688 service_time: 1495 s_time: 43 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.007653061224489796 service_time: 3025 s_time: 15 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.007763975155279503 service_time: 2747 s_time: 20 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.002717391304347826 service_time: 3009 s_time: 7 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.006097560975609756 service_time: 2642 s_time: 14 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.014950166112956811 service_time: 1788 s_time: 36 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: 0.0 service_time: 3049 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 42 reward: -0.009259259259259259 service_time: 2998 s_time: 14 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4368
+Pretraining Loss:  tensor(0.3410, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: -0.18506493506493507 service_time: 1883 s_time: 114 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.12321428571428572 service_time: 1110 s_time: 69 penalty: 0 agent_num: 10 done: False
+______________________
+id: 50 reward: 0.0008116883116883117 service_time: 2597 s_time: -1 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.06160714285714286 service_time: 1611 s_time: 69 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.04196428571428571 service_time: 1603 s_time: 47 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.1444805194805195 service_time: 1636 s_time: 178 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.027950310559006212 service_time: 2867 s_time: 36 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: -0.03623949579831933 service_time: 2124 s_time: 69 penalty: 0 agent_num: 34 done: False
+______________________
+id: 46 reward: -0.011212624584717609 service_time: 1815 s_time: 27 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.020752895752895753 service_time: 3092 s_time: 43 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.007404181184668989 service_time: 2659 s_time: 17 penalty: 0 agent_num: 41 done: False
+______________________
+id: 44 reward: -0.01510989010989011 service_time: 1528 s_time: 33 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.018367346938775512 service_time: 3061 s_time: 36 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: 0.0 service_time: 2747 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.002717391304347826 service_time: 3016 s_time: 7 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: 0.052248677248677246 service_time: 2919 s_time: -79 penalty: 0 agent_num: 27 done: False
+______________________
+Step:  4384
+Pretraining Loss:  tensor(0.3342, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.09253246753246754 service_time: 1826 s_time: -57 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: 0.0 service_time: 1110 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 50 reward: -0.11931818181818182 service_time: 2744 s_time: 147 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.011607142857142858 service_time: 1598 s_time: -13 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1603 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.023291925465838508 service_time: 2897 s_time: 30 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: -0.01523109243697479 service_time: 2153 s_time: 29 penalty: 0 agent_num: 34 done: False
+______________________
+id: 52 reward: 0.00487012987012987 service_time: 1630 s_time: -6 penalty: 0 agent_num: 22 done: False
+______________________
+id: 53 reward: -0.024390243902439025 service_time: 2715 s_time: 56 penalty: 0 agent_num: 41 done: False
+______________________
+id: 44 reward: 0.0009157509157509158 service_time: 1526 s_time: -2 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.01358695652173913 service_time: 2782 s_time: 35 penalty: 0 agent_num: 46 done: False
+______________________
+id: 42 reward: 0.0006613756613756613 service_time: 2918 s_time: -1 penalty: 0 agent_num: 27 done: False
+______________________
+id: 46 reward: -0.01287375415282392 service_time: 1846 s_time: 31 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.008152173913043478 service_time: 3037 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 3078 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+id: 54 reward: -0.019787644787644786 service_time: 3133 s_time: 41 penalty: 0 agent_num: 37 done: False
+______________________
+Step:  4400
+Pretraining Loss:  tensor(0.3420, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.0 service_time: 1826 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.04107142857142857 service_time: 1133 s_time: 23 penalty: 0 agent_num: 10 done: False
+______________________
+id: 49 reward: -0.033035714285714286 service_time: 1635 s_time: 37 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.027597402597402596 service_time: 2778 s_time: 34 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1603 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.023291925465838508 service_time: 2867 s_time: -30 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.060876623376623376 service_time: 1705 s_time: 75 penalty: 0 agent_num: 22 done: False
+______________________
+id: 43 reward: -0.005777310924369748 service_time: 2164 s_time: 11 penalty: 0 agent_num: 34 done: False
+______________________
+id: 46 reward: 0.0029069767441860465 service_time: 1839 s_time: -7 penalty: 0 agent_num: 43 done: False
+______________________
+id: 42 reward: 0.0496031746031746 service_time: 2843 s_time: -75 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.0018315018315018315 service_time: 1530 s_time: 4 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: 0.0020408163265306124 service_time: 3074 s_time: -4 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.014751552795031056 service_time: 3075 s_time: 38 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: 0.0039198606271777 service_time: 2706 s_time: -9 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.008928571428571428 service_time: 2805 s_time: 23 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.0222007722007722 service_time: 3179 s_time: 46 penalty: 0 agent_num: 37 done: False
+______________________
+Step:  4416
+Pretraining Loss:  tensor(0.3230, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1133 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.008116883116883116 service_time: 1821 s_time: -5 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1635 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.03214285714285714 service_time: 1639 s_time: 36 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0016233766233766235 service_time: 2776 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.023148148148148147 service_time: 2878 s_time: 35 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.02415966386554622 service_time: 2210 s_time: 46 penalty: 0 agent_num: 34 done: False
+______________________
+id: 52 reward: -0.010551948051948052 service_time: 1718 s_time: 13 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.04425465838509317 service_time: 2924 s_time: 57 penalty: 0 agent_num: 23 done: False
+______________________
+id: 44 reward: 0.0 service_time: 1530 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 53 reward: -0.01524390243902439 service_time: 2741 s_time: 35 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.022448979591836733 service_time: 3118 s_time: 44 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: 0.0 service_time: 2805 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.03239202657807309 service_time: 1917 s_time: 78 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.02027027027027027 service_time: 3221 s_time: 42 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.009316770186335404 service_time: 3099 s_time: 24 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4432
+Pretraining Loss:  tensor(0.3498, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.0 service_time: 1821 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.044642857142857144 service_time: 1158 s_time: 25 penalty: 0 agent_num: 10 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1635 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0 service_time: 2924 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.01607142857142857 service_time: 1657 s_time: 18 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.07061688311688312 service_time: 2863 s_time: 87 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: -0.018668831168831168 service_time: 1741 s_time: 23 penalty: 0 agent_num: 22 done: False
+______________________
+id: 46 reward: 0.0004152823920265781 service_time: 1916 s_time: -1 penalty: 0 agent_num: 43 done: False
+______________________
+id: 53 reward: 0.0008710801393728223 service_time: 2739 s_time: -2 penalty: 0 agent_num: 41 done: False
+______________________
+id: 42 reward: -0.021825396825396824 service_time: 2911 s_time: 33 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.035256410256410256 service_time: 1607 s_time: 77 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.02415966386554622 service_time: 2256 s_time: 46 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: -0.009316770186335404 service_time: 2829 s_time: 24 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: 0.002413127413127413 service_time: 3216 s_time: -5 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: 0.0 service_time: 3099 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.023979591836734693 service_time: 3165 s_time: 47 penalty: 0 agent_num: 35 done: False
+______________________
+Step:  4448
+Pretraining Loss:  tensor(0.3162, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.048214285714285716 service_time: 1131 s_time: -27 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.037337662337662336 service_time: 1844 s_time: 23 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0008928571428571428 service_time: 1634 s_time: -1 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.003246753246753247 service_time: 2859 s_time: -4 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.026785714285714284 service_time: 1687 s_time: 30 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.08074534161490683 service_time: 3028 s_time: 104 penalty: 0 agent_num: 23 done: False
+______________________
+id: 43 reward: 0.0010504201680672268 service_time: 2254 s_time: -2 penalty: 0 agent_num: 34 done: False
+______________________
+id: 52 reward: 0.006493506493506494 service_time: 1733 s_time: -8 penalty: 0 agent_num: 22 done: False
+______________________
+id: 53 reward: -0.014372822299651568 service_time: 2772 s_time: 33 penalty: 0 agent_num: 41 done: False
+______________________
+id: 42 reward: 0.02447089947089947 service_time: 2874 s_time: -37 penalty: 0 agent_num: 27 done: False
+______________________
+id: 55 reward: -0.017080745341614908 service_time: 2873 s_time: 44 penalty: 0 agent_num: 46 done: False
+______________________
+id: 40 reward: -0.012244897959183673 service_time: 3189 s_time: 24 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: -0.0303156146179402 service_time: 1989 s_time: 73 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.04005791505791506 service_time: 3299 s_time: 83 penalty: 0 agent_num: 37 done: False
+______________________
+id: 44 reward: -0.0173992673992674 service_time: 1645 s_time: 38 penalty: 0 agent_num: 39 done: False
+______________________
+id: 48 reward: -0.022127329192546584 service_time: 3156 s_time: 57 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4464
+Pretraining Loss:  tensor(0.3172, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.08392857142857142 service_time: 1178 s_time: 47 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.21915584415584416 service_time: 1979 s_time: 135 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.05714285714285714 service_time: 1698 s_time: 64 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.008928571428571428 service_time: 2848 s_time: -11 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1687 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: 0.005952380952380952 service_time: 1632 s_time: -13 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: 0.001984126984126984 service_time: 2871 s_time: -3 penalty: 0 agent_num: 27 done: False
+______________________
+id: 52 reward: 0.002435064935064935 service_time: 1730 s_time: -3 penalty: 0 agent_num: 22 done: False
+______________________
+id: 53 reward: 0.0 service_time: 2772 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.029411764705882353 service_time: 2310 s_time: 56 penalty: 0 agent_num: 34 done: False
+______________________
+id: 51 reward: -0.03183229813664596 service_time: 3069 s_time: 41 penalty: 0 agent_num: 23 done: False
+______________________
+id: 46 reward: -0.020764119601328904 service_time: 2039 s_time: 50 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.018877551020408164 service_time: 3226 s_time: 37 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.01591614906832298 service_time: 2914 s_time: 41 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.012065637065637066 service_time: 3324 s_time: 25 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.011645962732919254 service_time: 3186 s_time: 30 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4480
+Pretraining Loss:  tensor(0.3329, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1178 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1979 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0017857142857142857 service_time: 1696 s_time: -2 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.021739130434782608 service_time: 3097 s_time: 28 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.008035714285714285 service_time: 1696 s_time: 9 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.024350649350649352 service_time: 2878 s_time: 30 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.01282051282051282 service_time: 1660 s_time: 28 penalty: 0 agent_num: 39 done: False
+______________________
+id: 52 reward: 0.030032467532467532 service_time: 1693 s_time: -37 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.016534391534391533 service_time: 2896 s_time: 25 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.014372822299651568 service_time: 2805 s_time: 33 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.015756302521008403 service_time: 2340 s_time: 30 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: 0.0014478764478764478 service_time: 3321 s_time: -3 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.00872093023255814 service_time: 2060 s_time: 21 penalty: 0 agent_num: 43 done: False
+______________________
+id: 40 reward: -0.011224489795918367 service_time: 3248 s_time: 22 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: 0.0 service_time: 2914 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.005046583850931677 service_time: 3199 s_time: 13 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4496
+Pretraining Loss:  tensor(0.3508, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.05892857142857143 service_time: 1211 s_time: 33 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 1979 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.10446428571428572 service_time: 1813 s_time: 117 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.04107142857142857 service_time: 1742 s_time: 46 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.0016233766233766235 service_time: 2876 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.010869565217391304 service_time: 3111 s_time: 14 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: 0.017857142857142856 service_time: 1671 s_time: -22 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.011904761904761904 service_time: 1686 s_time: 26 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: -0.06481481481481481 service_time: 2994 s_time: 98 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.018907563025210083 service_time: 2376 s_time: 36 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.01173469387755102 service_time: 3271 s_time: 23 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.0195993031358885 service_time: 2850 s_time: 45 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.010093167701863354 service_time: 3225 s_time: 26 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.010382059800664452 service_time: 2085 s_time: 25 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.016891891891891893 service_time: 3356 s_time: 35 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.034161490683229816 service_time: 3002 s_time: 88 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4512
+Pretraining Loss:  tensor(0.3929, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1211 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.07142857142857142 service_time: 2023 s_time: 44 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: -0.05844155844155844 service_time: 2948 s_time: 72 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1742 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: 0.0026785714285714286 service_time: 1810 s_time: -3 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.05201863354037267 service_time: 3178 s_time: 67 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: 0.007936507936507936 service_time: 2982 s_time: -12 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.013130252100840336 service_time: 2401 s_time: 25 penalty: 0 agent_num: 34 done: False
+______________________
+id: 44 reward: -0.006868131868131868 service_time: 1701 s_time: 15 penalty: 0 agent_num: 39 done: False
+______________________
+id: 52 reward: 0.003246753246753247 service_time: 1667 s_time: -4 penalty: 0 agent_num: 22 done: False
+______________________
+id: 53 reward: -0.009146341463414634 service_time: 2871 s_time: 21 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.0035714285714285713 service_time: 3278 s_time: 7 penalty: 0 agent_num: 35 done: False
+______________________
+id: 46 reward: 0.0 service_time: 2085 s_time: 0 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.008152173913043478 service_time: 3246 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.0019305019305019305 service_time: 3360 s_time: 4 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: 0.0 service_time: 3002 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4528
+Pretraining Loss:  tensor(0.3910, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1211 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2023 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1810 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.00487012987012987 service_time: 2942 s_time: -6 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0017857142857142857 service_time: 1740 s_time: -2 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.025974025974025976 service_time: 1699 s_time: 32 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.002329192546583851 service_time: 3175 s_time: -3 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: 0.0 service_time: 2982 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.011446886446886446 service_time: 1726 s_time: 25 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.014180672268907563 service_time: 2428 s_time: 27 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.010617760617760617 service_time: 3382 s_time: 22 penalty: 0 agent_num: 37 done: False
+______________________
+id: 40 reward: -0.020918367346938777 service_time: 3319 s_time: 41 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.01125776397515528 service_time: 3275 s_time: 29 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.017857142857142856 service_time: 2912 s_time: 41 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.023255813953488372 service_time: 2141 s_time: 56 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.021739130434782608 service_time: 3058 s_time: 56 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4544
+Pretraining Loss:  tensor(0.4005, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.20535714285714285 service_time: 1326 s_time: 115 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2023 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: 0.008540372670807454 service_time: 3164 s_time: -11 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: -0.04285714285714286 service_time: 1858 s_time: 48 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: -0.014285714285714285 service_time: 1756 s_time: 16 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.030032467532467532 service_time: 2979 s_time: 37 penalty: 0 agent_num: 22 done: False
+______________________
+id: 43 reward: -0.016281512605042018 service_time: 2459 s_time: 31 penalty: 0 agent_num: 34 done: False
+______________________
+id: 44 reward: -0.021062271062271064 service_time: 1772 s_time: 46 penalty: 0 agent_num: 39 done: False
+______________________
+id: 52 reward: -0.03165584415584415 service_time: 1738 s_time: 39 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.03306878306878307 service_time: 3032 s_time: 50 penalty: 0 agent_num: 27 done: False
+______________________
+id: 53 reward: -0.004355400696864111 service_time: 2922 s_time: 10 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: -0.01479591836734694 service_time: 3348 s_time: 29 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: -0.007375776397515528 service_time: 3294 s_time: 19 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.037644787644787646 service_time: 3460 s_time: 78 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.011212624584717609 service_time: 2168 s_time: 27 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.010093167701863354 service_time: 3084 s_time: 26 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4560
+Pretraining Loss:  tensor(0.3594, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.08035714285714286 service_time: 1281 s_time: -45 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2023 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 52 reward: -0.040584415584415584 service_time: 1788 s_time: 50 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.03482142857142857 service_time: 1795 s_time: 39 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.04580745341614907 service_time: 3223 s_time: 59 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.017045454545454544 service_time: 3000 s_time: 21 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: 0.00625 service_time: 1851 s_time: -7 penalty: 0 agent_num: 20 done: False
+______________________
+id: 43 reward: -0.011029411764705883 service_time: 2480 s_time: 21 penalty: 0 agent_num: 34 done: False
+______________________
+id: 42 reward: -0.0205026455026455 service_time: 3063 s_time: 31 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.013775510204081633 service_time: 3375 s_time: 27 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: 0.0 service_time: 2922 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.017374517374517374 service_time: 3496 s_time: 36 penalty: 0 agent_num: 37 done: False
+______________________
+id: 44 reward: 0.0086996336996337 service_time: 1753 s_time: -19 penalty: 0 agent_num: 39 done: False
+______________________
+id: 46 reward: -0.007890365448504983 service_time: 2187 s_time: 19 penalty: 0 agent_num: 43 done: False
+______________________
+id: 48 reward: -0.010869565217391304 service_time: 3322 s_time: 28 penalty: 0 agent_num: 46 done: False
+______________________
+id: 55 reward: 0.0007763975155279503 service_time: 3082 s_time: -2 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4576
+Pretraining Loss:  tensor(0.3278, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1281 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2023 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: 0.0015527950310559005 service_time: 3221 s_time: -2 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.017045454545454544 service_time: 3021 s_time: 21 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.017857142857142856 service_time: 1815 s_time: 20 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: -0.015178571428571428 service_time: 1868 s_time: 17 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.014194139194139194 service_time: 1784 s_time: 31 penalty: 0 agent_num: 39 done: False
+______________________
+id: 42 reward: -0.03306878306878307 service_time: 3113 s_time: 50 penalty: 0 agent_num: 27 done: False
+______________________
+id: 43 reward: -0.013130252100840336 service_time: 2505 s_time: 25 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: 0.002413127413127413 service_time: 3491 s_time: -5 penalty: 0 agent_num: 37 done: False
+______________________
+id: 52 reward: 0.00487012987012987 service_time: 1782 s_time: -6 penalty: 0 agent_num: 22 done: False
+______________________
+id: 48 reward: -0.011645962732919254 service_time: 3352 s_time: 30 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.005813953488372093 service_time: 2201 s_time: 14 penalty: 0 agent_num: 43 done: False
+______________________
+id: 53 reward: -0.012630662020905924 service_time: 2951 s_time: 29 penalty: 0 agent_num: 41 done: False
+______________________
+id: 40 reward: 0.0005102040816326531 service_time: 3374 s_time: -1 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.02562111801242236 service_time: 3148 s_time: 66 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4592
+Pretraining Loss:  tensor(0.3018, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1281 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.1038961038961039 service_time: 2087 s_time: 64 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: -0.036490683229813664 service_time: 3268 s_time: 47 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1815 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.0633116883116883 service_time: 3099 s_time: 78 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.046957671957671955 service_time: 3184 s_time: 71 penalty: 0 agent_num: 27 done: False
+______________________
+id: 52 reward: -0.07142857142857142 service_time: 1870 s_time: 88 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.10535714285714286 service_time: 1986 s_time: 118 penalty: 0 agent_num: 20 done: False
+______________________
+id: 43 reward: -0.0005252100840336134 service_time: 2506 s_time: 1 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.02040816326530612 service_time: 3414 s_time: 40 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.007326007326007326 service_time: 1800 s_time: 16 penalty: 0 agent_num: 39 done: False
+______________________
+id: 54 reward: -0.03957528957528957 service_time: 3573 s_time: 82 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.006097560975609756 service_time: 2965 s_time: 14 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.011645962732919254 service_time: 3382 s_time: 30 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: 0.0 service_time: 2201 s_time: 0 penalty: 0 agent_num: 43 done: False
+______________________
+id: 55 reward: -0.014751552795031056 service_time: 3186 s_time: 38 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4608
+Pretraining Loss:  tensor(0.3224, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1281 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.08766233766233766 service_time: 2141 s_time: 54 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: -0.014751552795031056 service_time: 3287 s_time: 19 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: 0.0016233766233766235 service_time: 3097 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.05178571428571429 service_time: 1873 s_time: 58 penalty: 0 agent_num: 20 done: False
+______________________
+id: 49 reward: 0.07321428571428572 service_time: 1904 s_time: -82 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.009157509157509158 service_time: 1820 s_time: 20 penalty: 0 agent_num: 39 done: False
+______________________
+id: 52 reward: -0.030032467532467532 service_time: 1907 s_time: 37 penalty: 0 agent_num: 22 done: False
+______________________
+id: 43 reward: -0.031512605042016806 service_time: 2566 s_time: 60 penalty: 0 agent_num: 34 done: False
+______________________
+id: 42 reward: -0.047619047619047616 service_time: 3256 s_time: 72 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.013265306122448979 service_time: 3440 s_time: 26 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: 0.0 service_time: 2965 s_time: 0 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.01125776397515528 service_time: 3411 s_time: 29 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.008204633204633204 service_time: 3590 s_time: 17 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.006211180124223602 service_time: 3202 s_time: 16 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.007475083056478406 service_time: 2219 s_time: 18 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4624
+Pretraining Loss:  tensor(0.3312, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.13392857142857142 service_time: 1356 s_time: 75 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2141 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0125 service_time: 1890 s_time: -14 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.02922077922077922 service_time: 3133 s_time: 36 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.0015527950310559005 service_time: 3289 s_time: 2 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.0008928571428571428 service_time: 1874 s_time: 1 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.07142857142857142 service_time: 1995 s_time: 88 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.005291005291005291 service_time: 3248 s_time: -8 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.008241758241758242 service_time: 1838 s_time: 18 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.01838235294117647 service_time: 2601 s_time: 35 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.015816326530612244 service_time: 3471 s_time: 31 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: 0.0 service_time: 3411 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.006756756756756757 service_time: 3604 s_time: 14 penalty: 0 agent_num: 37 done: False
+______________________
+id: 53 reward: -0.028745644599303136 service_time: 3031 s_time: 66 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: 0.0 service_time: 3202 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.013704318936877076 service_time: 2252 s_time: 33 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4640
+Pretraining Loss:  tensor(0.3304, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.05178571428571429 service_time: 1385 s_time: 29 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.027597402597402596 service_time: 2158 s_time: 17 penalty: 0 agent_num: 11 done: False
+______________________
+id: 51 reward: 0.0 service_time: 3289 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.05357142857142857 service_time: 2061 s_time: 66 penalty: 0 agent_num: 22 done: False
+______________________
+id: 49 reward: -0.06696428571428571 service_time: 1965 s_time: 75 penalty: 0 agent_num: 20 done: False
+______________________
+id: 47 reward: 0.0008928571428571428 service_time: 1873 s_time: -1 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.10064935064935066 service_time: 3257 s_time: 124 penalty: 0 agent_num: 22 done: False
+______________________
+id: 40 reward: -0.00816326530612245 service_time: 3487 s_time: 16 penalty: 0 agent_num: 35 done: False
+______________________
+id: 42 reward: -0.022486772486772486 service_time: 3282 s_time: 34 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: 0.0022893772893772895 service_time: 1833 s_time: -5 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.01365546218487395 service_time: 2627 s_time: 26 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.017080745341614908 service_time: 3455 s_time: 44 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.008275261324041812 service_time: 3050 s_time: 19 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.006274131274131274 service_time: 3617 s_time: 13 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.013975155279503106 service_time: 3238 s_time: 36 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.01951827242524917 service_time: 2299 s_time: 47 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4656
+Pretraining Loss:  tensor(0.3268, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1385 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2158 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.02142857142857143 service_time: 1941 s_time: -24 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0 service_time: 3289 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 47 reward: -0.019642857142857142 service_time: 1895 s_time: 22 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.07305194805194805 service_time: 3347 s_time: 90 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.016534391534391533 service_time: 3307 s_time: 25 penalty: 0 agent_num: 27 done: False
+______________________
+id: 52 reward: 0.0 service_time: 2061 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 44 reward: -0.019230769230769232 service_time: 1875 s_time: 42 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.0035714285714285713 service_time: 3494 s_time: 7 penalty: 0 agent_num: 35 done: False
+______________________
+id: 48 reward: 0.0 service_time: 3455 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.01365546218487395 service_time: 2653 s_time: 26 penalty: 0 agent_num: 34 done: False
+______________________
+id: 54 reward: -0.019787644787644786 service_time: 3658 s_time: 41 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.013198757763975156 service_time: 3272 s_time: 34 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.010452961672473868 service_time: 3074 s_time: 24 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: -0.02159468438538206 service_time: 2351 s_time: 52 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4672
+Pretraining Loss:  tensor(0.3129, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.1125 service_time: 1448 s_time: 63 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2158 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1941 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.010869565217391304 service_time: 3303 s_time: 14 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.05519480519480519 service_time: 2129 s_time: 68 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.020535714285714286 service_time: 1918 s_time: 23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.007305194805194805 service_time: 3356 s_time: 9 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.0 service_time: 3307 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.01989795918367347 service_time: 3533 s_time: 39 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.024725274725274724 service_time: 1929 s_time: 54 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: 0.0031512605042016808 service_time: 2647 s_time: -6 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.016692546583850932 service_time: 3498 s_time: 43 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.01088850174216028 service_time: 3099 s_time: 25 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.013513513513513514 service_time: 3686 s_time: 28 penalty: 0 agent_num: 37 done: False
+______________________
+id: 55 reward: -0.01746894409937888 service_time: 3317 s_time: 45 penalty: 0 agent_num: 46 done: False
+______________________
+id: 46 reward: -0.015780730897009966 service_time: 2389 s_time: 38 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4688
+Pretraining Loss:  tensor(0.3200, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1448 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.16233766233766234 service_time: 2258 s_time: 100 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: 0.0 service_time: 1941 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: -0.027597402597402596 service_time: 3390 s_time: 34 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: 0.0016233766233766235 service_time: 2127 s_time: -2 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.052795031055900624 service_time: 3371 s_time: 68 penalty: 0 agent_num: 23 done: False
+______________________
+id: 42 reward: -0.03835978835978836 service_time: 3365 s_time: 58 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.004578754578754579 service_time: 1939 s_time: 10 penalty: 0 agent_num: 39 done: False
+______________________
+id: 47 reward: -0.020535714285714286 service_time: 1941 s_time: 23 penalty: 0 agent_num: 20 done: False
+______________________
+id: 43 reward: -0.026785714285714284 service_time: 2698 s_time: 51 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.01683673469387755 service_time: 3566 s_time: 33 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: 0.002329192546583851 service_time: 3311 s_time: -6 penalty: 0 agent_num: 46 done: False
+______________________
+id: 48 reward: -0.014751552795031056 service_time: 3536 s_time: 38 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.008710801393728223 service_time: 3119 s_time: 20 penalty: 0 agent_num: 41 done: False
+______________________
+id: 54 reward: -0.026061776061776062 service_time: 3740 s_time: 54 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.01287375415282392 service_time: 2420 s_time: 31 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4704
+Pretraining Loss:  tensor(0.3292, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.04642857142857143 service_time: 1474 s_time: 26 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2258 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.014285714285714285 service_time: 1957 s_time: 16 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: 0.0 service_time: 3371 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: 0.06655844155844155 service_time: 3308 s_time: -82 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: 0.0 service_time: 2127 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.02142857142857143 service_time: 1965 s_time: 24 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: 0.01455026455026455 service_time: 3343 s_time: -22 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.012362637362637362 service_time: 1966 s_time: 27 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.004081632653061225 service_time: 3574 s_time: 8 penalty: 0 agent_num: 35 done: False
+______________________
+id: 43 reward: -0.0015756302521008404 service_time: 2701 s_time: 3 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.009316770186335404 service_time: 3560 s_time: 24 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.006968641114982578 service_time: 3135 s_time: 16 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.020574534161490684 service_time: 3364 s_time: 53 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.00916988416988417 service_time: 3759 s_time: 19 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: 0.0 service_time: 2420 s_time: 0 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4720
+Pretraining Loss:  tensor(0.3097, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.03571428571428571 service_time: 1494 s_time: 20 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2258 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.09464285714285714 service_time: 2063 s_time: 106 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.02353896103896104 service_time: 3279 s_time: -29 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.0 service_time: 3371 s_time: 0 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: 0.028409090909090908 service_time: 2092 s_time: -35 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1965 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: 0.0 service_time: 3343 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 44 reward: -0.008241758241758242 service_time: 1984 s_time: 18 penalty: 0 agent_num: 39 done: False
+______________________
+id: 40 reward: -0.007653061224489796 service_time: 3589 s_time: 15 penalty: 0 agent_num: 35 done: False
+______________________
+id: 53 reward: -0.016114982578397212 service_time: 3172 s_time: 37 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.01203416149068323 service_time: 3395 s_time: 31 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.03571428571428571 service_time: 2769 s_time: 68 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.007375776397515528 service_time: 3579 s_time: 19 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: 0.0 service_time: 3759 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.01079734219269103 service_time: 2446 s_time: 26 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4736
+Pretraining Loss:  tensor(0.2929, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 41 reward: 0.0 service_time: 2258 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 45 reward: -0.04642857142857143 service_time: 1520 s_time: 26 penalty: 0 agent_num: 10 done: False
+______________________
+id: 49 reward: 0.027678571428571427 service_time: 2032 s_time: -31 penalty: 0 agent_num: 20 done: False
+______________________
+id: 50 reward: 0.024350649350649352 service_time: 3249 s_time: -30 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: -0.0007763975155279503 service_time: 3372 s_time: 1 penalty: 0 agent_num: 23 done: False
+______________________
+id: 52 reward: -0.03165584415584415 service_time: 2131 s_time: 39 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 1965 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: 0.0 service_time: 3343 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.008673469387755102 service_time: 3606 s_time: 17 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.014194139194139194 service_time: 2015 s_time: 31 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.009453781512605041 service_time: 2787 s_time: 18 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.007375776397515528 service_time: 3598 s_time: 19 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.02003484320557491 service_time: 3218 s_time: 46 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.008928571428571428 service_time: 3418 s_time: 23 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.032818532818532815 service_time: 3827 s_time: 68 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.02616279069767442 service_time: 2509 s_time: 63 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4752
+Pretraining Loss:  tensor(0.3226, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0017857142857142857 service_time: 1519 s_time: -1 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2258 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.019642857142857142 service_time: 2054 s_time: 22 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.07919254658385093 service_time: 3474 s_time: 102 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.049512987012987016 service_time: 3310 s_time: 61 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: 0.00487012987012987 service_time: 2125 s_time: -6 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: 0.0 service_time: 3343 s_time: 0 penalty: 0 agent_num: 27 done: False
+______________________
+id: 47 reward: -0.04107142857142857 service_time: 2011 s_time: 46 penalty: 0 agent_num: 20 done: False
+______________________
+id: 44 reward: -0.005494505494505495 service_time: 2027 s_time: 12 penalty: 0 agent_num: 39 done: False
+______________________
+id: 43 reward: -0.014705882352941176 service_time: 2815 s_time: 28 penalty: 0 agent_num: 34 done: False
+______________________
+id: 40 reward: -0.012755102040816327 service_time: 3631 s_time: 25 penalty: 0 agent_num: 35 done: False
+______________________
+id: 55 reward: -0.008152173913043478 service_time: 3439 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.011759581881533102 service_time: 3245 s_time: 27 penalty: 0 agent_num: 41 done: False
+______________________
+id: 48 reward: -0.008152173913043478 service_time: 3619 s_time: 21 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.010617760617760617 service_time: 3849 s_time: 22 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.014119601328903655 service_time: 2543 s_time: 34 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4768
+Pretraining Loss:  tensor(0.3467, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1519 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.08928571428571429 service_time: 2313 s_time: 55 penalty: 0 agent_num: 11 done: False
+______________________
+id: 50 reward: 0.01948051948051948 service_time: 3286 s_time: -24 penalty: 0 agent_num: 22 done: False
+______________________
+id: 51 reward: 0.06288819875776397 service_time: 3393 s_time: -81 penalty: 0 agent_num: 23 done: False
+______________________
+id: 49 reward: 0.014285714285714285 service_time: 2038 s_time: -16 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: -0.01948051948051948 service_time: 2149 s_time: 24 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: 0.0 service_time: 2011 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 42 reward: 0.011243386243386243 service_time: 3326 s_time: -17 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: 0.0 service_time: 3631 s_time: 0 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: 0.0 service_time: 2027 s_time: 0 penalty: 0 agent_num: 39 done: False
+______________________
+id: 48 reward: 0.0 service_time: 3619 s_time: 0 penalty: 0 agent_num: 46 done: False
+______________________
+id: 53 reward: -0.014372822299651568 service_time: 3278 s_time: 33 penalty: 0 agent_num: 41 done: False
+______________________
+id: 43 reward: -0.025210084033613446 service_time: 2863 s_time: 48 penalty: 0 agent_num: 34 done: False
+______________________
+id: 55 reward: -0.006987577639751553 service_time: 3457 s_time: 18 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: -0.012065637065637066 service_time: 3874 s_time: 25 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.007890365448504983 service_time: 2562 s_time: 19 penalty: 0 agent_num: 43 done: False
+______________________
+------------------------------------
+| time/                 |          |
+|    fps                | 8        |
+|    iterations         | 300      |
+|    time_elapsed       | 538      |
+|    total_timesteps    | 4800     |
+| train/                |          |
+|    entropy_loss       | 0.00111  |
+|    explained_variance | -175     |
+|    learning_rate      | 1e-05    |
+|    n_updates          | 299      |
+|    policy_loss        | 0.347    |
+|    value_loss         | 0.324    |
+------------------------------------
+Step:  4784
+Pretraining Loss:  tensor(0.3390, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: -0.04285714285714286 service_time: 1543 s_time: 24 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: -0.030844155844155844 service_time: 2332 s_time: 19 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.03482142857142857 service_time: 2077 s_time: 39 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.04114906832298137 service_time: 3446 s_time: 53 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: 0.010551948051948052 service_time: 3273 s_time: -13 penalty: 0 agent_num: 22 done: False
+______________________
+id: 52 reward: 0.0 service_time: 2149 s_time: 0 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.017195767195767195 service_time: 3352 s_time: 26 penalty: 0 agent_num: 27 done: False
+______________________
+id: 47 reward: 0.0 service_time: 2011 s_time: 0 penalty: 0 agent_num: 20 done: False
+______________________
+id: 40 reward: -0.011224489795918367 service_time: 3653 s_time: 22 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.015567765567765568 service_time: 2061 s_time: 34 penalty: 0 agent_num: 39 done: False
+______________________
+id: 55 reward: -0.0034937888198757765 service_time: 3466 s_time: 9 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.0021008403361344537 service_time: 2867 s_time: 4 penalty: 0 agent_num: 34 done: False
+______________________
+id: 53 reward: 0.0008710801393728223 service_time: 3276 s_time: -2 penalty: 0 agent_num: 41 done: False
+______________________
+id: 46 reward: 0.0 service_time: 2562 s_time: 0 penalty: 0 agent_num: 43 done: False
+______________________
+id: 54 reward: -0.015926640926640926 service_time: 3907 s_time: 33 penalty: 0 agent_num: 37 done: False
+______________________
+id: 48 reward: -0.019798136645962732 service_time: 3670 s_time: 51 penalty: 0 agent_num: 46 done: False
+______________________
+Step:  4800
+Pretraining Loss:  tensor(0.3472, device='cuda:0', grad_fn=<MeanBackward0>)
+id: 45 reward: 0.0 service_time: 1543 s_time: 0 penalty: 0 agent_num: 10 done: False
+______________________
+id: 41 reward: 0.0 service_time: 2332 s_time: 0 penalty: 0 agent_num: 11 done: False
+______________________
+id: 49 reward: -0.05178571428571429 service_time: 2135 s_time: 58 penalty: 0 agent_num: 20 done: False
+______________________
+id: 51 reward: -0.1545031055900621 service_time: 3645 s_time: 199 penalty: 0 agent_num: 23 done: False
+______________________
+id: 50 reward: -0.032467532467532464 service_time: 3313 s_time: 40 penalty: 0 agent_num: 22 done: False
+______________________
+id: 47 reward: -0.026785714285714284 service_time: 2041 s_time: 30 penalty: 0 agent_num: 20 done: False
+______________________
+id: 52 reward: 0.00487012987012987 service_time: 2143 s_time: -6 penalty: 0 agent_num: 22 done: False
+______________________
+id: 42 reward: -0.09060846560846561 service_time: 3489 s_time: 137 penalty: 0 agent_num: 27 done: False
+______________________
+id: 40 reward: -0.02142857142857143 service_time: 3695 s_time: 42 penalty: 0 agent_num: 35 done: False
+______________________
+id: 44 reward: -0.03021978021978022 service_time: 2127 s_time: 66 penalty: 0 agent_num: 39 done: False
+______________________
+id: 53 reward: -0.016986062717770034 service_time: 3315 s_time: 39 penalty: 0 agent_num: 41 done: False
+______________________
+id: 55 reward: -0.006987577639751553 service_time: 3484 s_time: 18 penalty: 0 agent_num: 46 done: False
+______________________
+id: 43 reward: -0.011554621848739496 service_time: 2889 s_time: 22 penalty: 0 agent_num: 34 done: False
+______________________
+id: 48 reward: -0.023291925465838508 service_time: 3730 s_time: 60 penalty: 0 agent_num: 46 done: False
+______________________
+id: 54 reward: 0.0 service_time: 3907 s_time: 0 penalty: 0 agent_num: 37 done: False
+______________________
+id: 46 reward: -0.01951827242524917 service_time: 2609 s_time: 47 penalty: 0 agent_num: 43 done: False
+______________________
+Step:  4816
+Pretraining Loss:  tensor(0.3451, device='cuda:0', grad_fn=<MeanBackward0>)
