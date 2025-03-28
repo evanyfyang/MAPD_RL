@@ -29,39 +29,33 @@ class A2CMAPD(A2C):
 
         # This will only loop once (get all data in one go)
         for rollout_data in self.rollout_buffer.get(batch_size=None):
+            # 正常收集数据
             actions = rollout_data.actions
             if isinstance(self.action_space, spaces.Discrete):
-                # Convert discrete action from float to long
                 actions = actions.long().flatten()
 
-            values, log_prob, entropy = self.policy.evaluate_actions(rollout_data.observations, actions)
+            # 评估动作
+            values, loss_ce, entropy = self.policy.evaluate_actions(
+                rollout_data.observations, 
+                actions
+            )
             values = values.flatten()
 
-            # Normalize advantage (not present in the original implementation)
-            advantages = rollout_data.advantages
-            if self.normalize_advantage:
-                advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
-
-            # Policy gradient loss
-            policy_loss = -(advantages * log_prob).mean()
-
-            # Value loss using the TD(gae_lambda) target
-            value_loss = F.mse_loss(rollout_data.returns, values)
-
-            # Entropy loss favor exploration
-            if entropy is None:
-                # Approximate entropy when no analytical form
-                entropy_loss = -th.mean(-log_prob)
+            if self.policy.current_step < self.policy.pretrain_steps:
+                policy_loss = loss_ce.mean()
+                value_loss = F.mse_loss(rollout_data.returns, values)
+                loss = policy_loss
+                print("Pretraining Loss: ", policy_loss)
             else:
-                # add mask to entropy loss
-                mask = (entropy > 0).float()
-                entropy_loss = -(entropy * mask).sum() / mask.sum()
+                advantages = rollout_data.advantages
+                if self.normalize_advantage:
+                    advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+                policy_loss = -(advantages * loss_ce).mean()
+                value_loss = F.mse_loss(rollout_data.returns, values)
+                loss = policy_loss + self.ent_coef * entropy.mean() + self.vf_coef * value_loss
+                print("Loss: ", loss, "policy_loss:", policy_loss, "entropy_loss", entropy.mean(), "value_loss",value_loss)
 
-            loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
-
-            # print("Step/5:", self._n_updates)
-
-            print("Loss: ", loss, "policy_loss:", policy_loss, "entropy_loss", entropy_loss, "value_loss",value_loss)
+            
             sys.stdout.flush()
             # breakpoint()
             # Optimization step
@@ -72,12 +66,15 @@ class A2CMAPD(A2C):
             th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
             self.policy.optimizer.step()
 
+            # 更新全局步数
+            self.policy.current_step += self.n_envs
+
         explained_var = explained_variance(self.rollout_buffer.values.flatten(), self.rollout_buffer.returns.flatten())
 
         self._n_updates += 1
         self.logger.record("train/n_updates", self._n_updates, exclude="tensorboard")
         self.logger.record("train/explained_variance", explained_var)
-        self.logger.record("train/entropy_loss", entropy_loss.item())
+        self.logger.record("train/entropy_loss", entropy.mean().item())
         self.logger.record("train/policy_loss", policy_loss.item())
         self.logger.record("train/value_loss", value_loss.item())
         if hasattr(self.policy, "log_std"):

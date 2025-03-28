@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DBOOST_ALL_NO_LIB -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -Dmapf_solver_EXPORTS
 
-CXX_INCLUDES = -I/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/inc -I/usr/include/python2.7
+CXX_INCLUDES = -I/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/inc -isystem /localhome/yya305/miniconda3/envs/MAPD_RL/lib/python3.11/site-packages/pybind11/include -isystem /localhome/yya305/miniconda3/envs/MAPD_RL/include/python3.11
 
-CXX_FLAGS = -g -fPIC -fvisibility=hidden -std=gnu++14
+CXX_FLAGS = -g -fPIC -fvisibility=hidden -Wreturn-type -std=gnu++14
 

@@ -22,9 +22,15 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 find_package(pybind11 REQUIRED)
 include_directories(${pybind11_INCLUDE_DIRS})
 
+# 在Boost查找之后添加dlib查找
+find_package(dlib REQUIRED)
+
 # add_executable(lifelong ${SOURCES} )
 # target_link_libraries(lifelong ${Boost_LIBRARIES})
 
 pybind11_add_module(mapf_solver ${SOURCES})
-target_link_libraries(mapf_solver PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(mapf_solver PRIVATE 
+    ${Boost_LIBRARIES}
+    dlib::dlib
+)
 

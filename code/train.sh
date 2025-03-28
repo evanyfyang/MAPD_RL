@@ -66,8 +66,16 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -d)
-      NOT_DIV_FLAG=1
-      shift
+      CAL_TYPE="$2"
+      shift 2
+      ;;
+    -e)
+      FILENAME="$2"
+      shift 2
+      ;;
+    -h)
+      HIDDEN_SIZE="$2"
+      shift 2
       ;;
     *)
       echo "Unknown parameter: $1"
@@ -82,11 +90,14 @@ if [ -z "$GPU_ID" ] || [ -z "$LEARNING_RATE" ] || [ -z "$GAMMA" ] || [ -z "$TAU"
   exit 1
 fi
 
+if [ -z "$HIDDEN_SIZE" ]; then
+  HIDDEN_SIZE=128
+fi
 # Generate timestamp (format: 20250110_1030)
 TIMESTAMP=$(date +%Y%m%d_%H%M)
 
 # Construct model save directory
-MODEL_DIR="../models/lr_${LEARNING_RATE}_gamma_${GAMMA}_tau_${TAU}_${POS_REWARD_FLAG}_${FIX_DIV_FLAG}_${NOT_DIV_FLAG}_${PROCESS_NUM}_${TASK_NUM}"
+MODEL_DIR="../models/${FILENAME}_${TIMESTAMP}_lr_${LEARNING_RATE}_gamma_${GAMMA}_tau_${TAU}_${CAL_TYPE}_${POS_REWARD_FLAG}_${PROCESS_NUM}_${TASK_NUM}"
 
 # Create directory
 mkdir -p "${MODEL_DIR}"
@@ -94,7 +105,6 @@ mkdir -p "${MODEL_DIR}"
 # Set optional parameters
 POS_REWARD_ARG=""
 FIX_DIV_ARG=""
-NOT_DIV_ARG=""
 
 if [ "$POS_REWARD_FLAG" = "1" ]; then
   POS_REWARD_ARG="--pos_reward"
@@ -102,10 +112,6 @@ fi
 
 if [ "$FIX_DIV_FLAG" = "1" ]; then
   FIX_DIV_ARG="--fix_div"
-fi
-
-if [ "$NOT_DIV_FLAG" = "1" ]; then
-  NOT_DIV_ARG="--not_div"
 fi
 
 # Make specified GPU visible
@@ -132,8 +138,9 @@ python train_mapd.py \
   --training \
   --task_num "${TASK_NUM}" \
   --n_envs "${PROCESS_NUM}" \
+  --hidden_size "${HIDDEN_SIZE}" \
   ${POS_REWARD_ARG} \
   ${FIX_DIV_ARG} \
-  ${NOT_DIV_ARG}
+  --cal_type "${CAL_TYPE}"
 
 echo "Training completed. Model saved to: ${MODEL_DIR}"

@@ -36,7 +36,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train A2C on MultiAgentPickupEnv with custom classes.")
 
     # ------------- A2C 相关超参数 -------------
-    parser.add_argument("--total_timesteps", type=int, default=100000,
+    parser.add_argument("--total_timesteps", type=int, default=1000000,
                         help="训练总步数 (总采样数).")
     parser.add_argument("--n_envs", type=int, default=1,
                         help="同时并行的环境数量 (多进程).")
@@ -67,13 +67,14 @@ def parse_args():
                         help="agent数量上界.")
     parser.add_argument("--eval_data_path", type=str, default=None,
                         help="评估数据集路径 (可选).")
-    parser.add_argument("--task_num", type=int, default=200,
+    parser.add_argument("--task_num", type=int, default=500,
                         help="生成任务数量 (for MAPD).")
     parser.add_argument("--pos_reward", action="store_true", default=False,
                         help="reward是否加一.")
     parser.add_argument("--fix_div", action="store_true", default=False)
     parser.add_argument("--not_div", action="store_true", default=False)
-
+    parser.add_argument("--grid_size", type=tuple, default=(21, 35))
+                        
     # ------------- Policy 相关超参数 -------------
     parser.add_argument("--tau", type=float, default=1.0,
                         help="自定义Policy参数, 控制某些soft-update或其他逻辑.")
@@ -83,6 +84,7 @@ def parse_args():
                         help="自定义Policy参数.")
     parser.add_argument("--hidden_size", type=int, default=128,
                         help="传给MAPDFeatureExtractor和Policy的特征维度 (MLP维度等).")
+    parser.add_argument("--cal_type", type=str, default='bmm', choices=['bmm', 'concat'])
 
     # ------------- Checkpoint & Seed -------------
     parser.add_argument("--checkpoint_freq", type=int, default=10000,
@@ -99,6 +101,9 @@ def parse_args():
                         help="测试环境的随机种子.")
     parser.add_argument("--test_episodes", type=int, default=1,
                         help="测试时跑多少回合.")
+
+    parser.add_argument("--pretrain_steps", type=int, default=1000000,
+                       help="预训练步数（使用专家动作）")
 
     args = parser.parse_args()
     return args
@@ -193,14 +198,17 @@ def main():
     policy_kwargs = dict(
         features_extractor_class=MAPDFeatureExtractor,
         features_extractor_kwargs=dict(
-            hidden_size=args.hidden_size  # 传给你的FeatureExtractor
+            hidden_size=args.hidden_size,
+            grid_size=args.grid_size
         ),
         tau=args.tau,
         iterations=args.iterations,
         decay_rate=args.decay_rate,
         fix_div=args.fix_div,
         not_div=args.not_div,
-        max_task=args.task_num
+        max_task=args.task_num,
+        pretrain_steps=args.pretrain_steps,
+        cal_type=args.cal_type
     )
 
     model = A2CMAPD(
@@ -208,7 +216,7 @@ def main():
         env=vec_env,
         policy_kwargs=policy_kwargs,
         learning_rate=lr_func,
-        n_steps=5,               # A2C默认步长，可根据需要调参
+        n_steps=1,               # A2C默认步长，可根据需要调参
         gamma=args.gamma,
         ent_coef=args.ent_coef,
         # optimizer_class=optimizer_cls,
@@ -224,10 +232,8 @@ def main():
         name_prefix="a2c_mapd_model"
     )
 
-    # --------------- 开始训练 ---------------
-    # 注意: 这里的 total_timesteps 是所有并行环境总和的采样步数
     model.learn(
-        total_timesteps=args.total_timesteps,
+        total_timesteps=args.total_timesteps * args.n_envs,
         callback=checkpoint_callback
     )
 

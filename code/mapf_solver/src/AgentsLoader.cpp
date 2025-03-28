@@ -72,6 +72,48 @@ AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
     }
 }
 
+AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
+            std::map<int, vector<int>> delivering_agents,
+            vector< vector<int > >& task_sequences, vector<Path>& solution, bool hungarian_flag)
+{
+    this->num_of_agents = starts.size();
+    this->agents_all.resize(num_of_agents);
+    for (int ag = 0; ag < num_of_agents; ag++)
+    {
+        this->agents_all[ag].Set(starts[ag], ag+1, &task_sequences[ag]);
+        if (delivering_agents.find(ag) != delivering_agents.end())
+        {
+            this->agents_all[ag].is_delivering = true;
+            this->agents_all[ag].start_location = delivering_agents[ag][0];
+            // this->agents_all[ag].start_timestep = G.get_Manhattan_distance(starts[ag].location, delivering_agents[ag][0]);
+            
+            // Get the real running time of agent towards next goal location
+            int startIndex = -1;
+            int goalIndex = -1;
+            for (int i = 0; i < solution[ag].size(); i++)
+            {
+                if(solution[ag][i].location == starts[ag].location && startIndex == -1)
+                {
+                    startIndex = i;
+                }
+                if(delivering_agents[ag][0] == solution[ag][i].location && goalIndex == -1)
+                {
+                    goalIndex = i;
+                }
+            }
+
+            if (startIndex == -1 || goalIndex == -1 || startIndex >= goalIndex)
+            {
+                this->agents_all[ag].start_timestep = starts[ag].timestep + G.get_Manhattan_distance(starts[ag].location, delivering_agents[ag][0]);
+            }
+            else
+            {
+                this->agents_all[ag].start_timestep = starts[ag].timestep + goalIndex - startIndex;
+            }
+        }
+    }
+}
+
 // AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
 //             std::map<int, vector<int>> delivering_agents,
 //             vector< vector<int > >& task_sequences, vector<Path>& solution)

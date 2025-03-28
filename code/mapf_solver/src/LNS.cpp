@@ -85,56 +85,112 @@
 //     return true;
 // }
 
-// bool LNS::run_Hungarian_greedy()
-// {
-//     this->num_of_agents = al.agents_all.size();
-//     this->num_of_tasks = tl.tasks_all.size();
-//     int row = max(num_of_agents, num_of_tasks);
-//     dlib::matrix<int> cost(row, row);
-// 	for (int i = 0; i < row; i++)
-//     {
-//         if (i >= num_of_agents)
-//         {
-//             for (int j = 0; j < row; j++)
-//                 cost(i, j) = INT_MIN;
-//         }
-//         else
-//         {
-//             for (int j = 0; j < row; j++)
-//             {
-//                 if (j >= num_of_tasks)
-//                     cost(i, j) = INT_MIN;
-//                 else
-//                 {
-//                     Task& task = tl.tasks_all[j];
-//                     Agent& agent = al.agents_all[i];
-//                     int temp_cost = 0;
-//                     // temp_cost = agent.start_timestep + G.get_Manhattan_distance(agent.start_location, task.goal_arr[0]);
-//                     temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
-//                     temp_cost = max(temp_cost, task.release_time);
-//                     for (int k = 0; k < task.goal_arr.size()-1; k++)
-//                         temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
-//                         // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
-//                     cost(i, j) = -temp_cost;
-//                 }
-//                 // cout << "test" << cost(i, j) << endl;
-//             }
-//         }
-//     }
-//     vector<long> assignment = max_cost_assignment(cost);
-//     for (int i = 0; i < al.agents_all.size(); i++)
-// 	{
-//         Agent& ag = al.agents_all[i];
-//         // (*ag.new_task_sequence).clear();
-//         if (assignment[i] < num_of_tasks)
-//         {
-//             assigned_tasks.push_back(tl.tasks_all[assignment[i]].task_id);
-//             (*ag.new_task_sequence).push_back(tl.tasks_all[assignment[i]].task_id);
-//             ag.task_sequence.push_back(tl.tasks_all[assignment[i]].task_id);
-//         }
-//     }
-//     return true;
-// }
+bool LNS::run_Hungarian_greedy()
+{
+    this->num_of_agents = al.agents_all.size();
+    this->num_of_tasks = tl.tasks_all.size();
+    int row = max(num_of_agents, num_of_tasks);
+    dlib::matrix<int> cost(row, row);
+	for (int i = 0; i < row; i++)
+    {
+        if (i >= num_of_agents)
+        {
+            for (int j = 0; j < row; j++)
+                cost(i, j) = INT_MIN;
+        }
+        else
+        {
+            for (int j = 0; j < row; j++)
+            {
+                if (j >= num_of_tasks)
+                    cost(i, j) = INT_MIN;
+                else
+                {
+                    Task& task = tl.tasks_all[j];
+                    Agent& agent = al.agents_all[i];
+                    int temp_cost = 0;
+                    // temp_cost = agent.start_timestep + G.get_Manhattan_distance(agent.start_location, task.goal_arr[0]);
+                    temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
+                    temp_cost = max(temp_cost, task.release_time);
+                    for (int k = 0; k < task.goal_arr.size()-1; k++)
+                        temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
+                        // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
+                    cost(i, j) = -temp_cost;
+                }
+                // cout << "test" << cost(i, j) << endl;
+            }
+        }
+    }
+    vector<long> assignment = max_cost_assignment(cost);
+    for (int i = 0; i < al.agents_all.size(); i++)
+	{
+        Agent& ag = al.agents_all[i];
+        // (*ag.new_task_sequence).clear();
+        if (assignment[i] < num_of_tasks)
+        {
+            assigned_tasks.push_back(tl.tasks_all[assignment[i]].task_id);
+            (*ag.new_task_sequence).push_back(tl.tasks_all[assignment[i]].task_id);
+            ag.task_sequence.push_back(tl.tasks_all[assignment[i]].task_id);
+        }
+    }
+    return true;
+}
+
+bool LNS::run_Hungarian_greedy_without_delivering()
+{
+    this->num_of_agents = al.agents_all.size();
+    this->num_of_tasks = tl.tasks_all.size();
+    int row = max(num_of_agents, num_of_tasks);
+    dlib::matrix<int> cost(row, row);
+	for (int i = 0; i < row; i++)
+    {
+        if (i >= num_of_agents)
+        {
+            for (int j = 0; j < row; j++)
+                cost(i, j) = INT_MIN;
+        }
+        else if (al.agents_all[i].is_delivering)
+        {
+            for (int j = 0; j < row; j++)
+                cost(i, j) = INT_MIN;
+        }
+        else
+        {
+            for (int j = 0; j < row; j++)
+            {
+                if (j >= num_of_tasks)
+                    cost(i, j) = INT_MIN;
+                else
+                {
+                    Task& task = tl.tasks_all[j];
+                    Agent& agent = al.agents_all[i];
+                    int temp_cost = 0;
+                    // temp_cost = agent.start_timestep + G.get_Manhattan_distance(agent.start_location, task.goal_arr[0]);
+                    temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
+                    temp_cost = max(temp_cost, task.release_time);
+                    for (int k = 0; k < task.goal_arr.size()-1; k++)
+                        temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
+                        // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
+                    cost(i, j) = -temp_cost;
+                }
+                // cout << "test" << cost(i, j) << endl;
+            }
+        }
+    }
+    vector<long> assignment = max_cost_assignment(cost);
+    for (int i = 0; i < al.agents_all.size(); i++)
+	{
+        Agent& ag = al.agents_all[i];
+        // (*ag.new_task_sequence).clear();
+        if (assignment[i] < num_of_tasks)
+        {
+            assigned_tasks.push_back(tl.tasks_all[assignment[i]].task_id);
+            (*ag.new_task_sequence).push_back(tl.tasks_all[assignment[i]].task_id);
+            ag.task_sequence.push_back(tl.tasks_all[assignment[i]].task_id);
+        }
+    }
+    return true;
+}
 
 // bool LNS::run_HBH_greedy()
 // {

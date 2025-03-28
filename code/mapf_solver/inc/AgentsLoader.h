@@ -43,6 +43,7 @@ public:
     //FOR MLA*
     AgentsLoader(const KivaGrid &G, const vector<State> &starts, std::map<int, vector<int>> delivering_agents, vector<vector<int>> &task_sequences, vector<Path> &solution);
     
+    AgentsLoader(const KivaGrid &G, const vector<State> &starts, std::map<int, vector<int>> delivering_agents, vector<vector<int>> &task_sequences, vector<Path> &solution, bool hungarian_flag);
     AgentsLoader();
     ~AgentsLoader();
 };

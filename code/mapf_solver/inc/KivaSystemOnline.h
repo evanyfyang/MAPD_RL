@@ -27,13 +27,17 @@ class AgentTaskStatus
 		int finished_service_time;
 		int timestep;
 		int delivering_service_time;
+		vector<vector<int>> agent_task_sequences;
 		AgentTaskStatus(const vector<Task>& tasks, const vector<int>& delivering_tasks, 
 			const vector<Agent>& agents_all, const vector<Path>& solution,
-			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int delivering_service_time, int timestep, int allFinished): 
-			tasks(tasks), delivering_tasks(delivering_tasks), agents_all(agents_all), 
+			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int delivering_service_time, int timestep, int allFinished,
+			const vector<vector<int>>& task_sequences)
+			: tasks(tasks), delivering_tasks(delivering_tasks), agents_all(agents_all), 
 			solution(solution), agent_task_pair(agent_task_pair), finished_service_time(finished_service_time),
 			delivering_service_time(delivering_service_time), timestep(timestep),
-			allFinished(allFinished){this->valid=true;}
+			allFinished(allFinished), 
+			agent_task_sequences(task_sequences)
+			{this->valid=true;}
 
 		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;}
 

@@ -570,50 +570,57 @@ mapf_solver_OBJECTS = \
 # External object files for target mapf_solver
 mapf_solver_EXTERNAL_OBJECTS =
 
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/AgentsLoader.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/BasicGraph.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/BasicSystem.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/BeeGraph.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/BeeSystem.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/ECBS.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/ECBSNode.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/ID.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/KivaGraph.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/KivaSystem.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/KivaSystemOnline.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/LNS.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/LRAStar.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/MAPFSolver.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/MultiLabelAStar.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/OnlineGraph.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/OnlineSystem.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/PBS.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/PBSNode.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/PP.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/PathTable.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/PriorityGraph.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/ReservationTable.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/SIPP.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/SingleAgentSolver.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/SortingGraph.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/SortingSystem.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/StateTimeAStar.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/States.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/TasksLoader.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/WHCAStar.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/common.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/src/driver.cpp.o
-mapf_solver.so: CMakeFiles/mapf_solver.dir/build.make
-mapf_solver.so: /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0
-mapf_solver.so: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0
-mapf_solver.so: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0
-mapf_solver.so: CMakeFiles/mapf_solver.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Linking CXX shared module mapf_solver.so"
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/AgentsLoader.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/BasicGraph.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/BasicSystem.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/BeeGraph.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/BeeSystem.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/ECBS.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/ECBSNode.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/ID.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/KivaGraph.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/KivaSystem.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/KivaSystemOnline.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/LNS.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/LRAStar.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/MAPFSolver.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/MultiLabelAStar.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/OnlineGraph.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/OnlineSystem.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/PBS.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/PBSNode.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/PP.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/PathTable.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/PriorityGraph.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/ReservationTable.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/SIPP.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/SingleAgentSolver.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/SortingGraph.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/SortingSystem.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/StateTimeAStar.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/States.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/TasksLoader.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/WHCAStar.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/common.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/src/driver.cpp.o
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/build.make
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libdlib.so.19.10.0
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libnsl.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libpng.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libz.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libjpeg.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libblas.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/liblapack.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: /usr/lib/x86_64-linux-gnu/libsqlite3.so
+mapf_solver.cpython-311-x86_64-linux-gnu.so: CMakeFiles/mapf_solver.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Linking CXX shared module mapf_solver.cpython-311-x86_64-linux-gnu.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mapf_solver.dir/link.txt --verbose=$(VERBOSE)
-	/usr/bin/strip /local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/mapf_solver.so
 
 # Rule to build all files generated by this target.
-CMakeFiles/mapf_solver.dir/build: mapf_solver.so
+CMakeFiles/mapf_solver.dir/build: mapf_solver.cpython-311-x86_64-linux-gnu.so
 .PHONY : CMakeFiles/mapf_solver.dir/build
 
 CMakeFiles/mapf_solver.dir/clean:

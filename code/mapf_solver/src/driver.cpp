@@ -234,7 +234,8 @@ PYBIND11_MODULE(mapf_solver, m) {
         ;
 
 	py::bind_vector<std::vector<State>>(m, "Path");
-
+	py::bind_vector<std::vector<std::vector<int>>>(m, "Int2DVector");
+	
     // 4) 绑定 AgentTaskStatus
     py::class_<AgentTaskStatus>(m, "AgentTaskStatus")
         .def(py::init<>())  // 无参构造
@@ -248,6 +249,7 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("valid", &AgentTaskStatus::valid)
 		.def_readwrite("timestep",&AgentTaskStatus::timestep)
 		.def_readwrite("finished_service_time", &AgentTaskStatus::finished_service_time)
+        .def_readwrite("agent_task_sequences", &AgentTaskStatus::agent_task_sequences)
         ;
 
 	py::class_<PBSSolver>(m, "PBSSolver")

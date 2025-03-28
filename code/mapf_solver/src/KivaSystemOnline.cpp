@@ -681,6 +681,11 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 		// check_current_tasks();
 		TasksLoader tl(current_tasks, delivering_tasks, current_assigned_endpoints, deferred_task);
 		AgentsLoader al(G, starts, delivering_agents, task_sequences, solver.solution);
+		AgentsLoader al2(G, starts, delivering_agents, task_sequences, solver.solution, true);
+		LNS lns(G, tl, al2, 2, 1, 2, neighborhood_size);
+		lns.run_Hungarian_greedy_without_delivering();
+		// lns.run_Hungarian_greedy();
+		
 		// check_current_tasks();
 		// cout<<starts<<endl;
 		// cout<<num_of_drives<<endl;
@@ -692,8 +697,19 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 			int task_id = delivering_tasks[ti];
 			delivering_service_time += current_tasks[task_id].estimated_service_time;
 		}
+
+		// if (tl.tasks_all.size() == 0){
+		// 	raise(SIGTRAP);
+		// }
+			
 		
-		AgentTaskStatus status = AgentTaskStatus(tl.tasks_all, delivering_tasks, al.agents_all, paths, agent_task_pair, fltime-finished_release_time, delivering_service_time, timestep, 0);
+		AgentTaskStatus status = AgentTaskStatus(
+			tl.tasks_all, delivering_tasks, al.agents_all, 
+			paths, agent_task_pair, 
+			fltime-finished_release_time, delivering_service_time, 
+			timestep, 0,
+			task_sequences  // 添加当前任务序列的拷贝
+		);
 		// for (int pp = 0; pp < paths.size();pp ++)
 		// {
 		// 	if (paths[pp].size() <= timestep)
@@ -840,6 +856,7 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 					break;
 				}
 			}	
+
 			if (new_agent_finish || deferred_task)
 			{	
 				// check_current_tasks();
