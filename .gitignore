@@ -48,3 +48,7 @@ ENV/
 **/
 step_data/
 exp/
+**/CMakeCache.txt
+**/Makefile
+**/*.so
+**/CMakeFiles/

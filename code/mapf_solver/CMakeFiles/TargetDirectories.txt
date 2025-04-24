@@ -1,3 +1,0 @@
-/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/CMakeFiles/mapf_solver.dir
-/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/CMakeFiles/edit_cache.dir
-/local-scratchg/yifan/2024/MAPD/MAPD_RL/code/mapf_solver/CMakeFiles/rebuild_cache.dir
