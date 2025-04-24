@@ -209,7 +209,7 @@ class MultiAgentPickupEnv(gym.Env):
 
             if is_delivering:
                 delivering_agents_grid[delivering_agent_cnt, 0] = self.grid.copy()
-                delivering_agents_grid[delivering_agent_cnt, 1] = self.heuristics[location].astype(np.float32)/2*(self.grid_size[0]+self.grid_size[1]) + 0.5
+                delivering_agents_grid[delivering_agent_cnt, 1] = self.heuristics[location].astype(np.float32)/(2*(self.grid_size[0]+self.grid_size[1])) + 0.5
                 self.delivering_agent_id_map[delivering_agent_cnt] = i
                 for j in range(len(paths[i])):
                     ploc = self.loc(paths[i][j])
@@ -224,7 +224,7 @@ class MultiAgentPickupEnv(gym.Env):
                 delivering_agent_cnt += 1
             else:
                 free_agents_grid[free_agent_cnt, 0] = self.grid.copy()
-                free_agents_grid[free_agent_cnt, 1] = self.heuristics[location].astype(np.float32)/2*(self.grid_size[0]+self.grid_size[1]) + 0.5
+                free_agents_grid[free_agent_cnt, 1] = self.heuristics[location].astype(np.float32)/(2*(self.grid_size[0]+self.grid_size[1])) + 0.5
                 self.free_agent_id_map[free_agent_cnt] = i
                 for j in range(len(locations)):
                     if locations[j] != location:
@@ -253,8 +253,8 @@ class MultiAgentPickupEnv(gym.Env):
                 self.task_id_map[task_cnt] = task_id
                 tasks_loc[task_cnt] = np.array([pickup, delivery], dtype=np.float32)
                 
-                tasks_grid[task_cnt, 0] = self.heuristics[self.loc(pickup)].astype(np.float32)/2*(self.grid_size[0]+self.grid_size[1]) + 0.5
-                tasks_grid[task_cnt, 1] = self.heuristics[self.loc(delivery)].astype(np.float32)/2*(self.grid_size[0]+self.grid_size[1]) + 0.5
+                tasks_grid[task_cnt, 0] = self.heuristics[self.loc(pickup)].astype(np.float32)/(2*(self.grid_size[0]+self.grid_size[1])) + 0.5
+                tasks_grid[task_cnt, 1] = self.heuristics[self.loc(delivery)].astype(np.float32)/(2*(self.grid_size[0]+self.grid_size[1])) + 0.5
                 tasks_grid[task_cnt, 2] = self.grid.copy()
                 for j in range(len(locations)):
                     tasks_grid[task_cnt, 0, locations[j][0], locations[j][1]] = 1

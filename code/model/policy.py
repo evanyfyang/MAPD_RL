@@ -7,6 +7,7 @@ from scipy.optimize import linear_sum_assignment
 import numpy as np
 import pygmtools as pygm
 from pygmtools.linear_solvers import hungarian, sinkhorn
+from model.logit_cnn import LogitCNN
 
 pygm.set_backend('pytorch')
     
@@ -85,7 +86,7 @@ class Sinkhorn(nn.Module):
 
 class MAPDActorCriticPolicy(ActorCriticPolicy):
     def __init__(self, observation_space, action_space, lr_schedule, 
-                 tau=0.1, iterations=10, decay_rate=2e-4, 
+                 tau=0.1, iterations=20, decay_rate=2e-4, 
                  max_agent_num=50, max_task=500, fix_div=False, 
                  not_div=False, pretrain_steps=10000, empty_type="fixed", cal_type='bmm', **kwargs):
         super().__init__(observation_space, action_space, lr_schedule, **kwargs)
@@ -95,6 +96,7 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         self.tau = tau
         self.iterations = iterations
         self.cal_type = cal_type
+        self.pretrain_mode = False
 
         hidden_size = self.features_dim
 
@@ -104,9 +106,8 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         self.max_agent_num = max_agent_num
         self.max_task = max_task
 
-        self.agent_task_mlp = nn.Sequential(
-            nn.Linear(2*hidden_size, hidden_size),
-            nn.ReLU(),
+        self.agent_task_mlp = nn.Linear(2*hidden_size, hidden_size)
+        self.logit_mlp = nn.Sequential(
             nn.Linear(hidden_size, 1),
             nn.ReLU()
         )
@@ -126,6 +127,8 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
         )
+
+        self.logit_cnn = LogitCNN(self.features_dim)
 
         # Critic 部分
         self.critic_mlp = nn.Sequential(
@@ -259,15 +262,10 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         batch_size, max_agents, max_tasks = logits.size()
         
         new_logits = torch.full((batch_size, max_agents + 1, max_tasks + 1), 
-                            float('-inf'), 
+                            self.empty_score, 
                             device=logits.device)
         
         new_logits[:, :max_agents, :max_tasks] = logits
-        
-        for b in range(batch_size):
-            new_logits[b, :free_agents_num[b], tasks_num[b]] = self.empty_score
-            new_logits[b, free_agents_num[b], :tasks_num[b]] = self.empty_score
-            new_logits[b, free_agents_num[b], tasks_num[b]] = self.empty_score
 
         return new_logits
 
@@ -299,10 +297,13 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
             logits = torch.bmm(free_agent_mlp, task_mlp.transpose(1, 2))
         else:
             agent_bd, task_bd = torch.broadcast_tensors(free_agent_mlp.unsqueeze(2), task_mlp.unsqueeze(1))
-            logits = self.agent_task_mlp(torch.cat([agent_bd, task_bd], dim=-1)).squeeze(-1)
-
+            logits = self.agent_task_mlp(torch.cat([agent_bd, task_bd], dim=-1))
+            logits = self.logit_cnn(logits)
+            logits = self.logit_mlp(logits).squeeze(-1)
+        # logits = self.add_empty_scores(logits/np.sqrt(self.features_dim), free_agents_num, tasks_num)
         logits = self.add_empty_scores(logits, free_agents_num, tasks_num)
 
+        # distribution = torch.softmax(logits, dim=-1)
         distribution = self.sinkhorn(logits, free_agents_num, tasks_num)
         batch_indices = torch.arange(batch_size)
 
@@ -318,11 +319,12 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         log_probs = torch.log(distribution + 1e-10)
         masked_log_probs = log_probs * valid_mask
 
-        if deterministic == False and self.current_step < self.pretrain_steps:
+        if deterministic == False and self.current_step < self.pretrain_steps or self.pretrain_mode:
             action = expert_actions.clone()
         else:
             if deterministic:
                 action = hungarian_action
+                # action = expert_actions.clone()
             else:
                 action = self.random_sample_distinct(distribution, valid_mask, free_agents_num, tasks_num)
         
@@ -364,10 +366,14 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
             logits = torch.bmm(free_agent_mlp, task_mlp.transpose(1, 2))
         else:
             agent_bd, task_bd = torch.broadcast_tensors(free_agent_mlp.unsqueeze(2), task_mlp.unsqueeze(1))
-            logits = self.agent_task_mlp(torch.cat([agent_bd, task_bd], dim=-1)).squeeze(-1)
+            logits = self.agent_task_mlp(torch.cat([agent_bd, task_bd], dim=-1))
+            logits = self.logit_cnn(logits)
+            logits = self.logit_mlp(logits).squeeze(-1)
         # logits = torch.bmm(free_agent_mlp, task_mlp.transpose(1, 2))  # (batch_size, max_free_agents, max_tasks)
         logits = self.add_empty_scores(logits, free_agents_num, tasks_num)
+        # logits = self.add_empty_scores(logits/np.sqrt(self.features_dim), free_agents_num, tasks_num)
 
+        # distribution = torch.softmax(logits, dim=-1)
         distribution = self.sinkhorn(logits, free_agents_num, tasks_num)
 
         # Log probabilities with mask
@@ -391,17 +397,22 @@ class MAPDActorCriticPolicy(ActorCriticPolicy):
         
         print("Step: ", self.step_sim)
         
-        if self.current_step < self.pretrain_steps:
+        if self.current_step < self.pretrain_steps or self.pretrain_mode:
             expert_actions_one_hot = F.one_hot(expert_actions[:, :masked_distribution.shape[1]].long().clamp(min=0), num_classes=distribution.size(2)).float()
             # some values are out of the range [0, 1] due to the numerical error
             masked_distribution = torch.clamp(masked_distribution, min=0, max=1)
             assert torch.all((masked_distribution >= 0) & (masked_distribution <= 1)), "Some values are out of the range [0, 1]"
             bce_loss_all = F.binary_cross_entropy(masked_distribution, expert_actions_one_hot, reduction='none')
             weight = expert_actions_one_hot * 10 + (1 - expert_actions_one_hot) * 1
+
+            # expert_actions_one_hot_clone = expert_actions_one_hot.clone()
+            # expert_actions_one_hot_clone[:, :, -1] = 0
+            # weight = expert_actions_one_hot_clone * 1 + (1 - expert_actions_one_hot_clone) * 0
             policy_loss = (bce_loss_all * valid_mask * weight).sum(dim=-1)
             if not self.not_div:
                 if not self.fix_div:
-                    policy_loss = policy_loss / (free_agents_num * (tasks_num + 1))[:, None, None]
+                    policy_loss = policy_loss / (free_agents_num * (tasks_num + 1))[:, None]
+                    # policy_loss = policy_loss / torch.min(free_agents_num, (tasks_num + 1))[:, None]
                 else:
                     policy_loss = policy_loss / self.max_agent_num
         else:

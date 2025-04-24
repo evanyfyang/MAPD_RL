@@ -19,6 +19,9 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.utils import set_random_seed
 
+import pickle
+from tqdm import tqdm
+
 
 def make_env(
     rank: int,
@@ -36,7 +39,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train A2C on MultiAgentPickupEnv with custom classes.")
 
     # ------------- A2C 相关超参数 -------------
-    parser.add_argument("--total_timesteps", type=int, default=1000000,
+    parser.add_argument("--total_timesteps", type=int, default=100000,
                         help="训练总步数 (总采样数).")
     parser.add_argument("--n_envs", type=int, default=1,
                         help="同时并行的环境数量 (多进程).")
@@ -102,9 +105,12 @@ def parse_args():
     parser.add_argument("--test_episodes", type=int, default=1,
                         help="测试时跑多少回合.")
 
-    parser.add_argument("--pretrain_steps", type=int, default=1000000,
+    parser.add_argument("--pretrain_steps", type=int, default=100000,
                        help="预训练步数（使用专家动作）")
-
+    parser.add_argument("--pretrain_epochs", type=int, default=0,
+                       help="预训练epochs（使用专家动作）")
+    parser.add_argument("--pretrain_data_path", type=str, default="/local-scratchg/yifan/2024/MAPD/MAPD_RL/step_data", 
+                        help="预训练数据路径")  
     args = parser.parse_args()
     return args
 
@@ -139,6 +145,62 @@ def test_model(model_path, env_kwargs, n_episodes=5, seed=100):
     avg_reward = float(np.mean(episode_rewards))
     print(f"[Test] Episodes: {n_episodes}, Reward: {avg_reward:.2f}")
     return avg_reward
+
+def pretrain_model(model, args):
+    model.policy.set_training_mode(True)
+    model.policy.pretrain_mode = True
+
+    pretrain_data_path = args.pretrain_data_path
+    with open(os.path.join(pretrain_data_path, "pretrain_data.pkl"), "rb") as f:
+        pretrain_data = pickle.load(f)
+
+    print(f"Load pretrain data from {pretrain_data_path}, total {len(pretrain_data)} samples")
+
+    num_batches = (len(pretrain_data) + args.n_envs*4 - 1) // (args.n_envs * 4)
+
+    
+    for epoch in range(args.pretrain_epochs):
+        total_loss = 0.0
+
+        random.shuffle(pretrain_data)
+        epoch_bar = tqdm(range(num_batches), desc=f"Pretrain Epoch {epoch+1}/{args.pretrain_epochs}")
+
+        for batch_idx in epoch_bar:
+            start_idx = batch_idx * args.n_envs * 4
+            batch_samples = pretrain_data[start_idx: start_idx + args.n_envs * 4]
+
+            batch_obs = {}
+
+            for key in batch_samples[0]:
+                if key == "expert_actions":
+                    batch_obs[key] = torch.tensor(
+                        [sample[key] for sample in batch_samples],
+                        dtype=torch.long,
+                        device=model.device
+                    )
+                else:
+                    batch_obs[key] = torch.tensor(
+                        [sample[key] for sample in batch_samples],
+                        dtype=torch.float32,
+                        device=model.device
+                    )
+            
+            actions = batch_obs["expert_actions"]
+            _, loss_ce, _ = model.policy.evaluate_actions(batch_obs, actions)
+
+            loss = loss_ce.sum()/loss_ce.size(0)
+            
+            model.policy.optimizer.zero_grad()
+            loss.backward()
+            model.policy.optimizer.step()
+
+            total_loss += loss.item()
+            epoch_bar.set_postfix(loss=f"{loss.item():.4f}")
+            
+        avg_loss = total_loss / len(pretrain_data)
+        print(f"Pretrain Epoch {epoch+1}/{args.pretrain_epochs} 平均Loss: {avg_loss:.4f}")
+
+    model.policy.pretrain_mode = False
 
 def main():
     args = parse_args()
@@ -182,19 +244,12 @@ def main():
     env_fns = [make_thunk(i) for i in range(args.n_envs)]
     vec_env = vec_env_cls(env_fns)
 
-    # --------------- 学习率/优化器设置 ---------------
     if args.lr_schedule == "constant":
-        # 常量学习率
         lr_func = args.learning_rate
     else:
-        # 线性衰减
         lr_func = linear_schedule(args.learning_rate)
 
-    # 选择优化器
-    optimizer_cls = torch.optim.RMSprop if args.use_rms_prop else torch.optim.Adam
 
-    # --------------- 构造自定义的 A2C 模型 ---------------
-    # policy_kwargs 用来配置 Policy 的一些网络结构
     policy_kwargs = dict(
         features_extractor_class=MAPDFeatureExtractor,
         features_extractor_kwargs=dict(
@@ -216,16 +271,20 @@ def main():
         env=vec_env,
         policy_kwargs=policy_kwargs,
         learning_rate=lr_func,
-        n_steps=1,               # A2C默认步长，可根据需要调参
+        n_steps=1,               
         gamma=args.gamma,
         ent_coef=args.ent_coef,
-        # optimizer_class=optimizer_cls,
-        verbose=1,               # 打印训练日志
-        # 其他A2C或自定义的参数 ...
+        use_rms_prop=args.use_rms_prop,
+        verbose=1,              
     )
 
-    # --------------- CheckpointCallback ---------------
-    # SB3 自带的回调，用于每隔 checkpoint_freq steps 保存模型
+    if args.pretrain_epochs > 0:
+        pretrain_model(model, args)
+        pretrain_checkpoint_path = os.path.join(args.save_dir,"checkpoints", "pretrain_checkpoint.zip")
+        model.save(pretrain_checkpoint_path)
+        print(f"Pretrain finished, model saved to: {pretrain_checkpoint_path}")
+
+  
     checkpoint_callback = CheckpointCallback(
         save_freq=args.checkpoint_freq,
         save_path=os.path.join(args.save_dir, "checkpoints"),
@@ -237,7 +296,6 @@ def main():
         callback=checkpoint_callback
     )
 
-    # 训练完成后可手动保存最终模型
     final_model_path = os.path.join(args.save_dir, "final_model.zip")
     model.save(final_model_path)
     print(f"Training finished, model saved to: {final_model_path}")

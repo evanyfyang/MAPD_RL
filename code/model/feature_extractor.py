@@ -100,6 +100,45 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
         return obs
 
 
+    def extract_valid_2d(self, grids, num):
+        batch_size = grids.size(0)
+        valid_grids = [grids[i, :num[i].item(), :, :, :] for i in range(batch_size)]
+        # max_num = grids.shape[1]
+        max_num = max([g.size(0) for g in valid_grids])
+        padded_grids = torch.stack([
+            F.pad(g, (0, 0, 0, 0, 0, 0, 0, max_num - g.size(0)), value=0)
+            if g.size(0) > 0 else torch.zeros((max_num, grids.size(2), grids.size(3), grids.size(4)), device=grids.device)
+            for g in valid_grids
+        ], dim=0)
+        mask = torch.tensor([[1] * g.size(0) + [0] * (max_num - g.size(0)) for g in valid_grids], device=grids.device)
+        return padded_grids, mask  
+        
+    def extract_valid_1d(self, locs, num):
+        batch_size = locs.size(0)
+        valid_locs = [locs[i, :num[i].item(), :] for i in range(batch_size)]
+        max_num = max([l.size(0) for l in valid_locs])
+        padded_locs = torch.stack([
+            F.pad(l, (0, 0, 0, max_num - l.size(0)), value=0)
+            if l.size(0) > 0 else torch.zeros((max_num, locs.size(2)), device=locs.device)
+            for l in valid_locs
+        ], dim=0)
+        mask = torch.tensor([[1] * l.size(0) + [0] * (max_num - l.size(0)) for l in valid_locs], device=locs.device)
+        return padded_locs, mask  
+    
+    def process_agent_grids(self, valid_grids, valid_path_length, conv, mlp):
+        b, n, t, x, y = valid_grids.size()
+        valid_grids = valid_grids.view(b * n, t, x, y)
+        cnn_features = conv(valid_grids).view(b, n, self.hidden_size)  
+        path_length_features = self.length_emb(valid_path_length.long()).squeeze(2)  
+        mlp_features = mlp(torch.cat([cnn_features, path_length_features], dim=-1)) 
+        return mlp_features
+    
+    def process_task_grids(self, valid_grids, conv):
+        b, n, t, x, y = valid_grids.size()
+        valid_grids = valid_grids.view(b * n, t, x, y)
+        cnn_features = conv(valid_grids).view(b, n, self.hidden_size)  
+        return cnn_features
+
     def forward(self, observations: Dict[str, torch.Tensor]) -> torch.Tensor:
         device = next(self.parameters()).device
         batch_size = observations["free_agents_num"].shape[0]
@@ -115,51 +154,20 @@ class MAPDFeatureExtractor(BaseFeaturesExtractor):
         tasks_grid = observations["tasks_grid"].to(device)
         
         assert torch.all((tasks_num > 0) )
-        batch_size = free_agents_grid.size(0)
-
-        def extract_valid_2d(grids, num):
-            valid_grids = [grids[i, :num[i].item(), :, :, :] for i in range(batch_size)]
-            # max_num = grids.shape[1]
-            max_num = max([g.size(0) for g in valid_grids])
-            padded_grids = torch.stack([
-                F.pad(g, (0, 0, 0, 0, 0, 0, 0, max_num - g.size(0)), value=0)
-                if g.size(0) > 0 else torch.zeros((max_num, grids.size(2), grids.size(3), grids.size(4)), device=device)
-                for g in valid_grids
-            ], dim=0)
-            mask = torch.tensor([[1] * g.size(0) + [0] * (max_num - g.size(0)) for g in valid_grids], device=device)
-            return padded_grids, mask  
-        
-        def extract_valid_1d(locs, num):
-            valid_locs = [locs[i, :num[i].item(), :] for i in range(batch_size)]
-            max_num = max([l.size(0) for l in valid_locs])
-            padded_locs = torch.stack([
-                F.pad(l, (0, 0, 0, max_num - l.size(0)), value=0)
-                if l.size(0) > 0 else torch.zeros((max_num, locs.size(2)), device=device)
-                for l in valid_locs
-            ], dim=0)
-            mask = torch.tensor([[1] * l.size(0) + [0] * (max_num - l.size(0)) for l in valid_locs], device=device)
-            return padded_locs, mask  
+        batch_size = free_agents_grid.size(0) 
 
         # Extract valid grids and masks
-        free_agents_valid, free_agents_mask = extract_valid_2d(free_agents_grid, free_agents_num)
-        delivering_agents_valid, delivering_agents_mask = extract_valid_2d(delivering_agents_grid, delivering_agents_num)
-        task_locs_valid, tasks_mask = extract_valid_1d(task_loc, tasks_num)
-        tasks_grid_valid, tasks_grid_mask = extract_valid_2d(tasks_grid, tasks_num)
-        free_agents_path_length_valid, free_agents_path_length_mask = extract_valid_1d(free_agents_path_length, free_agents_num)
-        delivering_agents_path_length_valid, delivering_agents_path_length_mask = extract_valid_1d(delivering_agents_path_length, delivering_agents_num)
+        free_agents_valid, free_agents_mask = self.extract_valid_2d(free_agents_grid, free_agents_num)
+        delivering_agents_valid, delivering_agents_mask = self.extract_valid_2d(delivering_agents_grid, delivering_agents_num)
+        task_locs_valid, tasks_mask = self.extract_valid_1d(task_loc, tasks_num)
+        tasks_grid_valid, tasks_grid_mask = self.extract_valid_2d(tasks_grid, tasks_num)
+        free_agents_path_length_valid, free_agents_path_length_mask = self.extract_valid_1d(free_agents_path_length, free_agents_num)
+        delivering_agents_path_length_valid, delivering_agents_path_length_mask = self.extract_valid_1d(delivering_agents_path_length, delivering_agents_num)
         
-        # Process grids through shared CNN
-        def process_grids(valid_grids, valid_path_length, conv, mlp):
-            b, n, t, x, y = valid_grids.size()
-            valid_grids = valid_grids.view(b * n, t, x, y)
-            cnn_features = self.agent_conv(valid_grids).view(b, n, self.hidden_size)  
-            path_length_features = self.length_emb(valid_path_length.long()).squeeze(2)  
-            mlp_features = mlp(torch.cat([cnn_features, path_length_features], dim=-1)) 
-            return mlp_features
-
-        free_agents_features = process_grids(free_agents_valid, free_agents_path_length_valid, self.agent_conv, self.free_agent_mlp)
-        delivering_agents_features = process_grids(delivering_agents_valid, delivering_agents_path_length_valid, self.agent_conv, self.delivering_agent_mlp)
-        tasks_features = process_grids(tasks_grid_valid, tasks_grid_mask, self.task_conv, self.task_mlp)
+        free_agents_features = self.process_agent_grids(free_agents_valid, free_agents_path_length_valid, self.agent_conv, self.free_agent_mlp)
+        delivering_agents_features = self.process_agent_grids(delivering_agents_valid, delivering_agents_path_length_valid, self.agent_conv, self.delivering_agent_mlp)
+        
+        tasks_features = self.process_task_grids(tasks_grid_valid, self.task_conv)
         # tasks_features_init = self.task_pos_emb(task_locs_valid.long())
         # tasks_embedding = torch.cat([tasks_features_init[:,:,0,:], tasks_features_init[:,:,1,:]], dim=-1)
         # tasks_embedding = self.task_mlp(tasks_embedding)

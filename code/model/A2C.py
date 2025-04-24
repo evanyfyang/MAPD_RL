@@ -42,7 +42,7 @@ class A2CMAPD(A2C):
             values = values.flatten()
 
             if self.policy.current_step < self.policy.pretrain_steps:
-                policy_loss = loss_ce.mean()
+                policy_loss = loss_ce.sum()/loss_ce.size(0)
                 value_loss = F.mse_loss(rollout_data.returns, values)
                 loss = policy_loss
                 print("Pretraining Loss: ", policy_loss)

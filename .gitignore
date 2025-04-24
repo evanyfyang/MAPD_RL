@@ -1,8 +1,50 @@
+# Model and data directories
 models/
 data/
-code/mapf_sovler/build/
-code/mapf_sovler/CMakeFiles/
-code/mapf_sovler/maps/
-code/mapf_sovler/.vscode/
-code/mapf_sovler/__pycache__/
-*.out
+
+# Build outputs
+**/build/
+**/CMakeFiles/
+**/*.o
+**/*.so
+**/*.a
+**/*.out
+**/*.exe
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.egg-info/
+
+# IDE settings
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+
+# Test outputs and logs
+**/log/
+**/logs/
+**/*.log
+**/test_output/
+**/results/
+
+# Map files (if they should be generated or downloaded separately)
+code/mapf_solver/maps/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Temporary files
+*.tmp
+.DS_Store
+**/
+step_data/
+exp/
