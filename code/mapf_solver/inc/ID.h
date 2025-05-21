@@ -19,6 +19,10 @@ public:
 	void save_constraints_in_goal_node(const std::string &fileName) const {}
 	string get_name() const {return "ID+" + solver.get_name(); }
 	void print_results() const;
+
+	virtual MAPFSolver* clone() const override {
+        return new ID(*this);
+    }
 private:
 	clock_t start_time;
 	vector<int> group_ids;

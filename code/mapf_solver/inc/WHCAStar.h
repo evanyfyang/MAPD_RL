@@ -33,6 +33,10 @@ public:
     WHCAStar(const BasicGraph& G, SingleAgentSolver& path_planner);
     ~WHCAStar() {}
 
+    virtual MAPFSolver* clone() const override {
+        return new WHCAStar(*this);
+    }
+
 
 private:
 

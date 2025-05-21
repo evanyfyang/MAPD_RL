@@ -18,21 +18,24 @@ class AgentTaskStatus
 {
 	public:
 		vector<Task> tasks;
-		vector<int> delivering_tasks;
 		vector<Agent> agents_all;
 		vector<Path> solution;
 		int allFinished;
 		std::map<int, pair<int,int>> agent_task_pair;
+		std::set<int> delivering_tasks;
 		bool valid;
 		int finished_service_time;
 		int timestep;
 		int delivering_service_time;
+		int estimated_service_time;
+		int expert_estimated_service_time;
+
 		vector<vector<int>> agent_task_sequences;
 		AgentTaskStatus(const vector<Task>& tasks, const vector<int>& delivering_tasks, 
 			const vector<Agent>& agents_all, const vector<Path>& solution,
 			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int delivering_service_time, int timestep, int allFinished,
 			const vector<vector<int>>& task_sequences)
-			: tasks(tasks), delivering_tasks(delivering_tasks), agents_all(agents_all), 
+			: tasks(tasks), agents_all(agents_all), 
 			solution(solution), agent_task_pair(agent_task_pair), finished_service_time(finished_service_time),
 			delivering_service_time(delivering_service_time), timestep(timestep),
 			allFinished(allFinished), 
@@ -90,6 +93,10 @@ public:
 	int finished_release_time;
 	int last_plan_timestep;
 	int task_plan_time;
+
+	BasicSystem* clone() const override {
+		return new KivaSystemOnline(*this);
+	}
 
 private:
 	KivaGrid& G;

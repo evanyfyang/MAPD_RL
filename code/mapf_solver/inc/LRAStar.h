@@ -28,6 +28,10 @@ public:
 	string get_name() const {return "LRA"; }
 	void clear() {}
 
+    virtual MAPFSolver* clone() const override {
+        return new LRAStar(*this);  
+    }
+
 private:
     StateTimeAStar astar; // TODO: delete this
     unordered_map<int, int> curr_locations; // key = location, value = agent_id

@@ -10,6 +10,7 @@
 #include <boost/any.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
+#include <set>
 
 namespace py = pybind11;
 namespace po = boost::program_options;
@@ -164,52 +165,95 @@ class PBSSolver
 
 		}
 
-	~PBSSolver() {
-        // delete solver;
-        // delete system;
-    }
-
-	AgentTaskStatus update_task(vector<vector<int>>& task, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period)
+	PBSSolver(const PBSSolver& other) :
+		vm(other.vm),                    
+		desc(other.desc),                
+		G(other.G),                      
+		solver(other.solver),           
+		system(other.system ? dynamic_cast<KivaSystemOnline*>(other.system->clone()) : nullptr) // !! 深拷贝 System !!
 	{
-		// cout<<1<<endl;
-		// solver = set_solver(G, vm);
-		system->load_tasks(task, new_agents, simulation_time, task_frequency, task_release_period);
-		vector<vector<int>> agent_tasks = {};
-		AgentTaskStatus status = system->simulate_until_next_assignment(agent_tasks);
-		
-		return status;
 	}
 
-    AgentTaskStatus update(const vector<vector<int>>& agent_tasks) {
+	~PBSSolver() {
+		delete system;
+    }
 
-        // 模拟并返回路径
+	AgentTaskStatus update_task(vector<vector<int>>& task, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period, int consider_expert)
+	{
+		system->load_tasks(task, new_agents, simulation_time, task_frequency, task_release_period);
+		vector<vector<int>> agent_tasks = {};
+		return update(agent_tasks, consider_expert);
+	}
+
+    AgentTaskStatus update(const vector<vector<int>>& agent_tasks, int consider_expert) {
         AgentTaskStatus status = system->simulate_until_next_assignment(agent_tasks);
+		set_estimated_service_time(status, agent_tasks);
+		// printf("status.estimated_service_time: %d\n", status.estimated_service_time);
+		// for(int i=0;i<agent_tasks.size();i++){
+		// 	for(int j=0;j<agent_tasks[i].size();j++){
+		// 		printf("agent_tasks[%d][%d]: %d\n", i, j, agent_tasks[i][j]);
+		// 	}
+		// }
+		if (consider_expert) {
+			KivaSystemOnline* new_system = dynamic_cast<KivaSystemOnline*>(system->clone());
+			AgentTaskStatus new_status = new_system->simulate_until_next_assignment(status.agent_task_sequences);
+			set_estimated_service_time(new_status, status.agent_task_sequences);
+			delete new_system;
+			status.expert_estimated_service_time = new_status.estimated_service_time;
+			// printf("new_status.estimated_service_time: %d\n", new_status.estimated_service_time);
+		}
         return status;
     }
+
+	void set_estimated_service_time(AgentTaskStatus& status, const vector<vector<int>>& agent_tasks) {
+		int free_reward = 0;
+		int delivering_reward = status.delivering_service_time;
+		int finished_service_time = status.finished_service_time;
+		std::set<int> last_task_id = {};
+		std::set<int> delivering_tasks = {};
+
+		for (int i = 0; i < status.agent_task_pair.size(); i++) {
+			delivering_tasks.insert(status.agent_task_pair[i].second);
+		}
+
+		for (int i = 0; i < agent_tasks.size(); i++) {
+			for (int j = 0; j < agent_tasks[i].size(); j++) {
+				if (agent_tasks[i][j] != -1) {
+					last_task_id.insert(agent_tasks[i][j]);
+				}
+			}
+		}
+
+		for (int i = 0; i < status.tasks.size(); i++) {
+			if (delivering_tasks.find(status.tasks[i].task_id) == delivering_tasks.end()
+			  && last_task_id.find(status.tasks[i].task_id) != last_task_id.end()) {
+				free_reward += status.tasks[i].estimated_service_time;
+			}
+		}
+		
+		status.estimated_service_time = finished_service_time + free_reward + delivering_reward;
+		status.delivering_service_time = delivering_reward;
+	}
+
 };
 
 
 PYBIND11_MODULE(mapf_solver, m) {
      py::class_<Task>(m, "Task")
-        // 构造函数
         .def(py::init<>())  // Task()
         // Task(int id, int release_time, vector<int>& goal_arr)
         .def(py::init<int, int, std::vector<int>&>(),
              py::arg("id"), py::arg("release_time"), py::arg("goal_arr"))
-        // 只暴露以下字段
         .def_readwrite("task_id", &Task::task_id)
         .def_readwrite("goal_arr", &Task::goal_arr)
         .def_readwrite("release_time", &Task::release_time)
 		.def_readwrite("estimated_service_time", &Task::estimated_service_time)
-        // 其余字段和 boost::heap 都不绑
         ;
 
-    // 2) 绑定 Agent
     py::class_<Agent>(m, "Agent")
         .def(py::init<>())               // Agent()
         .def(py::init<int, int>(),       // Agent(int start_location, int agent_id)
              py::arg("start_location"), py::arg("agent_id"))
-        // 暴露字段
         .def_readwrite("agent_id", &Agent::agent_id)
         .def_readwrite("start_location", &Agent::start_location)
         .def_readwrite("start_timestep", &Agent::start_timestep)
@@ -217,16 +261,13 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("task_sequence", &Agent::task_sequence)
         ;
 
-    // 3) 绑定 Path
     py::class_<State>(m, "State")
-        // 构造
         .def(py::init<>())  // State()
         .def(py::init<int, int, int, int>(),
              py::arg("location")=-1, 
              py::arg("timestep")=-1, 
              py::arg("orientation")=-1, 
              py::arg("l_val")=1)
-        // 只暴露下面四个值
         .def_readwrite("location", &State::location)
         .def_readwrite("timestep", &State::timestep)
         .def_readwrite("orientation", &State::orientation)
@@ -236,11 +277,9 @@ PYBIND11_MODULE(mapf_solver, m) {
 	py::bind_vector<std::vector<State>>(m, "Path");
 	py::bind_vector<std::vector<std::vector<int>>>(m, "Int2DVector");
 	
-    // 4) 绑定 AgentTaskStatus
     py::class_<AgentTaskStatus>(m, "AgentTaskStatus")
         .def(py::init<>())  // 无参构造
         .def_readwrite("tasks", &AgentTaskStatus::tasks)
-        .def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks)
         .def_readwrite("agents_all", &AgentTaskStatus::agents_all)
         .def_readwrite("solution", &AgentTaskStatus::solution)
         .def_readwrite("allFinished", &AgentTaskStatus::allFinished)
@@ -250,21 +289,20 @@ PYBIND11_MODULE(mapf_solver, m) {
 		.def_readwrite("timestep",&AgentTaskStatus::timestep)
 		.def_readwrite("finished_service_time", &AgentTaskStatus::finished_service_time)
         .def_readwrite("agent_task_sequences", &AgentTaskStatus::agent_task_sequences)
-        ;
+        .def_readwrite("estimated_service_time", &AgentTaskStatus::estimated_service_time)
+		.def_readwrite("expert_estimated_service_time", &AgentTaskStatus::expert_estimated_service_time)
+		.def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks);
 
 	py::class_<PBSSolver>(m, "PBSSolver")
-        // 绑定构造函数(支持用 list[str] 来初始化)
         .def(py::init<const std::vector<std::string>&>(),
              py::arg("args"))
-        // 绑定成员函数 update_task
         .def("update_task", &PBSSolver::update_task,
-             py::arg("task"), py::arg("new_agents"), py::arg("simulation_time"), py::arg("task_frequency"), py::arg("task_release_period"),
+             py::arg("task"), py::arg("new_agents"), py::arg("simulation_time"), py::arg("task_frequency"), py::arg("task_release_period"), py::arg("consider_expert"),
              R"pbdoc(
                 Load new tasks into the system. Returns some 2D integer vector as result.
              )pbdoc")
-        // 绑定成员函数 update
         .def("update", &PBSSolver::update,
-             py::arg("agent_tasks"),
+             py::arg("agent_tasks"), py::arg("consider_expert"),
              R"pbdoc(
                 Run the solver's simulate_until_next_assignment method, 
                 and return an AgentTaskStatus.

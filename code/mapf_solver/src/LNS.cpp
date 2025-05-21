@@ -156,24 +156,53 @@ bool LNS::run_Hungarian_greedy_without_delivering()
         }
         else
         {
-            for (int j = 0; j < row; j++)
+            // for (int j = 0; j < row; j++)
+            // {
+            //     if (j >= num_of_tasks)
+            //         cost(i, j) = INT_MIN;
+            //     else
+            //     {
+            //         Task& task = tl.tasks_all[j];
+            //         Agent& agent = al.agents_all[i];
+            //         int temp_cost = 0;
+            //         // temp_cost = agent.start_timestep + G.get_Manhattan_distance(agent.start_location, task.goal_arr[0]);
+            //         temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
+            //         temp_cost = max(temp_cost, task.release_time);
+            //         for (int k = 0; k < task.goal_arr.size()-1; k++)
+            //             temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
+            //             // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
+            //         cost(i, j) = -temp_cost;
+            //     }
+            //     // cout << "test" << cost(i, j) << endl;
+            // }
+            vector<pair<int, int>> task_costs; 
+            for (int j = 0; j < num_of_tasks; j++)
             {
-                if (j >= num_of_tasks)
-                    cost(i, j) = INT_MIN;
-                else
-                {
-                    Task& task = tl.tasks_all[j];
-                    Agent& agent = al.agents_all[i];
-                    int temp_cost = 0;
-                    // temp_cost = agent.start_timestep + G.get_Manhattan_distance(agent.start_location, task.goal_arr[0]);
-                    temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
-                    temp_cost = max(temp_cost, task.release_time);
-                    for (int k = 0; k < task.goal_arr.size()-1; k++)
-                        temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
-                        // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
-                    cost(i, j) = -temp_cost;
-                }
-                // cout << "test" << cost(i, j) << endl;
+                Task& task = tl.tasks_all[j];
+                Agent& agent = al.agents_all[i];
+                int temp_cost = 0;
+                temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
+                temp_cost = max(temp_cost, task.release_time);
+                for (int k = 0; k < task.goal_arr.size()-1; k++)
+                    temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
+                
+                task_costs.push_back(make_pair(j, -temp_cost)); 
+            }
+            
+            sort(task_costs.begin(), task_costs.end(), 
+                [](const pair<int, int>& a, const pair<int, int>& b) {
+                    return a.second > b.second;
+                });
+            
+            for (int j = 0; j < row; j++)
+                cost(i, j) = INT_MIN;
+            
+            int tasks_to_keep = min(num_of_agents, (int)task_costs.size());
+            for (int j = 0; j < tasks_to_keep; j++)
+            {
+                int task_idx = task_costs[j].first;
+                int task_cost = task_costs[j].second;
+                cost(i, task_idx) = task_cost;
             }
         }
     }

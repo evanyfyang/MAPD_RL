@@ -60,6 +60,10 @@ public:
 
 	void clear();
 
+    MAPFSolver* clone() const override {
+        return new PBS(*this);
+    }
+
 	void setRT(bool use_cat, bool prioritize_start)
 	{
 		rt.use_cat = use_cat;

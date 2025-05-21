@@ -9,10 +9,6 @@ MAPFSolver::MAPFSolver(const BasicGraph& G, SingleAgentSolver& path_planner):
         avg_path_length(-1), G(G), path_planner(path_planner), initial_rt(G), rt(G) {}
 
 
-MAPFSolver::~MAPFSolver()
-{
-}
-
 // TODO: implement validate_solution function
 bool MAPFSolver::validate_solution()
 {

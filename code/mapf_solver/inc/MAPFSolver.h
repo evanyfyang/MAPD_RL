@@ -41,13 +41,15 @@ public:
 
 
 	MAPFSolver(const BasicGraph& G, SingleAgentSolver& path_planner);
-	~MAPFSolver();
+	// ~MAPFSolver();
+	virtual ~MAPFSolver() = default;
 
 	// Save results
 	virtual void save_results(const std::string &fileName, const std::string &instanceName) const = 0;
 	virtual void save_search_tree(const std::string &fileName) const = 0;
 	virtual void save_constraints_in_goal_node(const std::string &fileName) const = 0;
 	virtual void clear() = 0;
+	virtual MAPFSolver* clone() const = 0;
 
 	virtual string get_name() const = 0;
 

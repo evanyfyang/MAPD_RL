@@ -48,7 +48,8 @@ public:
     vector<vector<vector<int>>> agents_finish_task_goal_arr;
 
     BasicSystem(const BasicGraph& G, MAPFSolver& solver);
-    ~BasicSystem();
+    virtual ~BasicSystem() = default;
+    virtual BasicSystem* clone() const = 0; 
 
 	// TODO
     /*bool load_config(std::string fname);
