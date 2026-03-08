@@ -45,10 +45,12 @@ ENV/
 # Temporary files
 *.tmp
 .DS_Store
-**/
 step_data/
 exp/
 **/CMakeCache.txt
 **/Makefile
 **/*.so
 **/CMakeFiles/
+*.csv
+*.json
+*.png
