@@ -18,33 +18,41 @@ class AgentTaskStatus
 {
 	public:
 		vector<Task> tasks;
+		vector<Task> delivering_tasks;
 		vector<Agent> agents_all;
 		vector<Path> solution;
 		int allFinished;
 		std::map<int, pair<int,int>> agent_task_pair;
-		std::set<int> delivering_tasks;
 		bool valid;
-		int finished_service_time;
+		int finished_service_time=0;
+		int finished_flowtime=0;
 		int timestep;
-		int delivering_service_time;
-		int estimated_service_time;
-		int expert_estimated_service_time;
+		int delivering_service_time=0;
+		int estimated_service_time=0;
+		int delivering_finish_time=0;
+		int estimated_finish_time=0;
+		int expert_estimated_service_time=0;
+		int expert_estimated_finish_time=0;
+		int makespan=0;
 
 		vector<vector<int>> agent_task_sequences;
-		AgentTaskStatus(const vector<Task>& tasks, const vector<int>& delivering_tasks, 
+		AgentTaskStatus(const vector<Task>& tasks, const vector<Task>& delivering_tasks, 
 			const vector<Agent>& agents_all, const vector<Path>& solution,
-			const std::map<int, pair<int,int>>& agent_task_pair, int finished_service_time, int delivering_service_time, int timestep, int allFinished,
+			const std::map<int, pair<int,int>>& agent_task_pair, 
+			int finished_flowtime, int finished_service_time, int delivering_service_time, int timestep,
+			int delivering_finish_time, int allFinished,
 			const vector<vector<int>>& task_sequences)
-			: tasks(tasks), agents_all(agents_all), 
-			solution(solution), agent_task_pair(agent_task_pair), finished_service_time(finished_service_time),
-			delivering_service_time(delivering_service_time), timestep(timestep),
+			: tasks(tasks), delivering_tasks(delivering_tasks), agents_all(agents_all), 
+			solution(solution), agent_task_pair(agent_task_pair), finished_flowtime(finished_flowtime), finished_service_time(finished_service_time),
+			delivering_service_time(delivering_service_time), timestep(timestep), 
+			delivering_finish_time(delivering_finish_time), 
 			allFinished(allFinished), 
 			agent_task_sequences(task_sequences)
-			{this->valid=true;}
+			{this->valid=true; this->makespan=0;}
 
-		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;}
+		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;this->makespan=0;}
 
-		AgentTaskStatus(){this->valid=false;}
+		AgentTaskStatus(){this->valid=false; this->makespan=0;}
 };
 
 class KivaSystemOnline :
@@ -52,6 +60,7 @@ class KivaSystemOnline :
 {
 public:
 	KivaSystemOnline(KivaGrid& G, MAPFSolver& solver);
+	KivaSystemOnline(const KivaSystemOnline& other);
 	~KivaSystemOnline();
 
 	void simulate(int simulation_time);

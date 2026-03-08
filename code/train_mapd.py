@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from model.A2C import A2CMAPD
-from model.env import MultiAgentPickupEnv
+from model.env_gnn import MultiAgentPickupEnv  # 修改：使用env_gnn中的环境类
 from model.feature_extractor import MAPDFeatureExtractor
 from model.policy import MAPDActorCriticPolicy
 
@@ -87,6 +87,24 @@ def parse_args():
     parser.add_argument("--hidden_size", type=int, default=128,
                         help="传给MAPDFeatureExtractor和Policy的特征维度 (MLP维度等).")
     parser.add_argument("--cal_type", type=str, default='bmm', choices=['bmm', 'concat'])
+
+    # ------------- GNN 相关超参数 -------------
+    parser.add_argument("--lower_gnn_type", type=str, default="gcn",
+                        choices=["gcn", "gat", "sp_mpnn", "cnn_channels"],
+                        help="低层级GNN类型选择")
+    parser.add_argument("--higher_gnn_type", type=str, default="line_graph",
+                        choices=["gat", "line_graph"],
+                        help="高层级GNN类型选择")
+    parser.add_argument("--gnn_num_layers", type=int, default=3,
+                        help="GNN层数")
+    parser.add_argument("--gnn_dropout", type=float, default=0.1,
+                        help="GNN dropout率")
+    parser.add_argument("--gnn_heads", type=int, default=4,
+                        help="GAT注意力头数")
+    parser.add_argument("--max_distance", type=int, default=3,
+                        help="SP-MPNN的最大距离k")
+    parser.add_argument("--use_sinkhorn", action="store_true", default=False,
+                        help="是否使用Sinkhorn算法")
 
     # ------------- Checkpoint & Seed -------------
     parser.add_argument("--checkpoint_freq", type=int, default=10000,
@@ -217,7 +235,8 @@ def main():
             agent_num_higher_bound=args.agent_num_higher_bound,
             eval_data_path=args.eval_data_path,
             task_num=args.task_num,
-            pos_reward=args.pos_reward
+            pos_reward=args.pos_reward,
+            sp_mpnn_max_distance=args.max_distance  # 新增：传递SP-MPNN最大距离参数
         )
         test_model(args.test_checkpoint, env_kwargs, n_episodes=args.test_episodes, seed=args.test_env_seed)
         return
@@ -229,7 +248,8 @@ def main():
         agent_num_lower_bound=args.agent_num_lower_bound,
         agent_num_higher_bound=args.agent_num_higher_bound,
         task_num=args.task_num,
-        pos_reward=args.pos_reward
+        pos_reward=args.pos_reward,
+        sp_mpnn_max_distance=args.max_distance  # 新增：传递SP-MPNN最大距离参数
     )
 
     if args.n_envs > 1:

@@ -31,8 +31,12 @@ TasksLoader::TasksLoader(const std::map<int, Task>& current_tasks, vector<int> d
     {
         Task task = itr->second;
         int task_id = itr->first;
-        if (find(delivering_tasks.begin(), delivering_tasks.end(), task_id) != delivering_tasks.end())
+        if ((!delivering_tasks.empty()) && (find(delivering_tasks.begin(), delivering_tasks.end(), task_id) != delivering_tasks.end()))
+        {
+            delivering_tasks_all.push_back(task);
             continue;
+        }
+            
         int i = 0;
         for (; i < task.goal_arr.size(); i++)
         {

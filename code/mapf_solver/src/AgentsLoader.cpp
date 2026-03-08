@@ -72,6 +72,8 @@ AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
     }
 }
 
+
+
 AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
             std::map<int, vector<int>> delivering_agents,
             vector< vector<int > >& task_sequences, vector<Path>& solution, bool hungarian_flag)
@@ -80,14 +82,17 @@ AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
     this->agents_all.resize(num_of_agents);
     for (int ag = 0; ag < num_of_agents; ag++)
     {
+        //  TODO: maybe need to add task_truncated_size
         this->agents_all[ag].Set(starts[ag], ag+1, &task_sequences[ag]);
         if (delivering_agents.find(ag) != delivering_agents.end())
         {
             this->agents_all[ag].is_delivering = true;
             this->agents_all[ag].start_location = delivering_agents[ag][0];
-            // this->agents_all[ag].start_timestep = G.get_Manhattan_distance(starts[ag].location, delivering_agents[ag][0]);
-            
-            // Get the real running time of agent towards next goal location
+
+            if(delivering_agents[ag].size() > 1){
+                this->agents_all[ag].full_loaded = true;
+            }
+
             int startIndex = -1;
             int goalIndex = -1;
             for (int i = 0; i < solution[ag].size(); i++)
@@ -156,4 +161,4 @@ AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
 //     }
 // }
 
-AgentsLoader::~AgentsLoader(){}
+// AgentsLoader::~AgentsLoader(){}

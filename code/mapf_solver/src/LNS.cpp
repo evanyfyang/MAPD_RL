@@ -31,14 +31,14 @@
 //             if (i >= num_of_agents)
 //             {
 //                 for (int j = 0; j < row; j++)
-//                     cost(i, j) = INT_MIN;
+//                     cost(i, j) = -1000000;
 //             }
 //             else
 //             {
 //                 for (int j = 0; j < row; j++)
 //                 {
 //                     if (j >= remain_tasks)
-//                         cost(i, j) = INT_MIN;
+//                         cost(i, j) = -1000000;
 //                     else
 //                     {
 //                         Task& task = tl.tasks_all[tl.tasks_table[remain_task_id[j]]];
@@ -96,14 +96,14 @@ bool LNS::run_Hungarian_greedy()
         if (i >= num_of_agents)
         {
             for (int j = 0; j < row; j++)
-                cost(i, j) = INT_MIN;
+                cost(i, j) = -1000000;
         }
         else
         {
             for (int j = 0; j < row; j++)
             {
                 if (j >= num_of_tasks)
-                    cost(i, j) = INT_MIN;
+                    cost(i, j) = -1000000;
                 else
                 {
                     Task& task = tl.tasks_all[j];
@@ -117,8 +117,9 @@ bool LNS::run_Hungarian_greedy()
                         // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
                     cost(i, j) = -temp_cost;
                 }
-                // cout << "test" << cost(i, j) << endl;
+                cout << cost(i, j) << "\t";
             }
+            cout << endl;
         }
     }
     vector<long> assignment = max_cost_assignment(cost);
@@ -136,7 +137,7 @@ bool LNS::run_Hungarian_greedy()
     return true;
 }
 
-bool LNS::run_Hungarian_greedy_without_delivering()
+bool LNS::run_Hungarian_greedy_without_delivering(int task_truncated_size)
 {
     this->num_of_agents = al.agents_all.size();
     this->num_of_tasks = tl.tasks_all.size();
@@ -147,34 +148,27 @@ bool LNS::run_Hungarian_greedy_without_delivering()
         if (i >= num_of_agents)
         {
             for (int j = 0; j < row; j++)
-                cost(i, j) = INT_MIN;
+                cost(i, j) = -1000000;
         }
         else if (al.agents_all[i].is_delivering)
         {
-            for (int j = 0; j < row; j++)
-                cost(i, j) = INT_MIN;
+            if (task_truncated_size > 1)
+            {
+                if (al.agents_all[i].full_loaded) 
+                {
+                    for (int j = 0; j < row; j++)
+                        cost(i, j) = -1000000;
+                }
+            }
+            else 
+            {
+                for (int j = 0; j < row; j++)
+                    cost(i, j) = -1000000;
+            }
+            
         }
         else
         {
-            // for (int j = 0; j < row; j++)
-            // {
-            //     if (j >= num_of_tasks)
-            //         cost(i, j) = INT_MIN;
-            //     else
-            //     {
-            //         Task& task = tl.tasks_all[j];
-            //         Agent& agent = al.agents_all[i];
-            //         int temp_cost = 0;
-            //         // temp_cost = agent.start_timestep + G.get_Manhattan_distance(agent.start_location, task.goal_arr[0]);
-            //         temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
-            //         temp_cost = max(temp_cost, task.release_time);
-            //         for (int k = 0; k < task.goal_arr.size()-1; k++)
-            //             temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
-            //             // temp_cost += G.get_Manhattan_distance(task.goal_arr[k], task.goal_arr[k+1]);
-            //         cost(i, j) = -temp_cost;
-            //     }
-            //     // cout << "test" << cost(i, j) << endl;
-            // }
             vector<pair<int, int>> task_costs; 
             for (int j = 0; j < num_of_tasks; j++)
             {
@@ -195,7 +189,7 @@ bool LNS::run_Hungarian_greedy_without_delivering()
                 });
             
             for (int j = 0; j < row; j++)
-                cost(i, j) = INT_MIN;
+                cost(i, j) = -1000000;
             
             int tasks_to_keep = min(num_of_agents, (int)task_costs.size());
             for (int j = 0; j < tasks_to_keep; j++)
@@ -206,6 +200,8 @@ bool LNS::run_Hungarian_greedy_without_delivering()
             }
         }
     }
+    // cout << "----------------------------" <<endl;
+
     vector<long> assignment = max_cost_assignment(cost);
     for (int i = 0; i < al.agents_all.size(); i++)
 	{

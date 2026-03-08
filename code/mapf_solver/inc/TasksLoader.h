@@ -42,7 +42,7 @@ public:
     int delta_cost;
     bool is_delivered = false;
     float relatedness;
-    int pick_up_time = 0, delivery_time = 0, estimated_service_time = 0;
+    int pick_up_time = 0, delivery_time = 0, estimated_service_time = 0, estimated_finish_time = 0;
     std::map<Key, handle_t> ta; 
     boost::heap::pairing_heap<TaskAssignment, boost::heap::compare<CompareTaskAssignment>> assignment_heap;
     
@@ -60,6 +60,7 @@ public:
     int num_of_tasks;
     vector<Task> tasks_all;
     std::map<int, int> tasks_table;
+    vector<Task> delivering_tasks_all;
     string frequency;
     static inline bool compareTask(Task& t1, Task& t2, bool insert, int insertion_strategy, int removal_strategy)
     {

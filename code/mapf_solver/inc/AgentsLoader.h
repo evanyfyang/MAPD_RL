@@ -18,6 +18,7 @@ public:
     vector<int> task_sequence;
     vector<int>* new_task_sequence;
     int task_sequence_makespan;
+    bool full_loaded = false;
     
     Agent() {};
     Agent(int start_location, int agent_id);
@@ -32,9 +33,9 @@ public:
     int curr_assignment_flowtime;
     
     // REPLAN
-    AgentsLoader(const KivaGrid& G, const vector<State>& starts,
-            std::map<int, vector<int>> delivering_agents,
-            vector< vector<int> >& task_sequences);
+    // AgentsLoader(const KivaGrid& G, const vector<State>& starts,
+    //         std::map<int, vector<int>> delivering_agents,
+    //         vector< vector<int> >& task_sequences);
     // IGNORE
     AgentsLoader(const KivaGrid& G, const vector<State>& starts,
             vector<int> assigned_agents,
@@ -44,6 +45,6 @@ public:
     AgentsLoader(const KivaGrid &G, const vector<State> &starts, std::map<int, vector<int>> delivering_agents, vector<vector<int>> &task_sequences, vector<Path> &solution);
     
     AgentsLoader(const KivaGrid &G, const vector<State> &starts, std::map<int, vector<int>> delivering_agents, vector<vector<int>> &task_sequences, vector<Path> &solution, bool hungarian_flag);
-    AgentsLoader();
-    ~AgentsLoader();
+    // AgentsLoader();
+    // ~AgentsLoader();
 };

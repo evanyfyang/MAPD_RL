@@ -11,6 +11,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
 #include <set>
+#include <signal.h>
+#include <sstream>
+#include <fstream>
 
 namespace py = pybind11;
 namespace po = boost::program_options;
@@ -92,6 +95,12 @@ class PBSSolver
 		KivaGrid G;
 		MAPFSolver* solver;
 		KivaSystemOnline* system;
+		KivaSystemOnline* system_storage = nullptr;
+		KivaSystemOnline* system_expert = nullptr;
+		int expert_time = -1;
+		AgentTaskStatus expert_status;
+		AgentTaskStatus last_status;
+		vector<vector<int>> expert_action;
 	public:
 		PBSSolver(const std::vector<std::string>& args) : desc("Allowed options") 
 		{	
@@ -102,7 +111,7 @@ class PBSSolver
 				("task", po::value<std::string>()->default_value(""), "input task file")
 				("output,o", po::value<std::string>()->default_value("../exp/test"), "output folder name")
 				("agentNum,k", po::value<int>()->required(), "number of drives")
-				("cutoffTime,t", po::value<int>()->default_value(500), "cutoff time (seconds)")
+				("cutoffTime,t", po::value<int>()->default_value(10), "cutoff time (seconds)")
 				("seed,d", po::value<int>(), "random seed")
 				("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
 				("solver", po::value<string>()->default_value("PBS"), "solver (PBS, WPBS)")
@@ -176,44 +185,70 @@ class PBSSolver
 
 	~PBSSolver() {
 		delete system;
+		delete system_storage;
     }
 
 	AgentTaskStatus update_task(vector<vector<int>>& task, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period, int consider_expert)
 	{
+		expert_time = -1;
 		system->load_tasks(task, new_agents, simulation_time, task_frequency, task_release_period);
 		vector<vector<int>> agent_tasks = {};
-		return update(agent_tasks, consider_expert);
+		return update(agent_tasks, consider_expert, 0, 0);
 	}
 
-    AgentTaskStatus update(const vector<vector<int>>& agent_tasks, int consider_expert) {
-        AgentTaskStatus status = system->simulate_until_next_assignment(agent_tasks);
+    AgentTaskStatus update(const vector<vector<int>>& agent_tasks, int consider_expert, int update_storage=0, int inferencing=0) {
+		if (update_storage || system_storage == nullptr){
+			// printf("update_storage\n");
+			system_storage = dynamic_cast<KivaSystemOnline*>(system->clone());
+		}
+		AgentTaskStatus status = system->simulate_until_next_assignment(agent_tasks);
 		set_estimated_service_time(status, agent_tasks);
-		// printf("status.estimated_service_time: %d\n", status.estimated_service_time);
-		// for(int i=0;i<agent_tasks.size();i++){
-		// 	for(int j=0;j<agent_tasks[i].size();j++){
-		// 		printf("agent_tasks[%d][%d]: %d\n", i, j, agent_tasks[i][j]);
-		// 	}
-		// }
-		if (consider_expert) {
+		// printf("status.estimated_finish_time: %d\n status.delivering_finish_time: %d\n status.finished_flowtime: %d\n expert_time: %d\n", status.estimated_finish_time, status.delivering_finish_time, status.finished_flowtime, expert_time);
+
+		if (expert_time > -1 && status.estimated_finish_time > expert_time && inferencing){
+			system = system_expert;
+			status = expert_status;
+		}
+		
+
+		if (consider_expert && !status.allFinished) {
 			KivaSystemOnline* new_system = dynamic_cast<KivaSystemOnline*>(system->clone());
-			AgentTaskStatus new_status = new_system->simulate_until_next_assignment(status.agent_task_sequences);
-			set_estimated_service_time(new_status, status.agent_task_sequences);
+			expert_status = new_system->simulate_until_next_assignment(status.agent_task_sequences);
+			set_estimated_service_time(expert_status, status.agent_task_sequences);
+			expert_action = status.agent_task_sequences;
+			system_expert = dynamic_cast<KivaSystemOnline*>(new_system->clone());
 			delete new_system;
-			status.expert_estimated_service_time = new_status.estimated_service_time;
-			// printf("new_status.estimated_service_time: %d\n", new_status.estimated_service_time);
+			status.expert_estimated_service_time = expert_status.estimated_service_time;
+			status.expert_estimated_finish_time = expert_status.estimated_finish_time;
+			// printf("expert_status.estimated_finish_time: %d\n expert_status.delivering_finish_time: %d\n expert_status.finished_flowtime: %d\n", expert_status.estimated_finish_time, expert_status.delivering_finish_time, expert_status.finished_flowtime);
+			expert_time = status.expert_estimated_finish_time;
+			last_status = status;
 		}
         return status;
     }
 
+	AgentTaskStatus update_storage(const vector<vector<int>>& agent_tasks) {
+		// printf("evaluate_storage\n");
+		KivaSystemOnline* new_system = dynamic_cast<KivaSystemOnline*>(system_storage->clone());
+		AgentTaskStatus status = new_system->simulate_until_next_assignment(agent_tasks);
+		set_estimated_service_time(status, agent_tasks);
+		delete new_system;
+		return status;
+	}
+
 	void set_estimated_service_time(AgentTaskStatus& status, const vector<vector<int>>& agent_tasks) {
 		int free_reward = 0;
-		int delivering_reward = status.delivering_service_time;
+		int free_service_reward = 0;
+		int delivering_reward = status.delivering_finish_time;
+		int delivering_service_reward = status.delivering_service_time;
+		int finished_flowtime = status.finished_flowtime;
 		int finished_service_time = status.finished_service_time;
+		int makespan = 0;
 		std::set<int> last_task_id = {};
 		std::set<int> delivering_tasks = {};
 
 		for (int i = 0; i < status.agent_task_pair.size(); i++) {
-			delivering_tasks.insert(status.agent_task_pair[i].second);
+			delivering_tasks.insert(status.agent_task_pair[i].first);
 		}
 
 		for (int i = 0; i < agent_tasks.size(); i++) {
@@ -227,12 +262,18 @@ class PBSSolver
 		for (int i = 0; i < status.tasks.size(); i++) {
 			if (delivering_tasks.find(status.tasks[i].task_id) == delivering_tasks.end()
 			  && last_task_id.find(status.tasks[i].task_id) != last_task_id.end()) {
-				free_reward += status.tasks[i].estimated_service_time;
+				free_service_reward += status.tasks[i].estimated_service_time;
+				free_reward += status.tasks[i].estimated_finish_time;
+			}
+			if (status.tasks[i].estimated_finish_time > makespan) {
+				makespan = status.tasks[i].estimated_finish_time;
 			}
 		}
-		
-		status.estimated_service_time = finished_service_time + free_reward + delivering_reward;
-		status.delivering_service_time = delivering_reward;
+		status.makespan = makespan;
+		status.estimated_finish_time = finished_flowtime + free_reward + delivering_reward;
+		status.estimated_service_time = finished_service_time + free_service_reward + delivering_service_reward;
+		status.delivering_finish_time = delivering_reward;
+		status.delivering_service_time = delivering_service_reward;
 	}
 
 };
@@ -247,7 +288,8 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("task_id", &Task::task_id)
         .def_readwrite("goal_arr", &Task::goal_arr)
         .def_readwrite("release_time", &Task::release_time)
-		.def_readwrite("estimated_service_time", &Task::estimated_service_time)
+		// .def_readwrite("estimated_service_time", &Task::estimated_service_time)
+		.def_readwrite("estimated_finish_time", &Task::estimated_finish_time)
         ;
 
     py::class_<Agent>(m, "Agent")
@@ -259,6 +301,7 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("start_timestep", &Agent::start_timestep)
         .def_readwrite("is_delivering", &Agent::is_delivering)
         .def_readwrite("task_sequence", &Agent::task_sequence)
+		.def_readwrite("full_loaded", &Agent::full_loaded)
         ;
 
     py::class_<State>(m, "State")
@@ -284,14 +327,16 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("solution", &AgentTaskStatus::solution)
         .def_readwrite("allFinished", &AgentTaskStatus::allFinished)
         .def_readwrite("agent_task_pair", &AgentTaskStatus::agent_task_pair)
-		.def_readwrite("delivering_service_time", &AgentTaskStatus::delivering_service_time)
+		.def_readwrite("delivering_finish_time", &AgentTaskStatus::delivering_finish_time)
         .def_readwrite("valid", &AgentTaskStatus::valid)
 		.def_readwrite("timestep",&AgentTaskStatus::timestep)
-		.def_readwrite("finished_service_time", &AgentTaskStatus::finished_service_time)
+		.def_readwrite("finished_flowtime", &AgentTaskStatus::finished_flowtime)
         .def_readwrite("agent_task_sequences", &AgentTaskStatus::agent_task_sequences)
-        .def_readwrite("estimated_service_time", &AgentTaskStatus::estimated_service_time)
-		.def_readwrite("expert_estimated_service_time", &AgentTaskStatus::expert_estimated_service_time)
-		.def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks);
+        .def_readwrite("estimated_finish_time", &AgentTaskStatus::estimated_finish_time)
+		.def_readwrite("estimated_service_time", &AgentTaskStatus::estimated_service_time)
+		.def_readwrite("expert_estimated_finish_time", &AgentTaskStatus::expert_estimated_finish_time)
+		.def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks)
+		.def_readwrite("makespan", &AgentTaskStatus::makespan);
 
 	py::class_<PBSSolver>(m, "PBSSolver")
         .def(py::init<const std::vector<std::string>&>(),
@@ -302,7 +347,13 @@ PYBIND11_MODULE(mapf_solver, m) {
                 Load new tasks into the system. Returns some 2D integer vector as result.
              )pbdoc")
         .def("update", &PBSSolver::update,
-             py::arg("agent_tasks"), py::arg("consider_expert"),
+             py::arg("agent_tasks"), py::arg("consider_expert"), py::arg("update_storage"), py::arg("inferencing"),
+             R"pbdoc(
+                Run the solver's simulate_until_next_assignment method, 
+                and return an AgentTaskStatus.
+             )pbdoc")
+        .def("update_storage", &PBSSolver::update_storage,
+             py::arg("agent_tasks"),
              R"pbdoc(
                 Run the solver's simulate_until_next_assignment method, 
                 and return an AgentTaskStatus.
