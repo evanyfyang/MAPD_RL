@@ -42,7 +42,7 @@
 #     --rl_n_samples: Number of read-only samples per state for centering (default: 4)
 #     --rl_policy: RL log-prob policy for REINFORCE: row_softmax or sinkhorn (default: row_softmax)
 #     --rl_centered_weight: Mix weight alpha for centered/returns advantage (default: 0.7)
-#     --nearest_tasks_min_k: Minimum nearest-task candidate size M (default: 8)
+#     --nearest_tasks_min_k: Unified candidate cap K (default: 100)
 #     --n_steps: 覆盖默认n_steps。若显式传入，则自动将rl_n_samples固定为1
 ########################################
 
@@ -80,7 +80,7 @@ NOT_DIV_FLAG=""
 NORMALIZE_ADVANTAGE_FLAG=""
 POS_REWARD_FLAG=""
 RL_CENTERED_WEIGHT="0.7"
-NEAREST_TASKS_MIN_K="8"
+NEAREST_TASKS_MIN_K="100"
 RL_N_SAMPLES="4"
 N_STEPS_USER_SET="0"
 

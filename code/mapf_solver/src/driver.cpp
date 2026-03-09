@@ -77,6 +77,7 @@ void set_parameters(BasicSystem& system, const boost::program_options::variables
 	system.hold_endpoints = vm["hold_endpoints"].as<bool>();
 	system.useDummyPaths = vm["dummy_paths"].as<bool>();
 	system.task_truncated_size = vm["task_truncated_size"].as<int>();
+	system.candidate_task_k = vm["candidate_task_k"].as<int>();
 	system.REPLAN = vm["replan"].as<bool>();
 	system.look_ahead_horizon = vm["look_ahead_horizon"].as<int>();
 	system.neighborhood_size = vm["neighborhood_size"].as<int>();
@@ -137,6 +138,7 @@ class PBSSolver
 				("suboptimal_bound", po::value<double>()->default_value(1), "Suboptimal bound for ECBS")
 				("log", po::value<bool>()->default_value(false), "save the search trees (and the priority trees)")
 				("task_truncated_size", po::value<int>()->default_value(1), "task-truncated size in online/offline MAPD")
+				("candidate_task_k", po::value<int>()->default_value(100), "candidate top-K for Hungarian matching in online/offline MAPD")
 				("replan", po::value<bool>()->default_value(true), "replan variant")
 				("look_ahead_horizon", po::value<int>()->default_value(1), "1 means no look-ahead horizon applied")
 				("neighborhood_size", po::value<int>()->default_value(2), "neighborhood_size")

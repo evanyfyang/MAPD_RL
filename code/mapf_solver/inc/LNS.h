@@ -58,7 +58,7 @@ public:
     bool run(int time_limit);
     bool run_HBH_greedy();
     bool run_Hungarian_greedy();
-    bool run_Hungarian_greedy_without_delivering(int task_truncated_size);
+    bool run_Hungarian_greedy_without_delivering(int task_truncated_size, int candidate_task_k);
     bool run_repeat_Hungarian_greedy();
     bool getInitialSolution();
     void printTaskSequence();

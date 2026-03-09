@@ -14,7 +14,7 @@ from torch_geometric.utils import k_hop_subgraph
 class MultiAgentPickupEnv(gym.Env):
     def __init__(self, training=True, grid_path=None, seed=40, 
             solver="PBS", agent_num_lower_bound=10, agent_num_higher_bound=50, eval_data_path=None, task_num=500, pos_reward=False,
-            sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=8, model_only_eval=False):
+            sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=100, model_only_eval=False):
         super().__init__()
         self.training = training
         self.solver_name = solver
@@ -24,7 +24,9 @@ class MultiAgentPickupEnv(gym.Env):
         self.task_num = task_num
         self.pos_reward = pos_reward
         self.sp_mpnn_max_distance = sp_mpnn_max_distance  # 新增参数
-        self.nearest_tasks_min_k = int(nearest_tasks_min_k)
+        self.nearest_tasks_min_k = max(1, int(nearest_tasks_min_k))
+        # 统一候选集上限K（固定口径：min(K, task_num)）
+        self.candidate_task_k = min(self.nearest_tasks_min_k, self.task_num)
         self.model_only_eval = bool(model_only_eval)
         # 调试开关与频率
         self.debug_env = debug_env
@@ -57,7 +59,9 @@ class MultiAgentPickupEnv(gym.Env):
                 dtype=np.int32
             ),
             "grid": gym.spaces.Box(low=-1, high=0, shape=(self.grid_size[0], self.grid_size[1]), dtype=np.float32),
-            "free_agents_nearest_tasks": gym.spaces.Box(low=-1, high=np.inf, shape=(agent_num_higher_bound, agent_num_higher_bound, 3), dtype=np.float32),
+            "free_agents_nearest_tasks": gym.spaces.Box(
+                low=-1, high=np.inf, shape=(agent_num_higher_bound, self.candidate_task_k, 3), dtype=np.float32
+            ),
             # CNN channel maps
             "pickup_distances": gym.spaces.Box(low=0, high=np.inf, shape=(self.grid_size[0], self.grid_size[1]), dtype=np.float32),
             "delivery_distances": gym.spaces.Box(low=0, high=np.inf, shape=(self.grid_size[0], self.grid_size[1]), dtype=np.float32),
@@ -140,6 +144,7 @@ class MultiAgentPickupEnv(gym.Env):
             "--agentNum", str(self.num_r),                      
             "--seed", str(self.seed),               
             "--solver",  self.solver_name,
+            "--candidate_task_k", str(self.candidate_task_k),
             "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]
         self.solver = PBSSolver(args)
@@ -394,7 +399,8 @@ class MultiAgentPickupEnv(gym.Env):
             delivery_location_map[x, y] = (i + free_task_cnt + 1) / total_tasks
 
         # 修改free_agents_nearest_tasks格式：[agent_id, task_rank, [task_id, agent_to_pickup_distance, pickup_to_delivery_distance]]
-        free_agents_nearest_tasks = np.full((self.agent_num[1], self.agent_num[1], 3), -1, dtype=np.float32)
+        # 统一候选口径：每个agent最多保留min(K, free_task_cnt)个候选
+        free_agents_nearest_tasks = np.full((self.agent_num[1], self.candidate_task_k, 3), -1, dtype=np.float32)
         
         for i in range(free_agent_cnt):
             agent_loc = tuple(map(int, free_agents[i][:2]))
@@ -416,14 +422,8 @@ class MultiAgentPickupEnv(gym.Env):
             # 按总距离排序（与LNS的cost计算方式保持一致）
             task_info_list.sort(key=lambda x: x[1])
 
-            # 存储最近的任务信息
-            if self.nearest_tasks_min_k > 0:
-                if free_agent_cnt > self.nearest_tasks_min_k:
-                    nearest_count = min(free_agent_cnt, free_task_cnt, self.agent_num[1])
-                else:
-                    nearest_count = min(self.nearest_tasks_min_k, free_task_cnt, self.agent_num[1])
-            else:
-                nearest_count = min(free_agent_cnt, free_task_cnt)
+            # 存储最近的任务信息（固定上限K）
+            nearest_count = min(self.candidate_task_k, free_task_cnt)
             for k in range(nearest_count):
                 task_id, total_dist, agent_to_pickup, pickup_to_delivery = task_info_list[k]
                 free_agents_nearest_tasks[i, k, 0] = task_id  # 任务ID
@@ -735,6 +735,7 @@ class MultiAgentPickupEnv(gym.Env):
             "--agentNum", str(self.num_r),
             "--seed", str(self.seed),
             "--solver", self.solver_name,
+            "--candidate_task_k", str(self.candidate_task_k),
             "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]
         self.solver = PBSSolver(args)

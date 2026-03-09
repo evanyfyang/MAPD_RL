@@ -84,8 +84,8 @@ def parse_args():
                         help="启用环境调试日志（精简、节流）.")
     parser.add_argument("--debug_every", type=int, default=50,
                         help="环境调试日志打印间隔步数（步频节流）.")
-    parser.add_argument("--nearest_tasks_min_k", type=int, default=8,
-                        help="最近任务候选最小值M。>0时: 若free_agents_num>M取free_agents_num，否则取min(M, free_tasks_num).")
+    parser.add_argument("--nearest_tasks_min_k", type=int, default=100,
+                        help="统一候选上限K。每个agent保留min(K, free_tasks_num)个最近任务。")
 
     # ------------- GNN Policy 相关超参数 -------------
     parser.add_argument("--hidden_dim", type=int, default=64,

@@ -30,6 +30,7 @@ public:
     int simulation_time;
     int neighborhood_size;
     int task_truncated_size;
+    int candidate_task_k;
     bool use_LNS;
     bool REPLAN;
     int look_ahead_horizon;

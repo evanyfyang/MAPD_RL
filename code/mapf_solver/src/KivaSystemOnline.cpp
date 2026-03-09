@@ -100,6 +100,7 @@ KivaSystemOnline::KivaSystemOnline(const KivaSystemOnline& other)
     simulation_window = other.simulation_window;
     neighborhood_size = other.neighborhood_size;
     task_truncated_size = other.task_truncated_size;
+    candidate_task_k = other.candidate_task_k;
     use_LNS = other.use_LNS;
     REPLAN = other.REPLAN;
     look_ahead_horizon = other.look_ahead_horizon;
@@ -680,7 +681,7 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 		TasksLoader tl2(current_tasks, delivering_tasks, current_assigned_endpoints, deferred_task);
 		AgentsLoader al2(G, starts, delivering_agents, task_sequences, solver.solution, true);
 		LNS lns(G, tl, al2, 2, 1, 2, neighborhood_size);
-		lns.run_Hungarian_greedy_without_delivering(task_truncated_size);
+		lns.run_Hungarian_greedy_without_delivering(task_truncated_size, candidate_task_k);
 
 		// printf("tasks_all:\n");
 		// for (int i = 0; i < tl.tasks_all.size(); i++) {

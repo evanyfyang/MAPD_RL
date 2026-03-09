@@ -97,6 +97,23 @@ def test_model(checkpoint_path, test_data_path, args):
     
     # 设置随机种子
     set_random_seed(args.global_seed)
+
+    # 先加载模型，再根据checkpoint中的observation_space对齐测试环境维度
+    model = REINFORCE.load(checkpoint_path)
+    if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
+        model.policy.infer_decode_mode = args.infer_decode_mode
+
+    expected_agent_cap = None
+    expected_candidate_k = None
+    try:
+        obs_space = model.observation_space
+        if hasattr(obs_space, "spaces") and "free_agents_nearest_tasks" in obs_space.spaces:
+            nearest_shape = obs_space.spaces["free_agents_nearest_tasks"].shape
+            if len(nearest_shape) == 3:
+                expected_agent_cap = int(nearest_shape[0])
+                expected_candidate_k = int(nearest_shape[1])
+    except Exception:
+        pass
     
     # 环境参数
     env_kwargs = dict(
@@ -110,6 +127,12 @@ def test_model(checkpoint_path, test_data_path, args):
         pos_reward=False,
         model_only_eval=args.model_only_eval,
     )
+
+    if expected_agent_cap is not None:
+        env_kwargs["agent_num_higher_bound"] = expected_agent_cap
+        env_kwargs["agent_num_lower_bound"] = min(env_kwargs["agent_num_lower_bound"], expected_agent_cap)
+    if expected_candidate_k is not None:
+        env_kwargs["nearest_tasks_min_k"] = expected_candidate_k
     
     # 创建测试环境
     test_env = MultiAgentPickupEnv(seed=args.test_env_seed, **env_kwargs)
@@ -138,11 +161,6 @@ def test_model(checkpoint_path, test_data_path, args):
         edge_combine=args.edge_combine,
         use_undirected=args.use_undirected
     )
-    
-    # 加载模型
-    model = REINFORCE.load(checkpoint_path)
-    if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
-        model.policy.infer_decode_mode = args.infer_decode_mode
     
     # 运行测试
     episode_rewards = []

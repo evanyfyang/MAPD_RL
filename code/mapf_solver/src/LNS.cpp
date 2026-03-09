@@ -137,7 +137,7 @@ bool LNS::run_Hungarian_greedy()
     return true;
 }
 
-bool LNS::run_Hungarian_greedy_without_delivering(int task_truncated_size)
+bool LNS::run_Hungarian_greedy_without_delivering(int task_truncated_size, int candidate_task_k)
 {
     this->num_of_agents = al.agents_all.size();
     this->num_of_tasks = tl.tasks_all.size();
@@ -191,7 +191,8 @@ bool LNS::run_Hungarian_greedy_without_delivering(int task_truncated_size)
             for (int j = 0; j < row; j++)
                 cost(i, j) = -1000000;
             
-            int tasks_to_keep = min(num_of_agents, (int)task_costs.size());
+            // 独立候选上限K：min(K, task_num)
+            int tasks_to_keep = min(candidate_task_k, (int)task_costs.size());
             for (int j = 0; j < tasks_to_keep; j++)
             {
                 int task_idx = task_costs[j].first;
