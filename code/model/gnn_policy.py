@@ -50,6 +50,7 @@ class GNNPolicy(BasePolicy):
         use_hungarian_for_deterministic=True,  # 是否在deterministic模式下使用Hungarian算法而非贪心策略
         use_gumbel_hungarian=False,  # Gumbel+Hungarian模式（pretrain用sigmoid+BCE，RL用gumbel+hungarian）
         use_gumbel_sinkhorn=False,  # Gumbel Sinkhorn模式（pretrain用sinkhorn+BCE，RL用gumbel_sinkhorn+hungarian）
+        infer_decode_mode='sequential',  # 推理(deteministic)解码模式: sequential 或 hungarian
         rl_policy='row_softmax',  # use_gumbel_hungarian下，RL阶段P的计算：row_softmax 或 sinkhorn
         use_simplified_pretrain_loss=False,  # 是否使用简化的edge-level BCE损失（类似test_gcnn）
         # 新增的GNN参数
@@ -108,6 +109,9 @@ class GNNPolicy(BasePolicy):
         self.use_hungarian_for_deterministic = use_hungarian_for_deterministic  # 控制确定性采样方法
         self.use_gumbel_hungarian = use_gumbel_hungarian  # Gumbel+Hungarian模式（pretrain用sigmoid+BCE，RL用gumbel+hungarian）
         self.use_gumbel_sinkhorn = use_gumbel_sinkhorn  # Gumbel Sinkhorn模式（pretrain用sinkhorn+BCE，RL用gumbel_sinkhorn+hungarian）
+        self.infer_decode_mode = str(infer_decode_mode).lower()
+        if self.infer_decode_mode not in ("sequential", "hungarian"):
+            self.infer_decode_mode = "sequential"
         self.rl_policy = rl_policy
         # 多样本只读评估的样本数（用于中心化），已在super前pop
         self.rl_n_samples = int(self.rl_n_samples)
@@ -1032,6 +1036,101 @@ class GNNPolicy(BasePolicy):
         return (action_probs, original_scores, valid_mask, free_agents_num, free_tasks_num, 
                 free_agents_nearest_tasks, device, batch_size)
 
+    def _build_sequential_row_masks(self, valid_mask_b, selected_tasks, num_tasks, no_task_quota, device):
+        """
+        Build per-agent action mask for no-replacement sequential sampling.
+        - Real tasks cannot be repeated.
+        - no-task column is controlled by quota (max(0, M-N)).
+        """
+        mask = torch.ones(num_tasks + 1, dtype=torch.bool, device=device)
+        if num_tasks > 0:
+            mask[:num_tasks] = ~selected_tasks
+        if valid_mask_b is not None:
+            row_valid = valid_mask_b[:num_tasks + 1].bool()
+            mask = mask & row_valid
+        if no_task_quota <= 0:
+            mask[num_tasks] = False
+        return mask
+
+    def _sequential_no_replacement_policy(
+        self,
+        original_scores,
+        free_agents_num,
+        free_tasks_num,
+        valid_mask,
+        deterministic=False,
+        provided_actions=None,
+    ):
+        """
+        Sequential no-replacement policy over rows.
+        Returns:
+          - actions [B, max_agents]
+          - log_probs [B]
+          - entropies [B] (mean over active agents)
+        """
+        batch_size = len(original_scores)
+        device = original_scores[0].device if batch_size > 0 else self.device
+        actions_out = torch.zeros((batch_size, self.max_agents), device=device, dtype=torch.long)
+        log_probs = torch.zeros(batch_size, device=device, dtype=torch.float32)
+        entropies = torch.zeros(batch_size, device=device, dtype=torch.float32)
+
+        tau = max(float(self.tau), 1e-6)
+
+        for b in range(batch_size):
+            M = int(free_agents_num[b].item())
+            N = int(free_tasks_num[b].item())
+            if M <= 0:
+                continue
+
+            actions_out[b].fill_(N)
+            selected_tasks = torch.zeros(N, dtype=torch.bool, device=device)
+            no_task_quota = max(0, M - N)
+            agent_entropy = []
+
+            for i in range(M):
+                logits = original_scores[b][i, :N + 1] / tau
+                vm = None if valid_mask is None else valid_mask[b, i, :N + 1]
+                mask = self._build_sequential_row_masks(vm, selected_tasks, N, no_task_quota, device)
+
+                # Fallback to avoid empty support
+                if not mask.any():
+                    if no_task_quota > 0:
+                        mask[N] = True
+                    elif N > 0 and (~selected_tasks).any():
+                        mask[:N] = ~selected_tasks
+                    else:
+                        mask[N] = True
+
+                masked_logits = logits.clone()
+                masked_logits[~mask] = -1e9
+                dist = Categorical(logits=masked_logits)
+
+                if provided_actions is None:
+                    act = torch.argmax(masked_logits) if deterministic else dist.sample()
+                else:
+                    act_raw = int(provided_actions[b, i].item()) if i < provided_actions.shape[1] else N
+                    if 0 <= act_raw < (N + 1) and bool(mask[act_raw]):
+                        act = torch.tensor(act_raw, device=device, dtype=torch.long)
+                    elif bool(mask[N]):
+                        act = torch.tensor(N, device=device, dtype=torch.long)
+                    else:
+                        act = torch.where(mask)[0][0].long()
+
+                actions_out[b, i] = act
+                log_probs[b] = log_probs[b] + dist.log_prob(act)
+                agent_entropy.append(dist.entropy())
+
+                a_int = int(act.item())
+                if a_int < N:
+                    selected_tasks[a_int] = True
+                else:
+                    no_task_quota = max(0, no_task_quota - 1)
+
+            if agent_entropy:
+                entropies[b] = torch.stack(agent_entropy).mean()
+
+        return actions_out, log_probs, entropies
+
     def forward(self, obs, deterministic=False):
         """
         Forward pass, generating actions
@@ -1050,6 +1149,9 @@ class GNNPolicy(BasePolicy):
             expert_actions = torch.zeros((batch_size, self.max_agents), device=device, dtype=torch.long)
         
         # 采样动作
+        sampled_log_probs = None
+        sampled_entropy = None
+
         if self.use_gumbel_sinkhorn:
             # Gumbel Sinkhorn模式：预训练用Sinkhorn+BCE，RL用Gumbel Sinkhorn+Hungarian
             if self.current_step < self.pretrain_steps or self.pretrain_mode:
@@ -1115,54 +1217,44 @@ class GNNPolicy(BasePolicy):
                 use_expert = os.environ.get("USE_EXPERT", "False")
                 if use_expert == "True":
                     actions = expert_actions.clone() if expert_actions is not None else torch.zeros((batch_size, self.max_agents), device=device, dtype=torch.long)
-                else:
+                elif self.infer_decode_mode == "hungarian":
+                    # 仅推理路径使用Hungarian全局解码，不影响训练采样与log_prob定义
+                    hungarian_mats = apply_hungarian_algorithm(
+                        original_scores, free_agents_num, free_tasks_num, use_probabilities=False
+                    )
                     actions = torch.zeros((batch_size, self.max_agents), device=device, dtype=torch.long)
                     for b in range(batch_size):
-                        M = int(free_agents_num[b].item())
-                        N = int(free_tasks_num[b].item())
-                        actions[b].fill_(N)
-                        logits = original_scores[b][:M, :N]
-                        P = self.sinkhorn.sinkhorn_log(logits, M, N, valid_mask[b])
-                        tasks_num_ext = torch.tensor([P.shape[1]], device=device)
-                        hungarian_mats = apply_hungarian_algorithm([P], free_agents_num[b:b+1], tasks_num_ext, use_probabilities=True)
-                        mat = hungarian_mats[0]
-                        for i in range(M):
-                            col = int(torch.argmax(mat[i]).item())
-                            actions[b, i] = col if col < N else N
-                    # hungarian_matrices = apply_hungarian_algorithm(
-                    #     original_scores, free_agents_num, free_tasks_num, use_probabilities=False
-                    # )
-                    # actions = torch.stack([torch.full((self.max_agents,), free_tasks_num[b].item(), device=device, dtype=torch.long) for b in range(batch_size)])
-                    # for b in range(batch_size):
-                    #     num_agents = free_agents_num[b].long().item()
-                    #     num_tasks_total = free_tasks_num[b].long().item() + 1
-                    #     if num_agents > 0 and b < len(hungarian_matrices):
-                    #         mat = hungarian_matrices[b]
-                    #         for i in range(num_agents):
-                    #             if i < mat.shape[0]:
-                    #                 mat = torch.cat([mat, torch.full((num_agents, 1), 0.5, device=device, dtype=torch.float32)], dim=-1)
-                    #                 task_idx = torch.argmax(mat[i]).clamp(max=num_tasks_total - 1)
-                    #                 actions[b, i] = task_idx
+                        n = int(free_tasks_num[b].item())
+                        m = int(free_agents_num[b].item())
+                        actions[b].fill_(n)
+                        if m <= 0:
+                            continue
+                        mat = hungarian_mats[b]
+                        if mat.numel() == 0:
+                            continue
+                        rows, cols = mat.nonzero(as_tuple=True)
+                        for ri, cj in zip(rows.tolist(), cols.tolist()):
+                            if 0 <= ri < m and 0 <= cj < (n + 1):
+                                actions[b, ri] = int(cj)
+                else:
+                    actions, sampled_log_probs, sampled_entropy = self._sequential_no_replacement_policy(
+                        original_scores=original_scores,
+                        free_agents_num=free_agents_num,
+                        free_tasks_num=free_tasks_num,
+                        valid_mask=valid_mask,
+                        deterministic=True,
+                        provided_actions=None,
+                    )
             else:
-                # 训练模式：Gumbel + 温度缩放得到 L，然后在 L（不含 no-task 列）上做 Hungarian
-                self._last_gumbel_noise = {}
-                actions = torch.zeros((batch_size, self.max_agents), device=device, dtype=torch.long)
-                for b in range(len(original_scores)):
-                    M = int(free_agents_num[b].item())
-                    N = int(free_tasks_num[b].item())
-                    actions[b].fill_(N)
-                    logits = original_scores[b][:M, :N]
-                    noise = torch.distributions.Gumbel(0, 1).sample(logits.shape).to(device)
-                    noise = noise * valid_mask[b][:M, :N]
-                    self._last_gumbel_noise[obs_id[b].item()] = noise
-                    Lb = logits + noise
-                    P = self.sinkhorn.sinkhorn_log(Lb, M, N, valid_mask[b])
-                    tasks_num_ext = torch.tensor([P.shape[1]], device=device)
-                    hungarian_mats = apply_hungarian_algorithm([P], free_agents_num[b:b+1], tasks_num_ext, use_probabilities=True)
-                    mat = hungarian_mats[0]
-                    for i in range(M):
-                        col = int(torch.argmax(mat[i]).item())
-                        actions[b, i] = col if col < N else N
+                # 训练模式：使用无放回顺序采样，确保动作可执行且与log_prob完全一致
+                actions, sampled_log_probs, sampled_entropy = self._sequential_no_replacement_policy(
+                    original_scores=original_scores,
+                    free_agents_num=free_agents_num,
+                    free_tasks_num=free_tasks_num,
+                    valid_mask=valid_mask,
+                    deterministic=False,
+                    provided_actions=None,
+                )
         else:
             actions = self.sample_action(
                 distribution=original_scores,  # 直接传递列表
@@ -1175,21 +1267,21 @@ class GNNPolicy(BasePolicy):
             )
         
         # 计算log概率
-        log_probs = torch.zeros(batch_size, device=device)
-        
-        for b in range(batch_size):
-            agent_log_probs = []
-            
-            for i in range(free_agents_num[b].long().item()):
-                if i < action_probs[b].size(0) and i < actions.shape[1]:
-                    action = actions[b, i]
-                    if 0 <= action < action_probs[b][i].size(0):
-                        agent_log_probs.append(torch.log(action_probs[b][i][action] + 1e-10))
-                    else:
-                        agent_log_probs.append(torch.tensor(-10.0, device=device))
-            
-            if len(agent_log_probs) > 0:
-                log_probs[b] = torch.stack(agent_log_probs).sum()
+        if self.use_gumbel_hungarian and sampled_log_probs is not None:
+            log_probs = sampled_log_probs
+        else:
+            log_probs = torch.zeros(batch_size, device=device)
+            for b in range(batch_size):
+                agent_log_probs = []
+                for i in range(free_agents_num[b].long().item()):
+                    if i < action_probs[b].size(0) and i < actions.shape[1]:
+                        action = actions[b, i]
+                        if 0 <= action < action_probs[b][i].size(0):
+                            agent_log_probs.append(torch.log(action_probs[b][i][action] + 1e-10))
+                        else:
+                            agent_log_probs.append(torch.tensor(-10.0, device=device))
+                if len(agent_log_probs) > 0:
+                    log_probs[b] = torch.stack(agent_log_probs).sum()
         
         # 生成一个零张量作为值函数返回值
         values = torch.zeros(batch_size, device=device)
@@ -1218,21 +1310,36 @@ class GNNPolicy(BasePolicy):
         
         # 检查是否处于预训练阶段
         if self.current_step < self.pretrain_steps or self.pretrain_mode:
-            # 预训练阶段：使用BCE Loss
-            log_prob = compute_pretrain_loss(
-                action_probs, obs, free_agents_num, free_tasks_num, free_agents_nearest_tasks,
-                True, self.not_div, self.fix_div, self.max_agents, device,
-                sinkhorn_module=self.sinkhorn
+            # 预训练阶段：使用与RL一致的无放回顺序策略监督目标（expert NLL）
+            if isinstance(obs, dict) and "expert_actions" in obs:
+                expert_actions = obs["expert_actions"].long()
+            else:
+                expert_actions = actions.long()
+            _, expert_log_prob, expert_entropy = self._sequential_no_replacement_policy(
+                original_scores=original_scores,
+                free_agents_num=free_agents_num,
+                free_tasks_num=free_tasks_num,
+                valid_mask=valid_mask,
+                deterministic=False,
+                provided_actions=expert_actions,
             )
-            entropy = torch.zeros(batch_size, device=device)
+            # 在REINFORCE.train的pretrain分支里，loss直接取log_prob并最小化
+            # 这里返回正的NLL作为"log_prob"占位，保持外部训练代码不改动
+            # 为了消除不同样本agent数量差异导致的loss幅度波动，按有效agent数归一化
+            agent_denom = torch.clamp(free_agents_num.float(), min=1.0)
+            log_prob = (-expert_log_prob) / agent_denom
+            entropy = expert_entropy
         else:
             # 标准RL训练阶段：计算动作的对数概率（与前向采样使用同一份 L）
             if self.use_gumbel_hungarian:
-                obs_id = obs["env_id"]
-                if not hasattr(self, '_last_gumbel_noise') or self._last_gumbel_noise is None:
-                    raise RuntimeError("No cached noisy L found. Call forward() to sample actions before evaluate_actions().")
-                log_prob, entropy = compute_logprob_and_entropy_from_L(
-                    self._last_gumbel_noise, original_scores, obs_id, actions, valid_mask, free_agents_num, free_tasks_num, self.sinkhorn, tau = self.tau, normalize_by_M=True
+                actions = actions.long()
+                _, log_prob, entropy = self._sequential_no_replacement_policy(
+                    original_scores=original_scores,
+                    free_agents_num=free_agents_num,
+                    free_tasks_num=free_tasks_num,
+                    valid_mask=valid_mask,
+                    deterministic=False,
+                    provided_actions=actions,
                 )
         
         return values, log_prob, entropy
@@ -1284,6 +1391,7 @@ class GNNPolicy(BasePolicy):
             use_hungarian_for_deterministic=self.use_hungarian_for_deterministic,  # 添加新参数
             use_gumbel_hungarian=self.use_gumbel_hungarian,  # 添加新参数
             use_gumbel_sinkhorn=self.use_gumbel_sinkhorn,  # 添加新参数
+            infer_decode_mode=self.infer_decode_mode,
             # Use dummy scheduler as placeholder
             lr_schedule=self._dummy_schedule,
             lower_gnn_num_layers=self.lower_gnn_num_layers,
@@ -1545,48 +1653,27 @@ class GNNPolicy(BasePolicy):
         B = batch_size
         Amax = actions_current.shape[1]
 
-        # Sample K-1 extra actions using Gumbel+Hungarian (stochastic) or Hungarian (deterministic)
+        # Sample K-1 extra actions using the same no-replacement policy (aligned with log_prob)
         extra_samples = []
         num_extra = max(0, K - 1)
         # log_prob_all = torch.zeros((B, K), device=device)
         log_prob_all = [cached_log_prob]
         # ent_all = torch.zeros((B, K), device=device)
         ent_all = [cached_entropy]
-        idx = 0
 
         invalid_mask = torch.abs(r0+1) < 1e-6
 
         if num_extra > 0:
             for _ in range(num_extra):
-                sampled_actions = torch.zeros((B, self.max_agents), device=device, dtype=torch.long)
-                noisy_dict = {}
-                for b in range(B):
-                    M = int(free_agents_num[b].item())
-                    N = int(free_tasks_num[b].item())
-                    sampled_actions[b].fill_(N)
-                    logits = original_scores[b][:M, :N]
-                    if deterministic:
-                        noise = torch.zeros_like(logits)
-                    else:
-                        noise = torch.distributions.Gumbel(0, 1).sample(logits.shape).to(device)
-                        if valid_mask is not None:
-                            noise = noise * valid_mask[b, :M, :N]
-                    noisy_dict[obs_id[b].item()] = noise
-                    Lb = logits + noise
-                    P = self.sinkhorn.sinkhorn_log(Lb, M, N, valid_mask[b])
-                    tasks_num_ext = torch.tensor([P.shape[1]], device=device)
-                    hungarian_mats = apply_hungarian_algorithm([P], free_agents_num[b:b+1], tasks_num_ext, use_probabilities=True)
-                    mat = hungarian_mats[0]
-                    for i in range(M):
-                        col = int(torch.argmax(mat[i]).item())
-                        sampled_actions[b, i] = col if col < N else N
-
-                extra_samples.append(sampled_actions.detach().clone())
-
-                log_prob, entropy = compute_logprob_and_entropy_from_L(
-                    noisy_dict, original_scores, obs_id, sampled_actions, valid_mask,
-                    free_agents_num, free_tasks_num, self.sinkhorn, tau=self.tau, normalize_by_M=True
+                sampled_actions, log_prob, entropy = self._sequential_no_replacement_policy(
+                    original_scores=original_scores,
+                    free_agents_num=free_agents_num,
+                    free_tasks_num=free_tasks_num,
+                    valid_mask=valid_mask,
+                    deterministic=deterministic,
+                    provided_actions=None,
                 )
+                extra_samples.append(sampled_actions.detach().clone())
                 log_prob_all.append(log_prob)
                 ent_all.append(entropy)
         # Assemble actions_all: [B, K, A]

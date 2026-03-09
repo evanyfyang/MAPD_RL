@@ -14,7 +14,7 @@ from torch_geometric.utils import k_hop_subgraph
 class MultiAgentPickupEnv(gym.Env):
     def __init__(self, training=True, grid_path=None, seed=40, 
             solver="PBS", agent_num_lower_bound=10, agent_num_higher_bound=50, eval_data_path=None, task_num=500, pos_reward=False,
-            sp_mpnn_max_distance=3, debug_env=False, debug_every=50):
+            sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=8, model_only_eval=False):
         super().__init__()
         self.training = training
         self.solver_name = solver
@@ -24,6 +24,8 @@ class MultiAgentPickupEnv(gym.Env):
         self.task_num = task_num
         self.pos_reward = pos_reward
         self.sp_mpnn_max_distance = sp_mpnn_max_distance  # 新增参数
+        self.nearest_tasks_min_k = int(nearest_tasks_min_k)
+        self.model_only_eval = bool(model_only_eval)
         # 调试开关与频率
         self.debug_env = debug_env
         self.debug_every = debug_every
@@ -138,6 +140,7 @@ class MultiAgentPickupEnv(gym.Env):
             "--agentNum", str(self.num_r),                      
             "--seed", str(self.seed),               
             "--solver",  self.solver_name,
+            "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]
         self.solver = PBSSolver(args)
 
@@ -414,7 +417,13 @@ class MultiAgentPickupEnv(gym.Env):
             task_info_list.sort(key=lambda x: x[1])
 
             # 存储最近的任务信息
-            nearest_count = min(free_agent_cnt, free_task_cnt)
+            if self.nearest_tasks_min_k > 0:
+                if free_agent_cnt > self.nearest_tasks_min_k:
+                    nearest_count = min(free_agent_cnt, free_task_cnt, self.agent_num[1])
+                else:
+                    nearest_count = min(self.nearest_tasks_min_k, free_task_cnt, self.agent_num[1])
+            else:
+                nearest_count = min(free_agent_cnt, free_task_cnt)
             for k in range(nearest_count):
                 task_id, total_dist, agent_to_pickup, pickup_to_delivery = task_info_list[k]
                 free_agents_nearest_tasks[i, k, 0] = task_id  # 任务ID
@@ -562,6 +571,78 @@ class MultiAgentPickupEnv(gym.Env):
                 agent_tasks[k] = [v[0]]
         return agent_tasks
 
+    def _safe_total_distance(self, agent_loc, agent_start_timestep, task_pickup, task_delivery):
+        """
+        与free_agents_nearest_tasks一致的代理代价:
+          total = (agent_start_timestep + d(agent,pickup)) + d(pickup,delivery)
+        不可达时给大惩罚，避免负距离污染比较。
+        """
+        try:
+            d1 = int(self.heuristics[agent_loc][task_pickup])
+            d2 = int(self.heuristics[task_pickup][task_delivery])
+            if d1 < 0 or d2 < 0:
+                return float(2 * (self.grid_size[0] + self.grid_size[1]))
+            return float(agent_start_timestep + d1 + d2)
+        except Exception:
+            return float(2 * (self.grid_size[0] + self.grid_size[1]))
+
+    def _compute_action_hungarian_gap(self, agent_tasks):
+        """
+        在当前状态下比较：
+          - model执行后的有效分配总代价（按最短路代理代价）
+          - Hungarian最优总代价（同一代价定义）
+        返回字典，供step日志打印。
+        """
+        try:
+            if not isinstance(self.state, dict):
+                return None
+            M = int(self.state.get("free_agents_num", 0))
+            N = int(self.state.get("free_tasks_num", 0))
+            if M <= 0 or N <= 0:
+                return {
+                    "model_cost": 0.0,
+                    "hungarian_cost": 0.0,
+                }
+
+            free_agents = self.state["free_agents"]
+            free_tasks = self.state["free_tasks"]
+
+            # 构建MxN代价矩阵
+            cost_matrix = np.zeros((M, N), dtype=np.float32)
+            for i in range(M):
+                ax, ay, st = int(free_agents[i][0]), int(free_agents[i][1]), int(free_agents[i][2])
+                agent_loc = (ax, ay)
+                for j in range(N):
+                    px, py, dx, dy = map(int, free_tasks[j][:4])
+                    task_pickup = (px, py)
+                    task_delivery = (dx, dy)
+                    cost_matrix[i, j] = self._safe_total_distance(agent_loc, st, task_pickup, task_delivery)
+
+            # Hungarian最优（会自动处理M!=N，返回min(M,N)对）
+            row_ind, col_ind = linear_sum_assignment(cost_matrix)
+            hungarian_cost = float(cost_matrix[row_ind, col_ind].sum()) if len(row_ind) > 0 else 0.0
+
+            # model有效分配代价（使用decode_action后的agent_tasks，已去重且可执行）
+            reverse_task_id_map = {v: k for k, v in self.free_task_id_map.items()}
+            model_cost = 0.0
+            for local_agent_idx, global_agent_id in self.free_agent_id_map.items():
+                if global_agent_id >= len(agent_tasks):
+                    continue
+                assigned = agent_tasks[global_agent_id]
+                if not assigned:
+                    continue
+                task_id = assigned[0]
+                local_task_idx = reverse_task_id_map.get(task_id, -1)
+                if 0 <= local_task_idx < N:
+                    model_cost += float(cost_matrix[local_agent_idx, local_task_idx])
+
+            return {
+                "model_cost": float(model_cost),
+                "hungarian_cost": float(hungarian_cost),
+            }
+        except Exception:
+            return None
+
     def _serialize_status(self, status):
         def serialize_path(path):
             out = []
@@ -649,7 +730,13 @@ class MultiAgentPickupEnv(gym.Env):
         return merged
 
     def reset(self, seed=40):
-        args = ["--map", self.grid_path, "--agentNum", str(self.num_r), "--seed", str(self.seed), "--solver", self.solver_name]
+        args = [
+            "--map", self.grid_path,
+            "--agentNum", str(self.num_r),
+            "--seed", str(self.seed),
+            "--solver", self.solver_name,
+            "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
+        ]
         self.solver = PBSSolver(args)
 
         self.last_total_finish_time = 0
@@ -725,6 +812,7 @@ class MultiAgentPickupEnv(gym.Env):
         last_expert_action = self._decode_with_maps(self.state['expert_actions'], self.storage_snapshot)
         # print("last_expert_action:", self._decode_with_maps(self.state['expert_actions'], self.storage_snapshot))
         agent_tasks = self.decode_action(action, mutate=True)
+        assign_gap = self._compute_action_hungarian_gap(agent_tasks)
 
         if self.training:
             status = self.solver.update(agent_tasks, 1, 1, 0)
@@ -801,7 +889,23 @@ class MultiAgentPickupEnv(gym.Env):
             reward = 0
         
 
-        print("id:", self.seed, "makespan", status.timestep,"reward:",reward, "finish_time:", self.last_finish_time, "service_time:", service_time, "s_time:", s_time, "agent_num:", self.agent_num_now, "done:", done, "last_free_agent_num:", self.last_free_agent_num, "last_free_task_num:", self.last_free_task_num,)
+        if assign_gap is not None:
+            print(
+                "id:", self.seed,
+                "makespan", status.timestep,
+                "reward:", reward,
+                "finish_time:", self.last_finish_time,
+                "service_time:", service_time,
+                "s_time:", s_time,
+                "agent_num:", self.agent_num_now,
+                "done:", done,
+                "last_free_agent_num:", self.last_free_agent_num,
+                "last_free_task_num:", self.last_free_task_num,
+                "model_assign_cost:", round(assign_gap["model_cost"], 3),
+                "hungarian_assign_cost:", round(assign_gap["hungarian_cost"], 3),
+            )
+        else:
+            print("id:", self.seed, "makespan", status.timestep,"reward:",reward, "finish_time:", self.last_finish_time, "service_time:", service_time, "s_time:", s_time, "agent_num:", self.agent_num_now, "done:", done, "last_free_agent_num:", self.last_free_agent_num, "last_free_task_num:", self.last_free_task_num,)
         print("______________________")
 
         if not done:

@@ -56,6 +56,10 @@ def parse_args():
                         help="是否标准化优势函数.")
     parser.add_argument("--rl_n_samples", type=int, default=4,
                         help="每个环境状态用于优势中心化的只读评估样本数（>=1，1表示不做中心化）.")
+    parser.add_argument("--rl_no_centering", action="store_true", default=False,
+                        help="RL阶段关闭K-sample centered advantage，直接使用returns.")
+    parser.add_argument("--rl_centered_weight", type=float, default=0.7,
+                        help="K-sample混合权重alpha，adv=alpha*centered+(1-alpha)*returns，默认0.7.")
 
     # ------------- 环境相关超参数 -------------
     parser.add_argument("--env_seed", type=int, default=40,
@@ -80,6 +84,8 @@ def parse_args():
                         help="启用环境调试日志（精简、节流）.")
     parser.add_argument("--debug_every", type=int, default=50,
                         help="环境调试日志打印间隔步数（步频节流）.")
+    parser.add_argument("--nearest_tasks_min_k", type=int, default=8,
+                        help="最近任务候选最小值M。>0时: 若free_agents_num>M取free_agents_num，否则取min(M, free_tasks_num).")
 
     # ------------- GNN Policy 相关超参数 -------------
     parser.add_argument("--hidden_dim", type=int, default=64,
@@ -142,6 +148,8 @@ def parse_args():
                         help="模型和日志保存的目录.")
     parser.add_argument("--global_seed", type=int, default=0,
                         help="全局随机种子 (Python, NumPy, PyTorch).")
+    parser.add_argument("--resume_checkpoint", type=str, default=None,
+                        help="从指定checkpoint继续训练（REINFORCE.load）。")
 
     # ------------- 测试相关 -------------
     parser.add_argument("--test_checkpoint", type=str, default=None,
@@ -150,6 +158,10 @@ def parse_args():
                         help="测试环境的随机种子.")
     parser.add_argument("--test_episodes", type=int, default=1,
                         help="测试时跑多少回合.")
+    parser.add_argument("--model_only_eval", action="store_true", default=False,
+                        help="测试/推理时仅使用model结果，不回退到expert状态.")
+    parser.add_argument("--infer_decode_mode", type=str, default="sequential", choices=["sequential", "hungarian"],
+                        help="deterministic推理动作解码方式: sequential 或 hungarian。训练流程不受影响。")
 
     parser.add_argument("--pretrain_epochs", type=int, default=0,
                        help="预训练epochs（使用专家动作）")
@@ -169,9 +181,11 @@ def linear_schedule(initial_value: float):
         return initial_value * progress_remaining
     return func
 
-def test_model(model_path, env_kwargs, n_episodes=5, seed=100):
+def test_model(model_path, env_kwargs, n_episodes=5, seed=100, infer_decode_mode="sequential"):
     print(f"Loading model from: {model_path}")
     model = REINFORCE.load(model_path)
+    if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
+        model.policy.infer_decode_mode = infer_decode_mode
 
     test_env = MultiAgentPickupEnv(seed=seed, **env_kwargs)
 
@@ -267,8 +281,16 @@ def main():
             sp_mpnn_max_distance=args.max_distance,  # 新增：传递SP-MPNN最大距离参数
             debug_env=args.debug_env,
             debug_every=args.debug_every,
+            nearest_tasks_min_k=args.nearest_tasks_min_k,
+            model_only_eval=args.model_only_eval,
         )
-        test_model(args.test_checkpoint, env_kwargs, n_episodes=args.test_episodes, seed=args.test_env_seed)
+        test_model(
+            args.test_checkpoint,
+            env_kwargs,
+            n_episodes=args.test_episodes,
+            seed=args.test_env_seed,
+            infer_decode_mode=args.infer_decode_mode,
+        )
         return
     
     env_kwargs = dict(
@@ -282,6 +304,8 @@ def main():
         sp_mpnn_max_distance=args.max_distance,  # 新增：传递SP-MPNN最大距离参数
         debug_env=args.debug_env,
         debug_every=args.debug_every,
+        nearest_tasks_min_k=args.nearest_tasks_min_k,
+        model_only_eval=args.model_only_eval,
     )
 
     if args.n_envs > 1:
@@ -328,20 +352,34 @@ def main():
         max_distance=args.max_distance,  # 新增：传递SP-MPNN最大距离参数
         self_attention_layers=args.self_attention_layers,  # 新增：传递Self-attention层数参数
         rl_policy=args.rl_policy,
-        rl_n_samples=args.rl_n_samples
+        rl_n_samples=args.rl_n_samples,
+        infer_decode_mode=args.infer_decode_mode,
     )
 
-    model = REINFORCE(
-        policy=GNNPolicy,
-        env=vec_env,
-        policy_kwargs=policy_kwargs,
-        learning_rate=lr_func,
-        n_steps=args.n_steps,               
-        gamma=args.gamma,
-        ent_coef=args.ent_coef,
-        normalize_advantage=args.normalize_advantage,
-        verbose=1,              
-    )
+    if args.resume_checkpoint is not None:
+        print(f"Resuming training from checkpoint: {args.resume_checkpoint}")
+        model = REINFORCE.load(args.resume_checkpoint, env=vec_env)
+        # 允许通过当前参数覆盖关键训练开关，便于课程阶段切换时微调
+        model.ent_coef = args.ent_coef
+        model.gamma = args.gamma
+        model.rl_use_centered_adv = (not args.rl_no_centering)
+        model.rl_centered_weight = float(max(0.0, min(1.0, args.rl_centered_weight)))
+        if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
+            model.policy.infer_decode_mode = args.infer_decode_mode
+    else:
+        model = REINFORCE(
+            policy=GNNPolicy,
+            env=vec_env,
+            policy_kwargs=policy_kwargs,
+            learning_rate=lr_func,
+            n_steps=args.n_steps,               
+            gamma=args.gamma,
+            ent_coef=args.ent_coef,
+            normalize_advantage=args.normalize_advantage,
+            rl_use_centered_adv=(not args.rl_no_centering),
+            rl_centered_weight=args.rl_centered_weight,
+            verbose=1,              
+        )
 
     if args.pretrain_epochs > 0:
         pretrain_model(model, args)
@@ -357,7 +395,8 @@ def main():
 
     model.learn(
         total_timesteps=args.total_timesteps * args.n_envs,
-        callback=checkpoint_callback
+        callback=checkpoint_callback,
+        reset_num_timesteps=(args.resume_checkpoint is None)
     )
 
     final_model_path = os.path.join(args.save_dir, "final_model.zip")

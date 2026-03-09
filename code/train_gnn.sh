@@ -9,7 +9,7 @@
 #     -g: GPU ID
 #     -l: learning rate
 #     -m: gamma (discount factor)
-#     -s: n_steps for updating (REINFORCE)
+#     -s: n_steps for updating (REINFORCE, optional)
 #     -t: task number
 #     -p: process number (parallel environments)
 #     -e: experiment name (optional)
@@ -41,13 +41,16 @@
 #     --pos_reward: Enable position reward (flag)
 #     --rl_n_samples: Number of read-only samples per state for centering (default: 4)
 #     --rl_policy: RL log-prob policy for REINFORCE: row_softmax or sinkhorn (default: row_softmax)
+#     --rl_centered_weight: Mix weight alpha for centered/returns advantage (default: 0.7)
+#     --nearest_tasks_min_k: Minimum nearest-task candidate size M (default: 8)
+#     --n_steps: 覆盖默认n_steps。若显式传入，则自动将rl_n_samples固定为1
 ########################################
 
 # Initialize default values
 GPU_ID=""
 LEARNING_RATE=""
 GAMMA=""
-N_STEPS=""
+N_STEPS="1"
 TASK_NUM=""
 PROCESS_NUM=""
 EXPERIMENT_NAME="gnn_experiment"
@@ -76,6 +79,10 @@ FIX_DIV_FLAG=""
 NOT_DIV_FLAG=""
 NORMALIZE_ADVANTAGE_FLAG=""
 POS_REWARD_FLAG=""
+RL_CENTERED_WEIGHT="0.7"
+NEAREST_TASKS_MIN_K="8"
+RL_N_SAMPLES="4"
+N_STEPS_USER_SET="0"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -94,6 +101,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     -t)
       TASK_NUM="$2"
+      shift 2
+      ;;
+    -s)
+      N_STEPS="$2"
+      N_STEPS_USER_SET="1"
       shift 2
       ;;
     -p)
@@ -200,12 +212,30 @@ while [[ $# -gt 0 ]]; do
       USE_GUMBEL_SINKHORN_FLAG="--use_gumbel_sinkhorn"
       shift
       ;;
+    --rl_centered_weight)
+      RL_CENTERED_WEIGHT="$2"
+      shift 2
+      ;;
+    --nearest_tasks_min_k)
+      NEAREST_TASKS_MIN_K="$2"
+      shift 2
+      ;;
+    --n_steps)
+      N_STEPS="$2"
+      N_STEPS_USER_SET="1"
+      shift 2
+      ;;
     *)
     echo "Unknown parameter: $1"
     exit 1
     ;;
   esac
 done
+
+# 当用户显式传入n_steps时，固定关闭K-sample（rl_n_samples=1）
+if [ "${N_STEPS_USER_SET}" = "1" ]; then
+  RL_N_SAMPLES="1"
+fi
 
 # Check required parameters
 if [ -z "$GPU_ID" ] || [ -z "$LEARNING_RATE" ] || [ -z "$GAMMA" ] || [ -z "$TASK_NUM" ] || [ -z "$PROCESS_NUM" ]; then
@@ -230,6 +260,7 @@ export CUDA_VISIBLE_DEVICES="${GPU_ID}"
 echo "============================================="
 echo "Start Training GNN Policy with REINFORCE"
 echo "GPU=${GPU_ID}, LR=${LEARNING_RATE}, gamma=${GAMMA}, n_steps=${N_STEPS}"
+echo "rl_n_samples=${RL_N_SAMPLES} (auto)"
 echo "GNN Type: ${LOWER_GNN_TYPE} and ${HIGHER_GNN_TYPE}, Hidden Dim: ${HIDDEN_DIM}"
 echo "Task Number: ${TASK_NUM}, Process Number: ${PROCESS_NUM}"
 echo "Model Directory: ${MODEL_DIR}"
@@ -241,7 +272,7 @@ export CUDA_LAUNCH_BLOCKING=1
 echo "python train_mapd_gnn.py \
   --learning_rate "${LEARNING_RATE}" \
   --gamma "${GAMMA}" \
-  --n_steps 1 \
+  --n_steps "${N_STEPS}" \
   --ent_coef 0.01 \
   --hidden_dim "${HIDDEN_DIM}" \
   --grid_feature_dim "${GRID_FEATURE_DIM}" \
@@ -273,14 +304,16 @@ echo "python train_mapd_gnn.py \
    ${NOT_DIV_FLAG} \
    ${NORMALIZE_ADVANTAGE_FLAG} \
    ${POS_REWARD_FLAG} \
-  --rl_n_samples 4 \
-  --rl_policy row_softmax"
+  --rl_n_samples "${RL_N_SAMPLES}" \
+  --rl_policy row_softmax \
+  --rl_centered_weight "${RL_CENTERED_WEIGHT}" \
+  --nearest_tasks_min_k "${NEAREST_TASKS_MIN_K}""
   
 python train_mapd_gnn.py \
   --learning_rate "${LEARNING_RATE}" \
   --gamma "${GAMMA}" \
-  --n_steps 1 \
-  --ent_coef 0.01 \
+  --n_steps "${N_STEPS}" \
+  --ent_coef 0.001 \
   --hidden_dim "${HIDDEN_DIM}" \
   --grid_feature_dim "${GRID_FEATURE_DIM}" \
   --lower_gnn_type "${LOWER_GNN_TYPE}" \
@@ -301,7 +334,7 @@ python train_mapd_gnn.py \
   --n_envs "${PROCESS_NUM}" \
   --tau "${TAU}" \
   --iterations "${ITERATIONS}" \
-  --pretrain_steps 1000 \
+  --pretrain_steps 3000 \
     ${USE_SINKHORN_FLAG} \
    ${USE_HUNGARIAN_FLAG} \
    ${USE_UNDIRECTED_FLAG} \
@@ -311,8 +344,10 @@ python train_mapd_gnn.py \
    ${NOT_DIV_FLAG} \
    ${NORMALIZE_ADVANTAGE_FLAG} \
    ${POS_REWARD_FLAG} \
-  --rl_n_samples 4 \
+  --rl_n_samples "${RL_N_SAMPLES}" \
   --rl_policy row_softmax \
+  --rl_centered_weight "${RL_CENTERED_WEIGHT}" \
+  --nearest_tasks_min_k "${NEAREST_TASKS_MIN_K}" \
   --debug_every 10
 
 echo "Training completed. Model saved to: ${MODEL_DIR}"

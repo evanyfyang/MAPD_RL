@@ -58,6 +58,8 @@ class REINFORCE(OnPolicyAlgorithm):
         rollout_buffer_class: Optional[type[RolloutBuffer]] = None,
         rollout_buffer_kwargs: Optional[dict[str, Any]] = None,
         normalize_advantage: bool = False,
+        rl_use_centered_adv: bool = True,
+        rl_centered_weight: float = 1.0,
         stats_window_size: int = 100,
         tensorboard_log: Optional[str] = None,
         policy_kwargs: Optional[dict[str, Any]] = None,
@@ -110,6 +112,8 @@ class REINFORCE(OnPolicyAlgorithm):
         )
         
         self.normalize_advantage = normalize_advantage
+        self.rl_use_centered_adv = rl_use_centered_adv
+        self.rl_centered_weight = float(max(0.0, min(1.0, rl_centered_weight)))
         
         if _init_setup_model:
             self._setup_model()
@@ -164,15 +168,128 @@ class REINFORCE(OnPolicyAlgorithm):
                 loss = policy_loss.mean()
                 print("Pre-train loss: ", loss.item())
 
+                # 预训练阶段可视化：比较“模型自主动作”和expert动作的最短路代价（仅日志，不影响执行）
+                if self.policy.current_step >= 0 and (self.policy.current_step % 20 == 0):
+                    try:
+                        obs = rollout_data.observations
+                        if isinstance(obs, dict) and "expert_actions" in obs:
+                            with th.no_grad():
+                                (
+                                    _action_probs, original_scores, valid_mask, free_agents_num, free_tasks_num,
+                                    _free_agents_nearest_tasks, _device, batch_size
+                                ) = self.policy._compute_policy_features(obs)
+                                pred_actions, _, _ = self.policy._sequential_no_replacement_policy(
+                                    original_scores=original_scores,
+                                    free_agents_num=free_agents_num,
+                                    free_tasks_num=free_tasks_num,
+                                    valid_mask=valid_mask,
+                                    deterministic=True,
+                                    provided_actions=None,
+                                )
+                                expert_actions = obs["expert_actions"].long()
+                            grid = obs["grid"] if isinstance(obs, dict) else None
+                            if grid is not None:
+                                H, W = int(grid.shape[1]), int(grid.shape[2])
+                                scale_hw = float(H + W)
+                            else:
+                                scale_hw = 56.0
+
+                            def compute_costs_from_actions(b, action_vec):
+                                nearest_b = _free_agents_nearest_tasks[b] if _free_agents_nearest_tasks is not None else None
+                                m = int(free_agents_num[b].item())
+                                n = int(free_tasks_num[b].item())
+                                if m <= 0 or n <= 0 or nearest_b is None:
+                                    return 0.0, 0.0
+
+                                used = set()
+                                sum_a2p = 0.0
+                                sum_total = 0.0
+                                for i in range(m):
+                                    a = int(action_vec[i].item()) if i < action_vec.shape[0] else n
+                                    if a < 0 or a >= n:
+                                        continue
+                                    if a in used:
+                                        continue
+                                    used.add(a)
+                                    found = False
+                                    for k in range(nearest_b.shape[1]):
+                                        t_id = int(nearest_b[i, k, 0].item())
+                                        if t_id == a:
+                                            a2p = float(nearest_b[i, k, 1].item())
+                                            p2d = float(nearest_b[i, k, 2].item())
+                                            sum_a2p += a2p
+                                            sum_total += (a2p + p2d)
+                                            found = True
+                                            break
+                                    if not found:
+                                        sum_a2p += 1.0 * scale_hw
+                                        sum_total += 2.0 * scale_hw
+                                return sum_a2p, sum_total
+
+                            # Hungarian解码（基于同一original_scores），用于与sequential并行诊断
+                            hungarian_mats = apply_hungarian_algorithm(
+                                original_scores, free_agents_num, free_tasks_num, use_probabilities=False
+                            )
+                            hungarian_actions = torch.zeros_like(pred_actions)
+                            for b in range(batch_size):
+                                n = int(free_tasks_num[b].item())
+                                m = int(free_agents_num[b].item())
+                                hungarian_actions[b].fill_(n)
+                                if m <= 0:
+                                    continue
+                                mat = hungarian_mats[b]
+                                if mat.numel() == 0:
+                                    continue
+                                rows, cols = mat.nonzero(as_tuple=True)
+                                for ri, cj in zip(rows.tolist(), cols.tolist()):
+                                    if 0 <= ri < m and 0 <= cj < (n + 1):
+                                        hungarian_actions[b, ri] = int(cj)
+
+                            model_a2p_all, model_total_all = [], []
+                            model_h_a2p_all, model_h_total_all = [], []
+                            expert_a2p_all, expert_total_all = [], []
+                            for b in range(batch_size):
+                                m_a2p, m_total = compute_costs_from_actions(b, pred_actions[b])
+                                mh_a2p, mh_total = compute_costs_from_actions(b, hungarian_actions[b])
+                                e_a2p, e_total = compute_costs_from_actions(b, expert_actions[b])
+                                model_a2p_all.append(float(m_a2p))
+                                model_total_all.append(float(m_total))
+                                model_h_a2p_all.append(float(mh_a2p))
+                                model_h_total_all.append(float(mh_total))
+                                expert_a2p_all.append(float(e_a2p))
+                                expert_total_all.append(float(e_total))
+
+                            if model_total_all:
+                                mean_model_total = sum(model_total_all) / len(model_total_all)
+                                mean_model_h_total = sum(model_h_total_all) / len(model_h_total_all)
+                                mean_expert_total = sum(expert_total_all) / len(expert_total_all)
+                                mean_model_a2p = sum(model_a2p_all) / len(model_a2p_all)
+                                mean_model_h_a2p = sum(model_h_a2p_all) / len(model_h_a2p_all)
+                                mean_expert_a2p = sum(expert_a2p_all) / len(expert_a2p_all)
+                                print(
+                                    f"[PretrainCmp] step {self.policy.current_step}: "
+                                    f"seq_assign_cost={mean_model_total:.2f}, "
+                                    f"hungarian_assign_cost={mean_model_h_total:.2f}, "
+                                    f"expert_assign_cost={mean_expert_total:.2f}, "
+                                    f"seq_delta={mean_model_total - mean_expert_total:.2f}, "
+                                    f"hungarian_delta={mean_model_h_total - mean_expert_total:.2f} | "
+                                    f"seq_a2p={mean_model_a2p:.2f}, "
+                                    f"hungarian_a2p={mean_model_h_a2p:.2f}, "
+                                    f"expert_a2p={mean_expert_a2p:.2f}"
+                                )
+                    except Exception:
+                        pass
+
                 # 每100次update：比较模型匈牙利匹配成本与专家动作成本（按 H+W 缩放）
                 if self.policy.current_step > 0 and (self.policy.current_step % 100 == 0):
                     obs = rollout_data.observations
-                    (action_probs, original_scores, valid_mask, free_agents_num, free_tasks_num,
-                        free_agents_nearest_tasks, device, batch_size) = self.policy._compute_policy_features(obs)
+                    with th.no_grad():
+                        (action_probs, original_scores, valid_mask, free_agents_num, free_tasks_num,
+                            free_agents_nearest_tasks, device, batch_size) = self.policy._compute_policy_features(obs)
 
-                    hungarian_mats = apply_hungarian_algorithm(
-                        original_scores, free_agents_num, free_tasks_num, use_probabilities=False
-                    )
+                        hungarian_mats = apply_hungarian_algorithm(
+                            original_scores, free_agents_num, free_tasks_num, use_probabilities=False
+                        )
 
                     # 取网格尺寸 H, W
                     grid = obs["grid"] if isinstance(obs, dict) else None
@@ -262,6 +379,11 @@ class REINFORCE(OnPolicyAlgorithm):
                 r0 = rollout_data.returns
                 if isinstance(r0, th.Tensor) and r0.ndim > 1:
                     r0 = r0.squeeze(-1)
+                # 按每个样本的有效agent数量做归一化，减轻动态规模带来的梯度尺度波动
+                agent_denom = None
+                if isinstance(rollout_data.observations, dict) and "free_agents_num" in rollout_data.observations:
+                    agent_denom = rollout_data.observations["free_agents_num"].float().to(device=self.device)
+                    agent_denom = th.clamp(agent_denom, min=1.0)
                 # 计算多样本 (log_prob_all, centered_all)
                 # Pass cached log_prob/entropy from evaluate_actions to avoid re-sampling bias
                 multi = self.policy.compute_centered_returns(
@@ -270,13 +392,22 @@ class REINFORCE(OnPolicyAlgorithm):
                 )
                 if multi is not None:
                     log_prob_all, centered_all, returns_all = multi  # [B,K], [B,K], [B,K]
-                    # policy_loss = -(returns_all.to(device=self.device) * log_prob_all.to(device=self.device)).mean()
-                    policy_loss = -(centered_all.to(device=self.device) * log_prob_all.to(device=self.device)).mean()
+                    if agent_denom is not None:
+                        log_prob_all = log_prob_all / agent_denom.unsqueeze(1)
+                    if self.rl_use_centered_adv:
+                        alpha = self.rl_centered_weight
+                        mixed_adv = alpha * centered_all.to(device=self.device) + (1.0 - alpha) * returns_all.to(device=self.device)
+                        policy_loss = -(mixed_adv * log_prob_all.to(device=self.device)).mean()
+                    else:
+                        policy_loss = -(returns_all.to(device=self.device) * log_prob_all.to(device=self.device)).mean()
                     loss = policy_loss - self.ent_coef * (entropy.mean() if entropy is not None else 0.0)
                 else:
                     # 回退：单样本
                     returns = rollout_data.returns
-                    policy_loss = -(returns * log_prob).mean()
+                    log_prob_rl = log_prob
+                    if agent_denom is not None:
+                        log_prob_rl = log_prob_rl / agent_denom
+                    policy_loss = -(returns * log_prob_rl).mean()
                     loss = policy_loss
                 
                 # 打印：熵/熵损失、K个reward（中心化前后）、RL loss（单行）

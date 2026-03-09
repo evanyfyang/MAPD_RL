@@ -81,6 +81,10 @@ def parse_args():
                         help="全局随机种子")
     parser.add_argument("--verbose", action="store_true", default=False,
                         help="是否输出详细信息")
+    parser.add_argument("--model_only_eval", action="store_true", default=False,
+                        help="测试时仅使用model结果，不回退到expert状态")
+    parser.add_argument("--infer_decode_mode", type=str, default="sequential", choices=["sequential", "hungarian"],
+                        help="deterministic推理解码方式: sequential 或 hungarian")
 
     args = parser.parse_args()
     return args
@@ -103,7 +107,8 @@ def test_model(checkpoint_path, test_data_path, args):
         agent_num_higher_bound=args.agent_num_higher_bound,
         eval_data_path=test_data_path,
         task_num=args.task_num,
-        pos_reward=False
+        pos_reward=False,
+        model_only_eval=args.model_only_eval,
     )
     
     # 创建测试环境
@@ -136,6 +141,8 @@ def test_model(checkpoint_path, test_data_path, args):
     
     # 加载模型
     model = REINFORCE.load(checkpoint_path)
+    if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
+        model.policy.infer_decode_mode = args.infer_decode_mode
     
     # 运行测试
     episode_rewards = []

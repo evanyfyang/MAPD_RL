@@ -16,6 +16,8 @@ set -e
 #     --test_env_seed: 测试环境随机种子 (默认: 100)
 #     --grid_path: 网格地图路径 (可选)
 #     --use_gumbel: 启用Gumbel噪声 (flag)
+#     --model_only_eval: 测试时关闭expert fallback (flag)
+#     --infer_decode_mode: deterministic推理解码方式 (sequential|hungarian)
 #     --verbose: 输出详细信息 (flag)
 ########################################
 
@@ -28,6 +30,8 @@ TEST_EPISODES="1"
 TEST_ENV_SEED="100"
 GRID_PATH=""
 USE_GUMBEL_FLAG=""
+MODEL_ONLY_EVAL_FLAG=""
+INFER_DECODE_MODE="sequential"
 VERBOSE_FLAG=""
 
 # Parse command line arguments
@@ -65,6 +69,14 @@ while [[ $# -gt 0 ]]; do
       USE_GUMBEL_FLAG="--use_gumbel"
       shift
       ;;
+    --model_only_eval)
+      MODEL_ONLY_EVAL_FLAG="--model_only_eval"
+      shift
+      ;;
+    --infer_decode_mode)
+      INFER_DECODE_MODE="$2"
+      shift 2
+      ;;
     --verbose)
       VERBOSE_FLAG="--verbose"
       shift
@@ -89,6 +101,8 @@ if [ -z "$CHECKPOINT_PATH" ] || [ -z "$TEST_DATA_PATH" ]; then
   echo "  --test_env_seed: 测试环境随机种子 (默认: 100)"
   echo "  --grid_path: 网格地图路径"
   echo "  --use_gumbel: 启用Gumbel噪声"
+  echo "  --model_only_eval: 测试时仅使用model结果"
+  echo "  --infer_decode_mode: 推理解码方式 (sequential|hungarian)"
   echo "  --verbose: 输出详细信息"
   exit 1
 fi
@@ -111,6 +125,7 @@ echo "测试数据: ${TEST_DATA_PATH}"
 echo "Hidden Dim: ${HIDDEN_DIM}"
 echo "测试回合数: ${TEST_EPISODES}"
 echo "环境种子: ${TEST_ENV_SEED}"
+echo "推理解码: ${INFER_DECODE_MODE}"
 if [ -n "$GRID_PATH" ]; then
   echo "Grid Path: ${GRID_PATH}"
 fi
@@ -122,7 +137,8 @@ CMD="python -m pdb test_gnn.py \
   --test_data_path \"${TEST_DATA_PATH}\" \
   --hidden_dim ${HIDDEN_DIM} \
   --test_episodes ${TEST_EPISODES} \
-  --test_env_seed ${TEST_ENV_SEED}"
+  --test_env_seed ${TEST_ENV_SEED} \
+  --infer_decode_mode \"${INFER_DECODE_MODE}\""
 
 # Add grid_path if specified
 if [ -n "$GRID_PATH" ]; then
@@ -137,6 +153,11 @@ fi
 # Add use_gumbel flag if specified
 if [ -n "$USE_GUMBEL_FLAG" ]; then
   CMD="${CMD} ${USE_GUMBEL_FLAG}"
+fi
+
+# Add model_only_eval flag if specified
+if [ -n "$MODEL_ONLY_EVAL_FLAG" ]; then
+  CMD="${CMD} ${MODEL_ONLY_EVAL_FLAG}"
 fi
 
 # Append training-aligned defaults

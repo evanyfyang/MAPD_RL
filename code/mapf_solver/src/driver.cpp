@@ -1,4 +1,4 @@
-﻿#include "KivaSystemOnline.h"
+#include "KivaSystemOnline.h"
 // #include "KivaSystem.h"
 // #include "SortingSystem.h"
 // #include "OnlineSystem.h"
@@ -98,6 +98,7 @@ class PBSSolver
 		KivaSystemOnline* system_storage = nullptr;
 		KivaSystemOnline* system_expert = nullptr;
 		int expert_time = -1;
+		bool infer_use_expert_fallback = true;
 		AgentTaskStatus expert_status;
 		AgentTaskStatus last_status;
 		vector<vector<int>> expert_action;
@@ -139,6 +140,7 @@ class PBSSolver
 				("replan", po::value<bool>()->default_value(true), "replan variant")
 				("look_ahead_horizon", po::value<int>()->default_value(1), "1 means no look-ahead horizon applied")
 				("neighborhood_size", po::value<int>()->default_value(2), "neighborhood_size")
+				("infer_use_expert_fallback", po::value<bool>()->default_value(true), "in inferencing mode, fallback to expert state when model is worse")
 				;
 			clock_t start_time = clock();
 			po::variables_map vm;
@@ -153,6 +155,7 @@ class PBSSolver
 			} catch (const po::error& e) {
 				throw std::runtime_error("Error parsing arguments: " + std::string(e.what()));
 			}
+			infer_use_expert_fallback = vm["infer_use_expert_fallback"].as<bool>();
 
 
 			boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
@@ -179,7 +182,8 @@ class PBSSolver
 		desc(other.desc),                
 		G(other.G),                      
 		solver(other.solver),           
-		system(other.system ? dynamic_cast<KivaSystemOnline*>(other.system->clone()) : nullptr) // !! 深拷贝 System !!
+		system(other.system ? dynamic_cast<KivaSystemOnline*>(other.system->clone()) : nullptr), // !! 深拷贝 System !!
+		infer_use_expert_fallback(other.infer_use_expert_fallback)
 	{
 	}
 
@@ -205,7 +209,7 @@ class PBSSolver
 		set_estimated_service_time(status, agent_tasks);
 		// printf("status.estimated_finish_time: %d\n status.delivering_finish_time: %d\n status.finished_flowtime: %d\n expert_time: %d\n", status.estimated_finish_time, status.delivering_finish_time, status.finished_flowtime, expert_time);
 
-		if (expert_time > -1 && status.estimated_finish_time > expert_time && inferencing){
+		if (infer_use_expert_fallback && expert_time > -1 && status.estimated_finish_time > expert_time && inferencing){
 			system = system_expert;
 			status = expert_status;
 		}
