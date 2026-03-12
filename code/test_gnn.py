@@ -10,6 +10,7 @@ import os
 import numpy as np
 import torch
 import random
+import gymnasium as gym
 
 from stable_baselines3.common.utils import set_random_seed
 
@@ -43,6 +44,12 @@ def parse_args():
                         help="agent数量上界")
     parser.add_argument("--task_num", type=int, default=500,
                         help="任务数量")
+    parser.add_argument("--task_truncated_size", type=int, default=1,
+                        help="每个agent执行队列长度上限 (默认: 1)")
+    parser.add_argument("--nearest_tasks_min_k", type=int, default=None,
+                        help="测试时候选K（不传则自动对齐checkpoint期望K）")
+    parser.add_argument("--use_explicit_path_feature", type=int, choices=[0, 1], default=None,
+                        help="可选覆盖checkpoint中的显式路径特征开关：1开启，0关闭；不传则按checkpoint")
 
     # ------------- GNN Policy 参数 (使用train_gnn.sh的默认值) -------------
     parser.add_argument("--grid_feature_dim", type=int, default=2,
@@ -102,6 +109,17 @@ def test_model(checkpoint_path, test_data_path, args):
     model = REINFORCE.load(checkpoint_path)
     if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
         model.policy.infer_decode_mode = args.infer_decode_mode
+    if hasattr(model, "policy") and hasattr(model.policy, "task_truncated_size"):
+        model.policy.task_truncated_size = max(1, int(args.task_truncated_size))
+    if hasattr(model, "policy") and hasattr(model.policy, "use_explicit_path_feature"):
+        if args.use_explicit_path_feature is not None:
+            # 用户显式覆盖优先级最高
+            model.policy.use_explicit_path_feature = bool(int(args.use_explicit_path_feature))
+        else:
+            # 默认保护：truncated_size=1 的checkpoint测试不受新显式特征影响
+            model_truncated_size = int(getattr(model.policy, "task_truncated_size", args.task_truncated_size))
+            if model_truncated_size <= 1:
+                model.policy.use_explicit_path_feature = False
 
     expected_agent_cap = None
     expected_candidate_k = None
@@ -126,13 +144,21 @@ def test_model(checkpoint_path, test_data_path, args):
         task_num=args.task_num,
         pos_reward=False,
         model_only_eval=args.model_only_eval,
+        task_truncated_size=args.task_truncated_size,
     )
 
     if expected_agent_cap is not None:
         env_kwargs["agent_num_higher_bound"] = expected_agent_cap
         env_kwargs["agent_num_lower_bound"] = min(env_kwargs["agent_num_lower_bound"], expected_agent_cap)
-    if expected_candidate_k is not None:
+    if args.nearest_tasks_min_k is not None:
+        # 手动覆盖：按用户指定K进行测试
+        env_kwargs["nearest_tasks_min_k"] = int(args.nearest_tasks_min_k)
+    elif expected_candidate_k is not None:
+        # 默认行为：自动对齐checkpoint中的K
         env_kwargs["nearest_tasks_min_k"] = expected_candidate_k
+        model_truncated_size = int(getattr(getattr(model, "policy", None), "task_truncated_size", args.task_truncated_size))
+        if model_truncated_size <= 1:
+            env_kwargs["obs_candidate_task_k"] = expected_candidate_k
     
     # 创建测试环境
     test_env = MultiAgentPickupEnv(seed=args.test_env_seed, **env_kwargs)
@@ -162,6 +188,32 @@ def test_model(checkpoint_path, test_data_path, args):
         use_undirected=args.use_undirected
     )
     
+    def align_obs_to_model_space(obs_dict, obs_space):
+        """
+        对齐环境观测到checkpoint内的observation_space：
+        - 删除多余键（新env字段，旧模型不认识）
+        - 补齐缺失键（旧env字段缺失时填0）
+        """
+        if not isinstance(obs_dict, dict):
+            return obs_dict
+        if not isinstance(obs_space, gym.spaces.Dict):
+            return obs_dict
+
+        aligned = {}
+        for key, space in obs_space.spaces.items():
+            if key in obs_dict:
+                aligned[key] = obs_dict[key]
+            else:
+                # 缺失键用0占位，确保predict不会因键缺失报错
+                if isinstance(space, gym.spaces.Box):
+                    aligned[key] = np.zeros(space.shape, dtype=space.dtype)
+                elif isinstance(space, gym.spaces.Discrete):
+                    aligned[key] = 0
+                else:
+                    # 兜底：尽量保守，不影响旧模型常见路径
+                    aligned[key] = 0
+        return aligned
+
     # 运行测试
     episode_rewards = []
     episode_service_times = []
@@ -172,6 +224,7 @@ def test_model(checkpoint_path, test_data_path, args):
         print(f"\n=== 回合 {ep + 1}/{args.test_episodes} ===")
         
         obs = test_env.reset()
+        obs = align_obs_to_model_space(obs, model.observation_space)
         done = False
         total_reward = 0.0
         step_count = 0
@@ -179,6 +232,7 @@ def test_model(checkpoint_path, test_data_path, args):
         while not done:
             action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, _, info = test_env.step(action)
+            obs = align_obs_to_model_space(obs, model.observation_space)
             
             if args.verbose:
                 print(f"步骤 {step_count}: reward = {reward}")

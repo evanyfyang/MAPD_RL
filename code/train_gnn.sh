@@ -27,7 +27,7 @@
 #     --no_sinkhorn: Disable Sinkhorn normalization
 #     --use_undirected: Whether to use undirected graphs (default: enabled)
 #     --no_undirected: Disable undirected graphs
-#     --tau: Sinkhorn temperature parameter (default: 1.0)
+#     --tau: 训练/采样温度参数（默认: 0.1）
 #     --iterations: Sinkhorn iterations (default: 5)
 #     --unassign_threshold: Threshold for unassigned tasks (default: 0.3679)
 #     --invalid_edge_score: Score for invalid edges (default: -100.0)
@@ -42,7 +42,19 @@
 #     --rl_n_samples: Number of read-only samples per state for centering (default: 4)
 #     --rl_policy: RL log-prob policy for REINFORCE: row_softmax or sinkhorn (default: row_softmax)
 #     --rl_centered_weight: Mix weight alpha for centered/returns advantage (default: 0.7)
+#     --ent_coef: 熵正则系数（默认: 0）
+#     --optimizer: 优化器，adam 或 adamw（默认: adam）
+#     --optimizer_weight_decay: 优化器weight decay（默认: 0）
+#     --max_grad_norm: 梯度裁剪阈值（默认: 0.5）
+#     --target_kl: KL gate阈值，<=0关闭（默认: 0）
+#     --lr_schedule: 学习率调度，constant / linear / step（默认: constant）
+#     --lr_decay_step_size: step调度中每多少env steps衰减一次（默认: 10000）
+#     --lr_decay_gamma: step调度衰减比例（默认: 0.5）
+#     --min_learning_rate: 学习率下界（默认: 1e-5）
 #     --nearest_tasks_min_k: Unified candidate cap K (default: 100)
+#     --task_truncated_size: 每个agent执行队列长度上限（默认: 1；可设为2）
+#     --no_explicit_path_feature: 关闭FA/DA头的显式路径长度特征（ablation）
+#     --pretrain_steps: 预训练步数（默认: 3000）
 #     --n_steps: 覆盖默认n_steps。若显式传入，则自动将rl_n_samples固定为1
 ########################################
 
@@ -57,8 +69,8 @@ EXPERIMENT_NAME="gnn_experiment"
 HIDDEN_DIM="256"
 GRID_FEATURE_DIM="2"
 LOWER_GNN_TYPE="sp_mpnn"
-HIGHER_GNN_TYPE="edge_node_gnn"
-TAU="0.1"
+HIGHER_GNN_TYPE="edge_node_gnn_complex"
+TAU="1"
 ITERATIONS="5"
 UNASSIGN_THRESHOLD="-1"
 INVALID_EDGE_SCORE="-100"
@@ -80,9 +92,21 @@ NOT_DIV_FLAG=""
 NORMALIZE_ADVANTAGE_FLAG=""
 POS_REWARD_FLAG=""
 RL_CENTERED_WEIGHT="0.7"
-NEAREST_TASKS_MIN_K="100"
+ENT_COEF="0.001"
+OPTIMIZER="adam"
+OPTIMIZER_WEIGHT_DECAY="0"
+MAX_GRAD_NORM="0.5"
+TARGET_KL="0.03"
+LR_SCHEDULE="step"
+LR_DECAY_STEP_SIZE="10000"
+LR_DECAY_GAMMA="0.5"
+MIN_LEARNING_RATE="1e-5"
+NEAREST_TASKS_MIN_K="8"
+TASK_TRUNCATED_SIZE="1"
+EXPLICIT_PATH_FEATURE_FLAG="--use_explicit_path_feature"
 RL_N_SAMPLES="4"
 N_STEPS_USER_SET="0"
+PRETRAIN_STEPS="3000"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -216,13 +240,61 @@ while [[ $# -gt 0 ]]; do
       RL_CENTERED_WEIGHT="$2"
       shift 2
       ;;
+    --ent_coef)
+      ENT_COEF="$2"
+      shift 2
+      ;;
+    --optimizer)
+      OPTIMIZER="$2"
+      shift 2
+      ;;
+    --optimizer_weight_decay)
+      OPTIMIZER_WEIGHT_DECAY="$2"
+      shift 2
+      ;;
+    --max_grad_norm)
+      MAX_GRAD_NORM="$2"
+      shift 2
+      ;;
+    --target_kl)
+      TARGET_KL="$2"
+      shift 2
+      ;;
+    --lr_schedule)
+      LR_SCHEDULE="$2"
+      shift 2
+      ;;
+    --lr_decay_step_size)
+      LR_DECAY_STEP_SIZE="$2"
+      shift 2
+      ;;
+    --lr_decay_gamma)
+      LR_DECAY_GAMMA="$2"
+      shift 2
+      ;;
+    --min_learning_rate)
+      MIN_LEARNING_RATE="$2"
+      shift 2
+      ;;
     --nearest_tasks_min_k)
       NEAREST_TASKS_MIN_K="$2"
       shift 2
       ;;
+    --task_truncated_size)
+      TASK_TRUNCATED_SIZE="$2"
+      shift 2
+      ;;
+    --no_explicit_path_feature)
+      EXPLICIT_PATH_FEATURE_FLAG="--no_explicit_path_feature"
+      shift
+      ;;
     --n_steps)
       N_STEPS="$2"
       N_STEPS_USER_SET="1"
+      shift 2
+      ;;
+    --pretrain_steps)
+      PRETRAIN_STEPS="$2"
       shift 2
       ;;
     *)
@@ -248,7 +320,7 @@ fi
 TIMESTAMP=$(date +%Y%m%d_%H%M)
 
 # Construct model save directory
-MODEL_DIR="../models/gnn_${EXPERIMENT_NAME}_${TIMESTAMP}_lr_${LEARNING_RATE}_gamma_${GAMMA}_steps_${N_STEPS}_${LOWER_GNN_TYPE}_${HIGHER_GNN_TYPE}"
+MODEL_DIR="../models/gnn_${EXPERIMENT_NAME}_${TIMESTAMP}"
 
 # Create directory
 mkdir -p "${MODEL_DIR}"
@@ -261,8 +333,10 @@ echo "============================================="
 echo "Start Training GNN Policy with REINFORCE"
 echo "GPU=${GPU_ID}, LR=${LEARNING_RATE}, gamma=${GAMMA}, n_steps=${N_STEPS}"
 echo "rl_n_samples=${RL_N_SAMPLES} (auto)"
+echo "optimizer=${OPTIMIZER}, lr_schedule=${LR_SCHEDULE}, max_grad_norm=${MAX_GRAD_NORM}, target_kl=${TARGET_KL}"
 echo "GNN Type: ${LOWER_GNN_TYPE} and ${HIGHER_GNN_TYPE}, Hidden Dim: ${HIDDEN_DIM}"
 echo "Task Number: ${TASK_NUM}, Process Number: ${PROCESS_NUM}"
+echo "Task Truncated Size: ${TASK_TRUNCATED_SIZE}"
 echo "Model Directory: ${MODEL_DIR}"
 echo "============================================="
 
@@ -272,8 +346,16 @@ export CUDA_LAUNCH_BLOCKING=1
 echo "python train_mapd_gnn.py \
   --learning_rate "${LEARNING_RATE}" \
   --gamma "${GAMMA}" \
+  --lr_schedule "${LR_SCHEDULE}" \
+  --lr_decay_step_size "${LR_DECAY_STEP_SIZE}" \
+  --lr_decay_gamma "${LR_DECAY_GAMMA}" \
+  --min_learning_rate "${MIN_LEARNING_RATE}" \
   --n_steps "${N_STEPS}" \
-  --ent_coef 0.01 \
+  --ent_coef "${ENT_COEF}" \
+  --optimizer "${OPTIMIZER}" \
+  --optimizer_weight_decay "${OPTIMIZER_WEIGHT_DECAY}" \
+  --max_grad_norm "${MAX_GRAD_NORM}" \
+  --target_kl "${TARGET_KL}" \
   --hidden_dim "${HIDDEN_DIM}" \
   --grid_feature_dim "${GRID_FEATURE_DIM}" \
   --lower_gnn_type "${LOWER_GNN_TYPE}" \
@@ -294,7 +376,7 @@ echo "python train_mapd_gnn.py \
   --n_envs "${PROCESS_NUM}" \
   --tau "${TAU}" \
   --iterations "${ITERATIONS}" \
-  --pretrain_steps 1000 \
+  --pretrain_steps "${PRETRAIN_STEPS}" \
      ${USE_SINKHORN_FLAG} \
    ${USE_HUNGARIAN_FLAG} \
    ${USE_UNDIRECTED_FLAG} \
@@ -307,13 +389,23 @@ echo "python train_mapd_gnn.py \
   --rl_n_samples "${RL_N_SAMPLES}" \
   --rl_policy row_softmax \
   --rl_centered_weight "${RL_CENTERED_WEIGHT}" \
-  --nearest_tasks_min_k "${NEAREST_TASKS_MIN_K}""
+  --nearest_tasks_min_k "${NEAREST_TASKS_MIN_K}" \
+  --task_truncated_size "${TASK_TRUNCATED_SIZE}" \
+  ${EXPLICIT_PATH_FEATURE_FLAG}"
   
 python train_mapd_gnn.py \
   --learning_rate "${LEARNING_RATE}" \
   --gamma "${GAMMA}" \
+  --lr_schedule "${LR_SCHEDULE}" \
+  --lr_decay_step_size "${LR_DECAY_STEP_SIZE}" \
+  --lr_decay_gamma "${LR_DECAY_GAMMA}" \
+  --min_learning_rate "${MIN_LEARNING_RATE}" \
   --n_steps "${N_STEPS}" \
-  --ent_coef 0.001 \
+  --ent_coef "${ENT_COEF}" \
+  --optimizer "${OPTIMIZER}" \
+  --optimizer_weight_decay "${OPTIMIZER_WEIGHT_DECAY}" \
+  --max_grad_norm "${MAX_GRAD_NORM}" \
+  --target_kl "${TARGET_KL}" \
   --hidden_dim "${HIDDEN_DIM}" \
   --grid_feature_dim "${GRID_FEATURE_DIM}" \
   --lower_gnn_type "${LOWER_GNN_TYPE}" \
@@ -334,7 +426,7 @@ python train_mapd_gnn.py \
   --n_envs "${PROCESS_NUM}" \
   --tau "${TAU}" \
   --iterations "${ITERATIONS}" \
-  --pretrain_steps 3000 \
+  --pretrain_steps "${PRETRAIN_STEPS}" \
     ${USE_SINKHORN_FLAG} \
    ${USE_HUNGARIAN_FLAG} \
    ${USE_UNDIRECTED_FLAG} \
@@ -348,6 +440,8 @@ python train_mapd_gnn.py \
   --rl_policy row_softmax \
   --rl_centered_weight "${RL_CENTERED_WEIGHT}" \
   --nearest_tasks_min_k "${NEAREST_TASKS_MIN_K}" \
+  --task_truncated_size "${TASK_TRUNCATED_SIZE}" \
+  ${EXPLICIT_PATH_FEATURE_FLAG} \
   --debug_every 10
 
 echo "Training completed. Model saved to: ${MODEL_DIR}"

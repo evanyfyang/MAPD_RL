@@ -34,6 +34,7 @@ class AgentTaskStatus
 		int expert_estimated_service_time=0;
 		int expert_estimated_finish_time=0;
 		int makespan=0;
+		int task_truncated_size=1;
 
 		vector<vector<int>> agent_task_sequences;
 		AgentTaskStatus(const vector<Task>& tasks, const vector<Task>& delivering_tasks, 
@@ -48,7 +49,7 @@ class AgentTaskStatus
 			delivering_finish_time(delivering_finish_time), 
 			allFinished(allFinished), 
 			agent_task_sequences(task_sequences)
-			{this->valid=true; this->makespan=0;}
+			{this->valid=true; this->makespan=0; this->task_truncated_size=1;}
 
 		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;this->makespan=0;}
 

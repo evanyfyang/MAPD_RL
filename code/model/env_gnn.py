@@ -14,7 +14,8 @@ from torch_geometric.utils import k_hop_subgraph
 class MultiAgentPickupEnv(gym.Env):
     def __init__(self, training=True, grid_path=None, seed=40, 
             solver="PBS", agent_num_lower_bound=10, agent_num_higher_bound=50, eval_data_path=None, task_num=500, pos_reward=False,
-            sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=100, model_only_eval=False):
+            sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=100, model_only_eval=False,
+            task_truncated_size=1, obs_candidate_task_k=None):
         super().__init__()
         self.training = training
         self.solver_name = solver
@@ -25,8 +26,14 @@ class MultiAgentPickupEnv(gym.Env):
         self.pos_reward = pos_reward
         self.sp_mpnn_max_distance = sp_mpnn_max_distance  # 新增参数
         self.nearest_tasks_min_k = max(1, int(nearest_tasks_min_k))
-        # 统一候选集上限K（固定口径：min(K, task_num)）
+        self.task_truncated_size = max(1, int(task_truncated_size))
+        # 基础K（传给solver），solver侧再执行 max(num_agents, K) 逻辑
         self.candidate_task_k = min(self.nearest_tasks_min_k, self.task_num)
+        # 观察/构图容量K：默认容纳 max(num_agents, K)，也允许外部显式锁定（兼容旧checkpoint测试）
+        if obs_candidate_task_k is None:
+            self.obs_candidate_task_k = min(max(self.candidate_task_k, self.agent_num[1]), self.task_num)
+        else:
+            self.obs_candidate_task_k = min(max(1, int(obs_candidate_task_k)), self.task_num)
         self.model_only_eval = bool(model_only_eval)
         # 调试开关与频率
         self.debug_env = debug_env
@@ -60,7 +67,22 @@ class MultiAgentPickupEnv(gym.Env):
             ),
             "grid": gym.spaces.Box(low=-1, high=0, shape=(self.grid_size[0], self.grid_size[1]), dtype=np.float32),
             "free_agents_nearest_tasks": gym.spaces.Box(
-                low=-1, high=np.inf, shape=(agent_num_higher_bound, self.candidate_task_k, 3), dtype=np.float32
+                low=-1, high=np.inf, shape=(agent_num_higher_bound, self.obs_candidate_task_k, 3), dtype=np.float32
+            ),
+            "assignable_agent_is_delivering": gym.spaces.Box(
+                low=0, high=1, shape=(agent_num_higher_bound, 1), dtype=np.float32
+            ),
+            "assignable_agent_delivering_task_idx": gym.spaces.Box(
+                low=-1, high=task_num, shape=(agent_num_higher_bound, 1), dtype=np.float32
+            ),
+            "delivering_tasks_nearest_tasks": gym.spaces.Box(
+                low=-1, high=np.inf, shape=(task_num, self.obs_candidate_task_k, 3), dtype=np.float32
+            ),
+            "assignable_agent_a2a": gym.spaces.Box(
+                low=-1, high=np.inf, shape=(agent_num_higher_bound, agent_num_higher_bound), dtype=np.float32
+            ),
+            "free_task_p2d": gym.spaces.Box(
+                low=-1, high=np.inf, shape=(task_num, 1), dtype=np.float32
             ),
             # CNN channel maps
             "pickup_distances": gym.spaces.Box(low=0, high=np.inf, shape=(self.grid_size[0], self.grid_size[1]), dtype=np.float32),
@@ -144,6 +166,7 @@ class MultiAgentPickupEnv(gym.Env):
             "--agentNum", str(self.num_r),                      
             "--seed", str(self.seed),               
             "--solver",  self.solver_name,
+            "--task_truncated_size", str(self.task_truncated_size),
             "--candidate_task_k", str(self.candidate_task_k),
             "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]
@@ -181,7 +204,9 @@ class MultiAgentPickupEnv(gym.Env):
         return distances
     
     def generate_agents_tasks(self):
-        agent_num = random.randint(self.agent_num[0], self.agent_num[1]-1)
+        agent_num = random.randint(self.agent_num[0]//max(1, int(5-self.episode//2)), 
+            self.agent_num[1]//max(1, int(5-self.episode//2)))
+        # agent_num = random.randint(self.agent_num[0], self.agent_num[1]-1)
         self.agent_num_now = agent_num
         task_frequencies = [0.2, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         task_frequency = random.choice(task_frequencies)
@@ -231,6 +256,7 @@ class MultiAgentPickupEnv(gym.Env):
             "last_free_agent_num": int(getattr(self, "last_free_agent_num", 0) or 0),
             "last_free_task_num": int(getattr(self, "last_free_task_num", 0) or 0),
             "expert_estimated_finish_time": int(getattr(self, "expert_estimated_finish_time", 0) or 0),
+            "task_truncated_size": int(getattr(self, "task_truncated_size", 1) or 1),
         }
         self.storage_ready = True
 
@@ -259,13 +285,20 @@ class MultiAgentPickupEnv(gym.Env):
 
         delivering_agents = np.zeros((self.agent_num[1], 3), dtype=np.float32)
         free_agents = np.zeros((self.agent_num[1], 3), dtype=np.float32)
+        assignable_agent_is_delivering = np.zeros((self.agent_num[1], 1), dtype=np.float32)
+        assignable_agent_delivering_task_idx = np.full((self.agent_num[1], 1), -1, dtype=np.float32)
         free_tasks = np.zeros((self.task_num, 4), dtype=np.float32)
         delivering_tasks = np.zeros((self.task_num, 5), dtype=np.float32)
+        delivering_tasks_nearest_tasks = np.full((self.task_num, self.obs_candidate_task_k, 3), -1, dtype=np.float32)
+        assignable_agent_a2a = np.full((self.agent_num[1], self.agent_num[1]), -1, dtype=np.float32)
+        free_task_p2d = np.full((self.task_num, 1), -1, dtype=np.float32)
         
         free_agent_cnt = 0
         delivering_agent_cnt = 0
 
         delivering_task_agent_map = {}
+        all_free_agent_ids = []
+        all_delivering_agent_ids = []
 
         for i in range(len(status.agents_all)):
             # full_loaded = status.agents_all[i].full_loaded
@@ -276,10 +309,25 @@ class MultiAgentPickupEnv(gym.Env):
                 delivering_agents[delivering_agent_cnt] = np.array(location + [start_timestep], dtype=np.float32)
                 self.delivering_agent_id_map[delivering_agent_cnt] = i
                 delivering_agent_cnt += 1
+                all_delivering_agent_ids.append(i)
             else:
-                free_agents[free_agent_cnt] = np.array(location + [start_timestep], dtype=np.float32)
-                self.free_agent_id_map[free_agent_cnt] = i
-                free_agent_cnt += 1
+                all_free_agent_ids.append(i)
+
+        # truncated_size=1: 仅free agents可分配
+        # truncated_size>1: free + delivering 都可作为可分配agent
+        if self.task_truncated_size > 1:
+            assignable_agent_ids = all_free_agent_ids + all_delivering_agent_ids
+        else:
+            assignable_agent_ids = all_free_agent_ids
+
+        for local_idx, global_id in enumerate(assignable_agent_ids):
+            ag = status.agents_all[global_id]
+            location = self.loc(ag.start_location)
+            start_timestep = ag.start_timestep
+            free_agents[local_idx] = np.array(location + [start_timestep], dtype=np.float32)
+            self.free_agent_id_map[local_idx] = global_id
+            assignable_agent_is_delivering[local_idx, 0] = 1.0 if ag.is_delivering else 0.0
+            free_agent_cnt += 1
 
         for k,v in self.agent_task_pair.items():
             if k in self.delivering_agent_id_map.values():
@@ -300,19 +348,31 @@ class MultiAgentPickupEnv(gym.Env):
             # if task_id not in delivering_tasks_id:
             self.free_task_id_map[free_task_cnt] = task_id
             free_tasks[free_task_cnt] = np.array((pickup+delivery), dtype=np.float32)
+            try:
+                free_task_p2d[free_task_cnt, 0] = float(self.heuristics[tuple(pickup)][tuple(delivery)])
+            except Exception:
+                free_task_p2d[free_task_cnt, 0] = -1.0
             free_task_cnt += 1
             # else:
         
         # print("free_task_id_map:", self.free_task_id_map)
+        delivering_task_id_to_local = {}
         for task in status.delivering_tasks:
             task_id = task.task_id
-            pickup, delivery = task.goal_arr[:2]
-            pickup = self.loc(pickup)
-            delivery = self.loc(delivery)
+            pickup = self.loc(task.goal_arr[0]) if len(task.goal_arr) > 0 else [-1, -1]
+            delivery = self.loc(task.goal_arr[-1]) if len(task.goal_arr) > 0 else [-1, -1]
             self.delivering_task_id_map[delivering_task_cnt] = task_id
+            delivering_task_id_to_local[task_id] = delivering_task_cnt
             agent_id = reversed_delivering_agent_id_map[delivering_task_agent_map[task_id]]
             delivering_tasks[delivering_task_cnt] = np.array(([agent_id]+pickup+delivery), dtype=np.float32)
             delivering_task_cnt += 1
+
+        # assignable行到其当前delivering task索引映射（非delivering为-1）
+        for local_idx, global_id in self.free_agent_id_map.items():
+            if global_id in self.agent_task_pair:
+                d_task_id = self.agent_task_pair[global_id][0]
+                if d_task_id in delivering_task_id_to_local:
+                    assignable_agent_delivering_task_idx[local_idx, 0] = float(delivering_task_id_to_local[d_task_id])
 
         # print("delivering_task_id_map:", self.delivering_task_id_map)
 
@@ -323,13 +383,16 @@ class MultiAgentPickupEnv(gym.Env):
         self.reverse_task_id_map = {v: k for k, v in self.free_task_id_map.items()}
 
         expert_actions = []
+        delivering_task_id_set = set(delivering_tasks_id)
         for agent_key, agent_id in sorted(self.free_agent_id_map.items()):
-            # assert agent_key == len(expert_actions)
+            picked = free_task_cnt
             if len(status.agent_task_sequences[agent_id]) > 0:
-                mapped_tasks = [self.reverse_task_id_map.get(t, -1) for t in status.agent_task_sequences[agent_id]]
-                expert_actions.append(mapped_tasks[0])
-            else:
-                expert_actions.append(free_task_cnt)
+                for t in status.agent_task_sequences[agent_id]:
+                    mapped = self.reverse_task_id_map.get(t, -1)
+                    if mapped >= 0 and t not in delivering_task_id_set:
+                        picked = mapped
+                        break
+            expert_actions.append(picked)
 
         expert_actions.append(free_task_cnt)
         
@@ -400,7 +463,9 @@ class MultiAgentPickupEnv(gym.Env):
 
         # 修改free_agents_nearest_tasks格式：[agent_id, task_rank, [task_id, agent_to_pickup_distance, pickup_to_delivery_distance]]
         # 统一候选口径：每个agent最多保留min(K, free_task_cnt)个候选
-        free_agents_nearest_tasks = np.full((self.agent_num[1], self.candidate_task_k, 3), -1, dtype=np.float32)
+        free_agents_nearest_tasks = np.full((self.agent_num[1], self.obs_candidate_task_k, 3), -1, dtype=np.float32)
+        # 与solver对齐：每步有效候选数使用 max(num_assignable_agents, base_k) 再截断到任务数
+        effective_candidate_k = min(max(int(free_agent_cnt), int(self.candidate_task_k)), int(free_task_cnt))
         
         for i in range(free_agent_cnt):
             agent_loc = tuple(map(int, free_agents[i][:2]))
@@ -423,12 +488,44 @@ class MultiAgentPickupEnv(gym.Env):
             task_info_list.sort(key=lambda x: x[1])
 
             # 存储最近的任务信息（固定上限K）
-            nearest_count = min(self.candidate_task_k, free_task_cnt)
+            nearest_count = min(effective_candidate_k, self.obs_candidate_task_k, free_task_cnt)
             for k in range(nearest_count):
                 task_id, total_dist, agent_to_pickup, pickup_to_delivery = task_info_list[k]
                 free_agents_nearest_tasks[i, k, 0] = task_id  # 任务ID
                 free_agents_nearest_tasks[i, k, 1] = agent_to_pickup  # 原始agent到pickup距离
                 free_agents_nearest_tasks[i, k, 2] = pickup_to_delivery  # 原始pickup到delivery距离
+
+        # assignable agents两两之间的图最短路距离（不包含start_timestep）
+        for i in range(free_agent_cnt):
+            loc_i = tuple(map(int, free_agents[i][:2]))
+            assignable_agent_a2a[i, i] = 0.0
+            for j in range(i + 1, free_agent_cnt):
+                loc_j = tuple(map(int, free_agents[j][:2]))
+                try:
+                    d = float(self.heuristics[loc_i][loc_j])
+                except Exception:
+                    d = -1.0
+                assignable_agent_a2a[i, j] = d
+                assignable_agent_a2a[j, i] = d
+
+        # 为delivering_task构建到free_task的nearest列表（按你的DT->FT语义）
+        for dt_idx in range(delivering_task_cnt):
+            d_end = tuple(map(int, delivering_tasks[dt_idx][3:5]))  # delivering任务结束位置
+            task_info_list = []
+            for ft_idx in range(free_task_cnt):
+                task_pickup = tuple(map(int, free_tasks[ft_idx][:2]))
+                task_delivery = tuple(map(int, free_tasks[ft_idx][2:]))
+                d_end_to_pickup = self.heuristics[d_end][task_pickup]
+                pickup_to_delivery = self.heuristics[task_pickup][task_delivery]
+                total_distance = d_end_to_pickup + pickup_to_delivery
+                task_info_list.append((ft_idx, total_distance, d_end_to_pickup, pickup_to_delivery))
+            task_info_list.sort(key=lambda x: x[1])
+            nearest_count = min(effective_candidate_k, self.obs_candidate_task_k, free_task_cnt)
+            for k in range(nearest_count):
+                task_id, total_dist, d_end_to_pickup, pickup_to_delivery = task_info_list[k]
+                delivering_tasks_nearest_tasks[dt_idx, k, 0] = task_id
+                delivering_tasks_nearest_tasks[dt_idx, k, 1] = d_end_to_pickup
+                delivering_tasks_nearest_tasks[dt_idx, k, 2] = pickup_to_delivery
 
         # if not self.training:
         #     print("id:", self.seed, "free_agents", free_agents, "delivering_agents:", delivering_agents, "free_tasks:", free_tasks, "delivering_tasks:", delivering_tasks)
@@ -447,6 +544,11 @@ class MultiAgentPickupEnv(gym.Env):
             "delivering_tasks_num": delivering_task_cnt,
             "expert_actions": expert_actions_padded,
             "free_agents_nearest_tasks": free_agents_nearest_tasks,
+            "assignable_agent_is_delivering": assignable_agent_is_delivering,
+            "assignable_agent_delivering_task_idx": assignable_agent_delivering_task_idx,
+            "delivering_tasks_nearest_tasks": delivering_tasks_nearest_tasks,
+            "assignable_agent_a2a": assignable_agent_a2a,
+            "free_task_p2d": free_task_p2d,
             "grid": self.grid,
             "pickup_distances": pickup_distances,
             "delivery_distances": delivery_distances,
@@ -497,9 +599,7 @@ class MultiAgentPickupEnv(gym.Env):
         self._dbg(f"decode_action: len={len(action_list)} agent_num_now={self.agent_num_now}")
         penalty = 0
         avail_task = 0
-        free_agents_num = len(self.free_agent_id_map)
-        delivering_num = len(self.delivering_agent_id_map)
-        agent_tasks = [[] for i in range(free_agents_num + delivering_num)]
+        agent_tasks = [[] for _ in range(max(0, int(self.agent_num_now)))]
 
         assigned_task = []
 
@@ -507,6 +607,10 @@ class MultiAgentPickupEnv(gym.Env):
         self.last_action = {}
 
         for k, v in self.free_agent_id_map.items():
+            if k >= len(action_list):
+                continue
+            if v < 0 or v >= len(agent_tasks):
+                continue
             if action_list[k] in self.free_task_id_map:
                 task_id = self.free_task_id_map[action_list[k]]
                 if task_id != -1:
@@ -528,7 +632,10 @@ class MultiAgentPickupEnv(gym.Env):
 
         for k, v in self.agent_task_pair.items():
             if k in self.delivering_agent_id_map.values():
-                agent_tasks[k] = [v[0]]
+                # truncated_size=1: delivering动作不生效，仅保留当前任务（由solver内部自动补）
+                # truncated_size>1: 若该agent本轮被分配了next task，则保留其选择；否则空
+                if self.task_truncated_size <= 1:
+                    agent_tasks[k] = []
 
         # 控制是否写入环境状态
         if mutate:
@@ -552,13 +659,26 @@ class MultiAgentPickupEnv(gym.Env):
         agent_task_pair = maps["agent_task_pair"]
         free_task_id_map = maps["free_task_id_map"]
 
-        free_agents_num = len(free_agent_id_map)
-        delivering_num = len(delivering_agent_id_map)
-        agent_tasks = [[] for _ in range(free_agents_num + delivering_num)]
+        total_agents = int(self.agent_num_now)
+        if total_agents <= 0:
+            # 回退：由映射中最大global id估计
+            max_id = -1
+            if free_agent_id_map:
+                max_id = max(max_id, max(free_agent_id_map.values()))
+            if delivering_agent_id_map:
+                max_id = max(max_id, max(delivering_agent_id_map.values()))
+            if agent_task_pair:
+                max_id = max(max_id, max(agent_task_pair.keys()))
+            total_agents = max_id + 1
+        agent_tasks = [[] for _ in range(max(0, total_agents))]
 
         assigned_task = []
 
         for k, v in free_agent_id_map.items():
+            if k >= len(action_list):
+                continue
+            if v < 0 or v >= len(agent_tasks):
+                continue
             if action_list[k] in free_task_id_map:
                 task_id = free_task_id_map[action_list[k]]
                 if task_id != -1:
@@ -568,7 +688,8 @@ class MultiAgentPickupEnv(gym.Env):
 
         for k, v in agent_task_pair.items():
             if k in delivering_agent_id_map.values():
-                agent_tasks[k] = [v[0]]
+                if int(maps.get("task_truncated_size", 1)) <= 1:
+                    agent_tasks[k] = []
         return agent_tasks
 
     def _safe_total_distance(self, agent_loc, agent_start_timestep, task_pickup, task_delivery):
@@ -604,19 +725,46 @@ class MultiAgentPickupEnv(gym.Env):
                     "hungarian_cost": 0.0,
                 }
 
-            free_agents = self.state["free_agents"]
+            assignable_agents = self.state["free_agents"]
             free_tasks = self.state["free_tasks"]
+            agent_is_delivering = self.state.get("assignable_agent_is_delivering", None)
+            agent_delivering_task_idx = self.state.get("assignable_agent_delivering_task_idx", None)
+            delivering_tasks = self.state.get("delivering_tasks", None)
 
             # 构建MxN代价矩阵
             cost_matrix = np.zeros((M, N), dtype=np.float32)
             for i in range(M):
-                ax, ay, st = int(free_agents[i][0]), int(free_agents[i][1]), int(free_agents[i][2])
+                ax, ay, st = int(assignable_agents[i][0]), int(assignable_agents[i][1]), int(assignable_agents[i][2])
                 agent_loc = (ax, ay)
+                is_delivering = 0.0
+                if agent_is_delivering is not None:
+                    try:
+                        is_delivering = float(agent_is_delivering[i][0])
+                    except Exception:
+                        is_delivering = 0.0
                 for j in range(N):
                     px, py, dx, dy = map(int, free_tasks[j][:4])
                     task_pickup = (px, py)
                     task_delivery = (dx, dy)
-                    cost_matrix[i, j] = self._safe_total_distance(agent_loc, st, task_pickup, task_delivery)
+                    if is_delivering >= 0.5 and self.task_truncated_size > 1 and delivering_tasks is not None and agent_delivering_task_idx is not None:
+                        # delivering agent:
+                        #   full cost = a->current-delivery(remain) + current-delivery-end->next-pickup + pickup->delivery
+                        # 其中 a->current-delivery(remain) 用第三维st近似（由solver回传）
+                        dt_idx = int(agent_delivering_task_idx[i][0])
+                        if 0 <= dt_idx < len(delivering_tasks):
+                            d_end_x, d_end_y = map(int, delivering_tasks[dt_idx][3:5])
+                            d_end = (d_end_x, d_end_y)
+                            d_end_to_pickup = int(self.heuristics[d_end][task_pickup])
+                            pickup_to_delivery = int(self.heuristics[task_pickup][task_delivery])
+                            if d_end_to_pickup < 0 or pickup_to_delivery < 0:
+                                cost_matrix[i, j] = float(2 * (self.grid_size[0] + self.grid_size[1]))
+                            else:
+                                cost_matrix[i, j] = float(st + d_end_to_pickup + pickup_to_delivery)
+                        else:
+                            cost_matrix[i, j] = self._safe_total_distance(agent_loc, st, task_pickup, task_delivery)
+                    else:
+                        # free agent
+                        cost_matrix[i, j] = self._safe_total_distance(agent_loc, st, task_pickup, task_delivery)
 
             # Hungarian最优（会自动处理M!=N，返回min(M,N)对）
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
@@ -705,6 +853,7 @@ class MultiAgentPickupEnv(gym.Env):
 
         return {
             "timestep": int(getattr(status, "timestep", -1)),
+            "task_truncated_size": int(getattr(status, "task_truncated_size", self.task_truncated_size)),
             "agents_free": agents_free,
             "agents_delivering": agents_delivering,
             "agent_task_sequences": [list(seq) for seq in getattr(status, "agent_task_sequences", [])],
@@ -735,6 +884,7 @@ class MultiAgentPickupEnv(gym.Env):
             "--agentNum", str(self.num_r),
             "--seed", str(self.seed),
             "--solver", self.solver_name,
+            "--task_truncated_size", str(self.task_truncated_size),
             "--candidate_task_k", str(self.candidate_task_k),
             "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]

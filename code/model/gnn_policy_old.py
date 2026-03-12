@@ -12,7 +12,7 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.utils import dense_to_sparse
 
 # 导入优化后的GNN模块
-from .gnn import GridGCN, GridGAT, HigherGATLayer, LineGraphGAT, UndirectedHigherGATLayer, UndirectedLineGraphGAT, GridSPMPNN, SelfAttentionGATLayer, EdgeGCNN, UndirectedEdgeGCNN, EdgeNodeGNN, EdgeNodeGNNComplex
+from .gnn import GridGCN, GridGAT, HigherGATLayer, LineGraphGAT, UndirectedHigherGATLayer, UndirectedLineGraphGAT, GridSPMPNN, SelfAttentionGATLayer, EdgeGCNN, UndirectedEdgeGCNN, EdgeNodeGNN
 # 导入CNN模块
 from .cnn import GridCNNChannels
 # 导入工具函数
@@ -62,9 +62,6 @@ class GNNPolicy(BasePolicy):
         use_undirected=True,    # 是否使用无向图
         max_distance=3,         # SP-MPNN的最大距离k
         self_attention_layers=2,  # Self-attention层数（仅用于self_attention_gat）
-        task_truncated_size=1,  # 兼容字段：老checkpoint无该参数时默认1
-        use_explicit_path_feature=True,  # 是否在FA/DA打分头显式使用路径长度特征
-        use_split_action_heads=None,  # None: 默认truncated_size>1启用分头
         use_sde=False,
         **kwargs
     ):
@@ -95,14 +92,6 @@ class GNNPolicy(BasePolicy):
         self.use_undirected = use_undirected
         self.max_distance = max_distance
         self.self_attention_layers = self_attention_layers
-        self.task_truncated_size = max(1, int(task_truncated_size))
-        self.use_explicit_path_feature = bool(use_explicit_path_feature)
-        if use_split_action_heads is None:
-            self.use_split_action_heads = bool(self.task_truncated_size > 1)
-        else:
-            self.use_split_action_heads = bool(use_split_action_heads)
-        if self.higher_gnn_type == "edge_node_gnn_complex":
-            self.use_split_action_heads = False
         
         # 添加预训练相关参数
         self.pretrain_steps = pretrain_steps
@@ -261,16 +250,8 @@ class GNNPolicy(BasePolicy):
                 edge_attr_dim=3,
                 num_layers=self.higher_gnn_num_layers
             )
-        elif self.higher_gnn_type == 'edge_node_gnn_complex':
-            self.higher_gnn = EdgeNodeGNNComplex(
-                node_dim=self.hidden_dim,
-                edge_dim=self.hidden_dim,
-                edge_attr_dim=3,
-                num_layers=self.higher_gnn_num_layers,
-                num_edge_types=3,
-            )
         else:
-            raise ValueError(f"Invalid higher_gnn_type: {self.higher_gnn_type}. Supported types: 'gat', 'line_graph', 'self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn', 'edge_node_gnn_complex'")
+            raise ValueError(f"Invalid higher_gnn_type: {self.higher_gnn_type}. Supported types: 'gat', 'line_graph', 'self_attention_gat', 'gcnn_match', 'edge_gcnn'")
         
         self.agent_mlp = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim),
@@ -298,30 +279,6 @@ class GNNPolicy(BasePolicy):
             nn.GELU(),
             nn.Linear(self.hidden_dim, 1),
         )
-        # 分离打分头：FA->FT 与 DA->FT 的语义不同，避免共享头相互干扰
-        # 输入为 [base_edge_score, explicit_path_feature]
-        self.fa_action_head = nn.Sequential(
-            nn.Linear(2, self.hidden_dim),
-            nn.GELU(),
-            nn.Linear(self.hidden_dim, 1),
-        )
-        self.da_action_head = nn.Sequential(
-            nn.Linear(2, self.hidden_dim),
-            nn.GELU(),
-            nn.Linear(self.hidden_dim, 1),
-        )
-
-        # 显式节点类型标记：4类one-hot投影到hidden_dim并加到节点特征
-        self.node_type_proj = nn.Linear(4, self.hidden_dim, bias=False)
-        # delivering路径融合: MLP(concat[DA->DT(3), DT->FT(3)]) -> 3
-        self.delivering_path_fuse_mlp = nn.Sequential(
-            nn.Linear(6, self.hidden_dim),
-            nn.GELU(),
-            nn.Linear(self.hidden_dim, 3)
-        )
-        self.node_type_proj_complex = nn.Linear(3, self.hidden_dim, bias=False)
-        self.agent_status_proj_complex = nn.Linear(1, self.hidden_dim, bias=False)
-        self.task_cost_proj_complex = nn.Linear(1, self.hidden_dim, bias=False)
         
         # 初始化Sinkhorn模块
         if self.use_sinkhorn or self.use_gumbel_sinkhorn or self.use_gumbel_hungarian:
@@ -415,384 +372,6 @@ class GNNPolicy(BasePolicy):
             batch_masks.append(valid_mask)
         
         return batch_node_features, batch_edge_indices, batch_masks
-
-    def _build_complex_node_features_batch(
-        self,
-        agent_features_b,
-        task_features_b,
-        agent_is_delivering_b,
-        remain_norm_b,
-        task_cost_norms_b,
-    ):
-        device = agent_features_b.device
-        dtype = agent_features_b.dtype
-
-        num_agents = int(agent_features_b.size(0))
-        num_tasks = int(task_features_b.size(0))
-
-        if num_agents > 0:
-            agent_type_ids = torch.where(
-                agent_is_delivering_b.bool(),
-                torch.ones(num_agents, device=device, dtype=torch.long),
-                torch.zeros(num_agents, device=device, dtype=torch.long),
-            )
-            agent_type_onehot = F.one_hot(agent_type_ids, num_classes=3).to(dtype)
-            agent_nodes = (
-                agent_features_b
-                + self.node_type_proj_complex(agent_type_onehot)
-                + self.agent_status_proj_complex(remain_norm_b.unsqueeze(-1).to(dtype))
-            )
-        else:
-            agent_nodes = torch.zeros((0, self.hidden_dim), device=device, dtype=dtype)
-
-        if num_tasks > 0:
-            task_type_onehot = torch.zeros((num_tasks, 3), device=device, dtype=dtype)
-            task_type_onehot[:, 2] = 1.0
-            task_nodes = (
-                task_features_b
-                + self.node_type_proj_complex(task_type_onehot)
-                + self.task_cost_proj_complex(task_cost_norms_b.unsqueeze(-1).to(dtype))
-            )
-        else:
-            task_nodes = torch.zeros((0, self.hidden_dim), device=device, dtype=dtype)
-
-        if num_agents > 0 and num_tasks > 0:
-            return torch.cat([agent_nodes, task_nodes], dim=0)
-        if num_agents > 0:
-            return agent_nodes
-        if num_tasks > 0:
-            return task_nodes
-        return torch.zeros((0, self.hidden_dim), device=device, dtype=dtype)
-
-    def _build_complex_agent_task_edges_batch(
-        self,
-        free_agents_obs_b,
-        free_agents_nearest_tasks_b,
-        assignable_agent_is_delivering_b,
-        assignable_agent_delivering_task_idx_b,
-        delivering_tasks_nearest_tasks_b,
-        num_agents,
-        num_tasks,
-        dist_norm,
-        dtype,
-    ):
-        device = free_agents_obs_b.device
-        task_offset = num_agents
-
-        forward_src_parts = []
-        forward_dst_parts = []
-        forward_attr_parts = []
-        score_agent_indices_parts = []
-        score_task_indices_parts = []
-
-        agent_is_delivering = assignable_agent_is_delivering_b[:num_agents].reshape(-1) >= 0.5
-
-        if free_agents_nearest_tasks_b is not None and num_agents > 0 and num_tasks > 0:
-            fa_agents = torch.nonzero(~agent_is_delivering, as_tuple=False).reshape(-1)
-            if fa_agents.numel() > 0:
-                fa_nearest = free_agents_nearest_tasks_b[fa_agents]
-                fa_task_idx = fa_nearest[..., 0].long()
-                valid = (fa_task_idx >= 0) & (fa_task_idx < num_tasks)
-                if valid.any():
-                    fa_agent_grid = fa_agents.unsqueeze(1).expand_as(fa_task_idx)
-                    task_idx = fa_task_idx[valid]
-                    src = fa_agent_grid[valid]
-                    first_leg = fa_nearest[..., 1][valid].clamp_min(0.0)
-                    p2d = fa_nearest[..., 2][valid].clamp_min(0.0)
-                    total = first_leg + p2d
-                    attrs = torch.stack(
-                        [
-                            first_leg / dist_norm,
-                            p2d / dist_norm,
-                            total / (2.0 * dist_norm),
-                        ],
-                        dim=-1,
-                    ).to(dtype=dtype)
-                    forward_src_parts.append(src)
-                    forward_dst_parts.append(task_offset + task_idx)
-                    forward_attr_parts.append(attrs)
-                    score_agent_indices_parts.append(src)
-                    score_task_indices_parts.append(task_idx)
-
-        if (
-            self.task_truncated_size > 1
-            and delivering_tasks_nearest_tasks_b is not None
-            and assignable_agent_delivering_task_idx_b is not None
-            and num_agents > 0
-            and num_tasks > 0
-        ):
-            da_agents_all = torch.nonzero(agent_is_delivering, as_tuple=False).reshape(-1)
-            if da_agents_all.numel() > 0:
-                dt_idx_all = assignable_agent_delivering_task_idx_b[da_agents_all].reshape(-1).long()
-                valid_da = (dt_idx_all >= 0) & (dt_idx_all < delivering_tasks_nearest_tasks_b.size(0))
-                if valid_da.any():
-                    da_agents = da_agents_all[valid_da]
-                    dt_idx = dt_idx_all[valid_da]
-                    da_nearest = delivering_tasks_nearest_tasks_b[dt_idx]
-                    da_task_idx = da_nearest[..., 0].long()
-                    valid = (da_task_idx >= 0) & (da_task_idx < num_tasks)
-                    if valid.any():
-                        da_agent_grid = da_agents.unsqueeze(1).expand_as(da_task_idx)
-                        task_idx = da_task_idx[valid]
-                        src = da_agent_grid[valid]
-                        remain = free_agents_obs_b[src, 2].clamp_min(0.0)
-                        mid = da_nearest[..., 1][valid].clamp_min(0.0)
-                        p2d = da_nearest[..., 2][valid].clamp_min(0.0)
-                        first_leg = remain + mid
-                        total = first_leg + p2d
-                        attrs = torch.stack(
-                            [
-                                first_leg / (2.0 * dist_norm),
-                                p2d / dist_norm,
-                                total / (3.0 * dist_norm),
-                            ],
-                            dim=-1,
-                        ).to(dtype=dtype)
-                        forward_src_parts.append(src)
-                        forward_dst_parts.append(task_offset + task_idx)
-                        forward_attr_parts.append(attrs)
-                        score_agent_indices_parts.append(src)
-                        score_task_indices_parts.append(task_idx)
-
-        if forward_src_parts:
-            forward_src = torch.cat(forward_src_parts, dim=0)
-            forward_dst = torch.cat(forward_dst_parts, dim=0)
-            forward_attr = torch.cat(forward_attr_parts, dim=0)
-            score_agent_indices = torch.cat(score_agent_indices_parts, dim=0)
-            score_task_indices = torch.cat(score_task_indices_parts, dim=0)
-        else:
-            forward_src = torch.zeros((0,), device=device, dtype=torch.long)
-            forward_dst = torch.zeros((0,), device=device, dtype=torch.long)
-            forward_attr = torch.zeros((0, 3), device=device, dtype=dtype)
-            score_agent_indices = torch.zeros((0,), device=device, dtype=torch.long)
-            score_task_indices = torch.zeros((0,), device=device, dtype=torch.long)
-
-        forward_count = int(forward_src.numel())
-        if forward_count > 0:
-            forward_edge_index = torch.stack([forward_src, forward_dst], dim=0)
-            reverse_edge_index = torch.stack([forward_dst, forward_src], dim=0)
-            reverse_attr = forward_attr
-            forward_type = torch.zeros((forward_count,), device=device, dtype=torch.long)
-            reverse_type = torch.ones((forward_count,), device=device, dtype=torch.long)
-        else:
-            forward_edge_index = torch.zeros((2, 0), device=device, dtype=torch.long)
-            reverse_edge_index = torch.zeros((2, 0), device=device, dtype=torch.long)
-            reverse_attr = torch.zeros((0, 3), device=device, dtype=dtype)
-            forward_type = torch.zeros((0,), device=device, dtype=torch.long)
-            reverse_type = torch.zeros((0,), device=device, dtype=torch.long)
-
-        return (
-            forward_edge_index,
-            forward_attr,
-            forward_type,
-            reverse_edge_index,
-            reverse_attr,
-            reverse_type,
-            score_agent_indices,
-            score_task_indices,
-        )
-
-    def _build_complex_agent_agent_edges_batch(self, free_agents_obs_b, num_agents, dist_norm, dtype):
-        device = free_agents_obs_b.device
-        if num_agents <= 1:
-            return (
-                torch.zeros((2, 0), device=device, dtype=torch.long),
-                torch.zeros((0, 3), device=device, dtype=dtype),
-                torch.zeros((0,), device=device, dtype=torch.long),
-            )
-
-        idx = torch.arange(num_agents, device=device, dtype=torch.long)
-        src = idx.repeat_interleave(num_agents)
-        dst = idx.repeat(num_agents)
-        mask = src != dst
-        src = src[mask]
-        dst = dst[mask]
-
-        coords = free_agents_obs_b[:num_agents, :2].to(dtype=dtype)
-        dist_mat = (coords[:, None, :] - coords[None, :, :]).abs().sum(dim=-1) / dist_norm
-        a2a = dist_mat[src, dst]
-        attrs = torch.stack([a2a, torch.zeros_like(a2a), a2a], dim=-1)
-        edge_index = torch.stack([src, dst], dim=0)
-        edge_type = torch.full((src.numel(),), 2, device=device, dtype=torch.long)
-        return edge_index, attrs, edge_type
-
-    def _build_edge_node_gnn_complex_graph(self, obs, assignable_agent_features, free_task_features, free_agents_num, free_tasks_num):
-        batch_size = assignable_agent_features.size(0)
-        device = assignable_agent_features.device
-        grid_height = int(obs["grid"].shape[1])
-        grid_width = int(obs["grid"].shape[2])
-        dist_norm = float(max(grid_height + grid_width, 1))
-
-        free_agents_obs = obs["free_agents"]
-        free_tasks_obs = obs["free_tasks"]
-        free_agents_nearest_tasks = obs.get("free_agents_nearest_tasks", None)
-        assignable_agent_is_delivering = obs.get("assignable_agent_is_delivering", None)
-        assignable_agent_delivering_task_idx = obs.get("assignable_agent_delivering_task_idx", None)
-        delivering_tasks_nearest_tasks = obs.get("delivering_tasks_nearest_tasks", None)
-        assignable_agent_a2a = obs.get("assignable_agent_a2a", None)
-        free_task_p2d = obs.get("free_task_p2d", None)
-
-        batch_higher_features = []
-        batch_higher_edge_indices = []
-        batch_higher_edge_attrs = []
-        batch_higher_edge_types = []
-        batch_agent_task_mappings = []
-
-        for b in range(batch_size):
-            num_agents = int(free_agents_num[b].item())
-            num_tasks = int(free_tasks_num[b].item())
-            agent_features_b = assignable_agent_features[b, :num_agents]
-            task_features_b = free_task_features[b, :num_tasks]
-            free_agents_obs_b = free_agents_obs[b]
-            assignable_agent_is_delivering_b = (
-                assignable_agent_is_delivering[b, :num_agents, 0]
-                if assignable_agent_is_delivering is not None
-                else torch.zeros((num_agents,), device=device, dtype=assignable_agent_features.dtype)
-            )
-            assignable_agent_delivering_task_idx_b = (
-                assignable_agent_delivering_task_idx[b, :num_agents, 0]
-                if assignable_agent_delivering_task_idx is not None
-                else None
-            )
-            free_agents_nearest_tasks_b = (
-                free_agents_nearest_tasks[b, :num_agents]
-                if free_agents_nearest_tasks is not None
-                else None
-            )
-            delivering_tasks_nearest_tasks_b = (
-                delivering_tasks_nearest_tasks[b]
-                if delivering_tasks_nearest_tasks is not None
-                else None
-            )
-            assignable_agent_a2a_b = (
-                assignable_agent_a2a[b, :num_agents, :num_agents]
-                if assignable_agent_a2a is not None
-                else None
-            )
-            free_task_p2d_b = (
-                free_task_p2d[b, :num_tasks, 0]
-                if free_task_p2d is not None
-                else None
-            )
-
-            task_cost_norms = torch.zeros((num_tasks,), device=device, dtype=assignable_agent_features.dtype)
-            if free_task_p2d_b is not None and num_tasks > 0:
-                valid_p2d = free_task_p2d_b >= 0
-                if valid_p2d.any():
-                    task_cost_norms[valid_p2d] = free_task_p2d_b[valid_p2d].to(task_cost_norms.dtype) / dist_norm
-            elif free_agents_nearest_tasks is not None:
-                nearest_count = int(free_agents_nearest_tasks.shape[1])
-                for i in range(num_agents):
-                    for k in range(nearest_count):
-                        task_info = free_agents_nearest_tasks[b, i, k]
-                        task_idx = int(task_info[0].item())
-                        if 0 <= task_idx < num_tasks and task_cost_norms[task_idx].item() <= 0:
-                            task_cost_norms[task_idx] = max(0.0, float(task_info[2].item())) / dist_norm
-                if delivering_tasks_nearest_tasks is not None:
-                    dt_count = int(delivering_tasks_nearest_tasks.shape[1])
-                    nearest_count = int(delivering_tasks_nearest_tasks.shape[2])
-                    for dt_idx in range(dt_count):
-                        for k in range(nearest_count):
-                            task_info = delivering_tasks_nearest_tasks[b, dt_idx, k]
-                            task_idx = int(task_info[0].item())
-                            if 0 <= task_idx < num_tasks and task_cost_norms[task_idx].item() <= 0:
-                                task_cost_norms[task_idx] = max(0.0, float(task_info[2].item())) / dist_norm
-                for j in range(num_tasks):
-                    if task_cost_norms[j].item() <= 0 and j < free_tasks_obs.shape[1]:
-                        px, py, dx, dy = [float(v) for v in free_tasks_obs[b, j, :4].tolist()]
-                        task_cost_norms[j] = (abs(dx - px) + abs(dy - py)) / dist_norm
-
-            remain_norm_b = torch.zeros((num_agents,), device=device, dtype=assignable_agent_features.dtype)
-            if num_agents > 0:
-                remain_norm_b = free_agents_obs_b[:num_agents, 2].clamp_min(0.0) / dist_norm
-                remain_norm_b = remain_norm_b * (assignable_agent_is_delivering_b >= 0.5).to(remain_norm_b.dtype)
-
-            all_node_features = self._build_complex_node_features_batch(
-                agent_features_b,
-                task_features_b,
-                assignable_agent_is_delivering_b,
-                remain_norm_b,
-                task_cost_norms,
-            )
-
-            (
-                forward_edge_index,
-                forward_attr,
-                forward_type,
-                reverse_edge_index,
-                reverse_attr,
-                reverse_type,
-                score_agent_indices,
-                score_task_indices,
-            ) = self._build_complex_agent_task_edges_batch(
-                free_agents_obs_b,
-                free_agents_nearest_tasks_b,
-                assignable_agent_is_delivering_b,
-                assignable_agent_delivering_task_idx_b,
-                delivering_tasks_nearest_tasks_b,
-                num_agents,
-                num_tasks,
-                dist_norm,
-                all_node_features.dtype,
-            )
-
-            if assignable_agent_a2a_b is not None and num_agents > 1:
-                idx = torch.arange(num_agents, device=device, dtype=torch.long)
-                src = idx.repeat_interleave(num_agents)
-                dst = idx.repeat(num_agents)
-                mask = src != dst
-                src = src[mask]
-                dst = dst[mask]
-                a2a_raw = assignable_agent_a2a_b[src, dst].to(all_node_features.dtype)
-                valid_a2a = a2a_raw >= 0
-                if valid_a2a.any():
-                    src_valid = src[valid_a2a]
-                    dst_valid = dst[valid_a2a]
-                    a2a = a2a_raw[valid_a2a] / dist_norm
-                    aa_edge_index = torch.stack([src_valid, dst_valid], dim=0)
-                    aa_edge_attr = torch.stack([a2a, torch.zeros_like(a2a), a2a], dim=-1)
-                    aa_edge_type = torch.full((src_valid.numel(),), 2, device=device, dtype=torch.long)
-                else:
-                    aa_edge_index = torch.zeros((2, 0), device=device, dtype=torch.long)
-                    aa_edge_attr = torch.zeros((0, 3), device=device, dtype=all_node_features.dtype)
-                    aa_edge_type = torch.zeros((0,), device=device, dtype=torch.long)
-            else:
-                aa_edge_index, aa_edge_attr, aa_edge_type = self._build_complex_agent_agent_edges_batch(
-                    free_agents_obs_b,
-                    num_agents,
-                    dist_norm,
-                    all_node_features.dtype,
-                )
-
-            edge_index_t = torch.cat([forward_edge_index, reverse_edge_index, aa_edge_index], dim=1)
-            edge_attr_t = torch.cat([forward_attr, reverse_attr, aa_edge_attr], dim=0)
-            edge_type_t = torch.cat([forward_type, reverse_type, aa_edge_type], dim=0)
-            score_mask_t = torch.cat([
-                torch.ones((forward_edge_index.size(1),), device=device, dtype=torch.bool),
-                torch.zeros((reverse_edge_index.size(1) + aa_edge_index.size(1),), device=device, dtype=torch.bool),
-            ], dim=0)
-
-            batch_higher_features.append(all_node_features)
-            batch_higher_edge_indices.append(edge_index_t)
-            batch_higher_edge_attrs.append(edge_attr_t)
-            batch_higher_edge_types.append(edge_type_t)
-            batch_agent_task_mappings.append((
-                {
-                    "score_mask": score_mask_t,
-                    "score_agent_indices": score_agent_indices.tolist(),
-                    "score_task_indices": score_task_indices.tolist(),
-                },
-                num_agents,
-                num_tasks,
-            ))
-
-        return (
-            batch_higher_features,
-            batch_higher_edge_indices,
-            batch_higher_edge_attrs,
-            batch_higher_edge_types,
-            batch_agent_task_mappings,
-        )
     
     def _create_higher_graph(self, grid_node_features, grid_valid_masks,
                             free_agent_pos, delivering_agent_pos,
@@ -1226,270 +805,147 @@ class GNNPolicy(BasePolicy):
             
             # 获取free_agents_nearest_tasks信息
             free_agents_nearest_tasks = obs.get("free_agents_nearest_tasks", None)
-            assignable_agent_is_delivering = obs.get("assignable_agent_is_delivering", None)
-            assignable_agent_delivering_task_idx = obs.get("assignable_agent_delivering_task_idx", None)
-            delivering_tasks_nearest_tasks = obs.get("delivering_tasks_nearest_tasks", None)
-
-            if self.higher_gnn_type == "edge_node_gnn_complex":
-                (
-                    batch_higher_features,
-                    batch_higher_edge_indices,
-                    batch_higher_edge_attrs,
-                    batch_higher_edge_types,
-                    batch_agent_task_mappings,
-                ) = self._build_edge_node_gnn_complex_graph(
-                    obs,
-                    free_agent_features,
-                    free_task_features,
-                    free_agents_num,
-                    free_tasks_num,
-                )
-
-                batch_edge_features = process_higher_graph(
-                    self.higher_gnn,
-                    batch_higher_features,
-                    batch_higher_edge_indices,
-                    batch_higher_edge_attrs,
-                    self.higher_gnn_type,
-                    self.output_dim,
-                    device,
-                    batch_agent_task_mappings,
-                    higher_edge_types=batch_higher_edge_types,
-                )
-
-                batch_agent_task_scores = calculate_agent_task_scores(
-                    batch_edge_features,
-                    batch_agent_task_mappings,
-                    self.action_net,
-                    self.invalid_edge_score,
-                    device,
-                    self.higher_gnn_type,
-                    use_explicit_path_feature=self.use_explicit_path_feature,
-                )
-            else:
-                for b in range(batch_size):
-                    # 使用SP-MPNN输出的实体特征构建高层级图
-                    # Free Agent features - 直接使用SP-MPNN的输出
-                    sp_free_agent_features = []
-                    for i in range(free_agents_num[b].item()):
-                        sp_free_agent_features.append(free_agent_features[b, i])
+            
+            for b in range(batch_size):
+                # 使用SP-MPNN输出的实体特征构建高层级图
+                # Free Agent features - 直接使用SP-MPNN的输出
+                sp_free_agent_features = []
+                for i in range(free_agents_num[b].item()):
+                    sp_free_agent_features.append(free_agent_features[b, i])
+                
+                # Delivering Agent features - 直接使用SP-MPNN的输出
+                sp_delivering_agent_features = []
+                for i in range(delivering_agents_num[b].item()):
+                    sp_delivering_agent_features.append(delivering_agent_features[b, i])
+                
+                # Free Task features - 直接使用SP-MPNN的输出
+                sp_free_task_features = []
+                for i in range(free_tasks_num[b].item()):
+                    sp_free_task_features.append(free_task_features[b, i])
+                
+                # Delivering Task features - 直接使用SP-MPNN的输出
+                sp_delivering_task_features = []
+                for i in range(delivering_tasks_num[b].item()):
+                    sp_delivering_task_features.append(delivering_task_features[b, i])
+                
+                # Combine all node features
+                all_node_features = []
+                
+                # Add Free Agents
+                num_free_agents = len(sp_free_agent_features)
+                if num_free_agents > 0:
+                    all_node_features.extend(sp_free_agent_features)
+                
+                # Add Delivering Agents
+                num_delivering_agents = len(sp_delivering_agent_features)
+                if num_delivering_agents > 0:
+                    all_node_features.extend(sp_delivering_agent_features)
+                
+                # Add Free Tasks
+                num_free_tasks = len(sp_free_task_features)
+                if num_free_tasks > 0:
+                    all_node_features.extend(sp_free_task_features)
+                
+                # Add Delivering Tasks
+                num_delivering_tasks = len(sp_delivering_task_features)
+                if num_delivering_tasks > 0:
+                    all_node_features.extend(sp_delivering_task_features)
+                
+                if len(all_node_features) == 0:
+                    # If there are no nodes, create an empty graph
+                    all_node_features = torch.zeros((0, self.hidden_dim), device=device)
+                    edge_index = torch.zeros((2, 0), dtype=torch.long, device=device)
+                    # 根据GNN类型确定边属性维度
+                    edge_attr_dim = 3 if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn'] else 5
+                    edge_attr = torch.zeros((0, edge_attr_dim), device=device)
+                    agent_task_mapping = {}
+                else:
+                    # Stack all node features
+                    all_node_features = torch.stack(all_node_features)
                     
-                    # Delivering Agent features - 直接使用SP-MPNN的输出
-                    sp_delivering_agent_features = []
-                    for i in range(delivering_agents_num[b].item()):
-                        sp_delivering_agent_features.append(delivering_agent_features[b, i])
+                    # Create edges（与原来的逻辑相同）
+                    edge_index = []
+                    edge_attr = []
+                    agent_task_mapping = {}
                     
-                    # Free Task features - 直接使用SP-MPNN的输出
-                    sp_free_task_features = []
-                    for i in range(free_tasks_num[b].item()):
-                        sp_free_task_features.append(free_task_features[b, i])
+                    # Connect edges between Free Agents and Free Tasks using free_agents_nearest_tasks
+                    if free_agents_nearest_tasks is not None:
+                        # 使用环境提供的最近任务信息
+                        for i in range(num_free_agents):
+                            agent_idx = i
+                            # 获取当前智能体的最近任务列表 (形状: [max_nearest_tasks, 3])
+                            nearest_tasks_info = free_agents_nearest_tasks[b, i]
+                            
+                            # 遍历最近任务，只连接有效的任务
+                            for j_idx in range(len(nearest_tasks_info)):
+                                task_info = nearest_tasks_info[j_idx]
+                                task_idx_in_nearest = int(task_info[0].item())  # 任务ID
+                                agent_to_pickup_dist = task_info[1].item()       # agent到pickup的归一化距离
+                                pickup_to_delivery_dist = task_info[2].item()    # pickup到delivery的归一化距离
+                                
+                                # 检查任务索引是否有效（-1表示无效）
+                                if task_idx_in_nearest >= 0 and task_idx_in_nearest < num_free_tasks:
+                                    # 在图中的节点索引
+                                    task_node_idx = num_free_agents + num_delivering_agents + task_idx_in_nearest
+                                    edge_index.append([agent_idx, task_node_idx])
+                                    
+                                    # 根据GNN类型创建不同的边属性
+                                    if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
+                                        # SelfAttentionGAT和EdgeGCNN: 简化的3维边属性，包含距离信息
+                                        edge_attr_simple = torch.zeros(3, device=device)
+                                        edge_attr_simple[0] = agent_to_pickup_dist      # agent到pickup距离
+                                        edge_attr_simple[1] = pickup_to_delivery_dist   # pickup到delivery距离
+                                        edge_attr_simple[2] = agent_to_pickup_dist + pickup_to_delivery_dist  # 总距离
+                                        edge_attr.append(edge_attr_simple)
+                                    else:
+                                        # 其他GNN: 5维边属性，包含边类型和距离信息
+                                        edge_attr_with_dist = torch.zeros(5, device=device)
+                                        edge_attr_with_dist[1] = 1.0  # free_agent-free_task边 (one-hot)
+                                        edge_attr_with_dist[3] = agent_to_pickup_dist      # agent到pickup距离
+                                        edge_attr_with_dist[4] = pickup_to_delivery_dist   # pickup到delivery距离
+                                        edge_attr.append(edge_attr_with_dist)
+                                    
+                                    # Record mapping relationship - 使用任务在free_tasks中的索引
+                                    if i not in agent_task_mapping:
+                                        agent_task_mapping[i] = []
+                                    agent_task_mapping[i].append(task_idx_in_nearest)
                     
-                    # Delivering Task features - 直接使用SP-MPNN的输出
-                    sp_delivering_task_features = []
-                    for i in range(delivering_tasks_num[b].item()):
-                        sp_delivering_task_features.append(delivering_task_features[b, i])
+                    # Connect edges between all pairs of Agents (除非使用self_attention_gat/edge_gcnn/edge_node_gnn)
+                    if self.higher_gnn_type not in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
+                        for i in range(num_free_agents + num_delivering_agents):
+                            for j in range(i+1, num_free_agents + num_delivering_agents):
+                                edge_index.append([i, j])
+                                # Agent to agent edges - type 0
+                                edge_type = torch.zeros(5, device=device)
+                                edge_type[0] = 1.0  # agent-agent边
+                                edge_attr.append(edge_type)
                     
-                    # Combine all node features
-                    all_node_features = []
-                    
-                    # Add Free Agents
-                    num_free_agents = len(sp_free_agent_features)
-                    if num_free_agents > 0:
-                        all_node_features.extend(sp_free_agent_features)
-                    
-                    # Add Delivering Agents
-                    num_delivering_agents = len(sp_delivering_agent_features)
-                    if num_delivering_agents > 0:
-                        all_node_features.extend(sp_delivering_agent_features)
-                    
-                    # Add Free Tasks
-                    num_free_tasks = len(sp_free_task_features)
-                    if num_free_tasks > 0:
-                        all_node_features.extend(sp_free_task_features)
-                    
-                    # Add Delivering Tasks
-                    num_delivering_tasks = len(sp_delivering_task_features)
-                    if num_delivering_tasks > 0:
-                        all_node_features.extend(sp_delivering_task_features)
-                    
-                    if len(all_node_features) == 0:
-                        all_node_features = torch.zeros((0, self.hidden_dim), device=device)
+                    if len(edge_index) > 0:
+                        edge_index = torch.tensor(edge_index, device=device).t()
+                        edge_attr = torch.stack(edge_attr)
+                    else:
+                        # If there are no edges, create empty edge indices and features
                         edge_index = torch.zeros((2, 0), dtype=torch.long, device=device)
+                        # 根据GNN类型确定边属性维度
                         edge_attr_dim = 3 if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn'] else 5
                         edge_attr = torch.zeros((0, edge_attr_dim), device=device)
-                        agent_task_mapping = {}
-                    else:
-                        all_node_features = torch.stack(all_node_features)
-
-                        node_type_ids = []
-                        node_type_ids.extend([0] * num_free_agents)
-                        node_type_ids.extend([1] * num_delivering_agents)
-                        node_type_ids.extend([2] * num_free_tasks)
-                        node_type_ids.extend([3] * num_delivering_tasks)
-                        if len(node_type_ids) == all_node_features.size(0):
-                            node_type_ids = torch.tensor(node_type_ids, dtype=torch.long, device=device)
-                            node_type_onehot = F.one_hot(node_type_ids, num_classes=4).float()
-                            all_node_features = all_node_features + self.node_type_proj(node_type_onehot)
-                        
-                        edge_index = []
-                        edge_attr = []
-                        agent_task_mapping = {}
-                        
-                        if free_agents_nearest_tasks is not None:
-                            for i in range(num_free_agents):
-                                agent_idx = i
-                                agent_is_delivering = 0.0
-                                if assignable_agent_is_delivering is not None:
-                                    try:
-                                        agent_is_delivering = float(assignable_agent_is_delivering[b, i, 0].item())
-                                    except Exception:
-                                        agent_is_delivering = 0.0
-                                if agent_is_delivering < 0.5:
-                                    nearest_tasks_info = free_agents_nearest_tasks[b, i]
-                                    for j_idx in range(len(nearest_tasks_info)):
-                                        task_info = nearest_tasks_info[j_idx]
-                                        task_idx_in_nearest = int(task_info[0].item())
-                                        agent_to_pickup_dist = task_info[1].item()
-                                        pickup_to_delivery_dist = task_info[2].item()
-                                        if task_idx_in_nearest >= 0 and task_idx_in_nearest < num_free_tasks:
-                                            task_node_idx = num_free_agents + num_delivering_agents + task_idx_in_nearest
-                                            edge_index.append([agent_idx, task_node_idx])
-                                            if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
-                                                edge_attr_simple = torch.zeros(3, device=device)
-                                                edge_attr_simple[0] = agent_to_pickup_dist
-                                                edge_attr_simple[1] = pickup_to_delivery_dist
-                                                edge_attr_simple[2] = agent_to_pickup_dist + pickup_to_delivery_dist
-                                                edge_attr.append(edge_attr_simple)
-                                            else:
-                                                edge_attr_with_dist = torch.zeros(5, device=device)
-                                                edge_attr_with_dist[1] = 1.0
-                                                edge_attr_with_dist[2] = 0.0
-                                                edge_attr_with_dist[3] = agent_to_pickup_dist
-                                                edge_attr_with_dist[4] = pickup_to_delivery_dist
-                                                edge_attr.append(edge_attr_with_dist)
-                                            if i not in agent_task_mapping:
-                                                agent_task_mapping[i] = []
-                                            fa_path_total = float(agent_to_pickup_dist + pickup_to_delivery_dist)
-                                            agent_task_mapping[i].append({
-                                                "task_idx": int(task_idx_in_nearest),
-                                                "edge_kind": "fa_ft",
-                                                "path_total": fa_path_total,
-                                                "da_path_total": 0.0,
-                                            })
-                                else:
-                                    dt_local_idx = -1
-                                    if assignable_agent_delivering_task_idx is not None:
-                                        dt_local_idx = int(assignable_agent_delivering_task_idx[b, i, 0].item())
-                                    if 0 <= dt_local_idx < num_delivering_tasks:
-                                        dt_node_idx = num_free_agents + num_delivering_agents + num_free_tasks + dt_local_idx
-                                        a2d_remain = float(obs["free_agents"][b, i, 2].item()) if isinstance(obs, dict) and "free_agents" in obs else 0.0
-                                        edge_index.append([agent_idx, dt_node_idx])
-                                        if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
-                                            edge_attr_da_dt = torch.zeros(3, device=device)
-                                            edge_attr_da_dt[0] = a2d_remain
-                                            edge_attr_da_dt[1] = 0.0
-                                            edge_attr_da_dt[2] = a2d_remain
-                                            edge_attr.append(edge_attr_da_dt)
-                                        else:
-                                            edge_attr_da_dt = torch.zeros(5, device=device)
-                                            edge_attr_da_dt[1] = 1.0
-                                            edge_attr_da_dt[2] = 1.0
-                                            edge_attr_da_dt[3] = a2d_remain
-                                            edge_attr_da_dt[4] = 0.0
-                                            edge_attr.append(edge_attr_da_dt)
-
-                                        if delivering_tasks_nearest_tasks is not None:
-                                            dt_nearest = delivering_tasks_nearest_tasks[b, dt_local_idx]
-                                            for j_idx in range(len(dt_nearest)):
-                                                task_info = dt_nearest[j_idx]
-                                                ft_idx = int(task_info[0].item())
-                                                d2p = task_info[1].item()
-                                                p2d = task_info[2].item()
-                                                if 0 <= ft_idx < num_free_tasks:
-                                                    ft_node_idx = num_free_agents + num_delivering_agents + ft_idx
-                                                    edge_index.append([dt_node_idx, ft_node_idx])
-                                                    if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
-                                                        edge_attr_dt_ft = torch.zeros(3, device=device)
-                                                        edge_attr_dt_ft[0] = d2p
-                                                        edge_attr_dt_ft[1] = p2d
-                                                        edge_attr_dt_ft[2] = d2p + p2d
-                                                        edge_attr.append(edge_attr_dt_ft)
-                                                    else:
-                                                        edge_attr_dt_ft = torch.zeros(5, device=device)
-                                                        edge_attr_dt_ft[1] = 1.0
-                                                        edge_attr_dt_ft[2] = 1.0
-                                                        edge_attr_dt_ft[3] = d2p
-                                                        edge_attr_dt_ft[4] = p2d
-                                                        edge_attr.append(edge_attr_dt_ft)
-
-                                                    edge_index.append([agent_idx, ft_node_idx])
-                                                    da_dt_vec = torch.tensor([a2d_remain, 0.0, a2d_remain], device=device, dtype=torch.float32)
-                                                    dt_ft_vec = torch.tensor([d2p, p2d, d2p + p2d], device=device, dtype=torch.float32)
-                                                    fused_vec = self.delivering_path_fuse_mlp(torch.cat([da_dt_vec, dt_ft_vec], dim=0))
-                                                    if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
-                                                        edge_attr_da_ft = fused_vec
-                                                        edge_attr.append(edge_attr_da_ft)
-                                                    else:
-                                                        edge_attr_da_ft = torch.zeros(5, device=device)
-                                                        edge_attr_da_ft[1] = 1.0
-                                                        edge_attr_da_ft[2] = 1.0
-                                                        edge_attr_da_ft[3] = fused_vec[0]
-                                                        edge_attr_da_ft[4] = fused_vec[1]
-                                                        edge_attr.append(edge_attr_da_ft)
-                                                    if i not in agent_task_mapping:
-                                                        agent_task_mapping[i] = []
-                                                    da_path_total = float(a2d_remain + d2p + p2d)
-                                                    agent_task_mapping[i].append({
-                                                        "task_idx": int(ft_idx),
-                                                        "edge_kind": "da_ft",
-                                                        "path_total": da_path_total,
-                                                        "da_path_total": da_path_total,
-                                                    })
-
-                        if self.higher_gnn_type not in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn']:
-                            for i in range(num_free_agents + num_delivering_agents):
-                                for j in range(i + 1, num_free_agents + num_delivering_agents):
-                                    edge_index.append([i, j])
-                                    edge_type = torch.zeros(5, device=device)
-                                    edge_type[0] = 1.0
-                                    edge_attr.append(edge_type)
-                        
-                        if len(edge_index) > 0:
-                            edge_index = torch.tensor(edge_index, device=device).t()
-                            edge_attr = torch.stack(edge_attr)
-                        else:
-                            edge_index = torch.zeros((2, 0), dtype=torch.long, device=device)
-                            edge_attr_dim = 3 if self.higher_gnn_type in ['self_attention_gat', 'gcnn_match', 'edge_gcnn', 'edge_node_gnn'] else 5
-                            edge_attr = torch.zeros((0, edge_attr_dim), device=device)
-                    
-                    batch_higher_features.append(all_node_features)
-                    batch_higher_edge_indices.append(edge_index)
-                    batch_higher_edge_attrs.append(edge_attr)
-                    batch_agent_task_mappings.append((agent_task_mapping, num_free_agents, num_free_tasks))
                 
-                # 处理高层级图，提取边特征
-                batch_edge_features = process_higher_graph(
-                    self.higher_gnn, batch_higher_features, batch_higher_edge_indices, batch_higher_edge_attrs,
-                    self.higher_gnn_type, self.output_dim, device, batch_agent_task_mappings
-                )
-                
-                # 计算智能体任务分数
-                scoring_net = (
-                    {
-                        "default": self.action_net,
-                        "fa": self.fa_action_head,
-                        "da": self.da_action_head,
-                    }
-                    if self.use_split_action_heads
-                    else self.action_net
-                )
-                batch_agent_task_scores = calculate_agent_task_scores(
-                    batch_edge_features,
-                    batch_agent_task_mappings,
-                    scoring_net,
-                    self.invalid_edge_score, device, self.higher_gnn_type,
-                    use_explicit_path_feature=self.use_explicit_path_feature
-                )
+                batch_higher_features.append(all_node_features)
+                batch_higher_edge_indices.append(edge_index)
+                batch_higher_edge_attrs.append(edge_attr)
+                batch_agent_task_mappings.append((agent_task_mapping, num_free_agents, num_free_tasks))
+            
+            # 处理高层级图，提取边特征
+            batch_edge_features = process_higher_graph(
+                self.higher_gnn, batch_higher_features, batch_higher_edge_indices, batch_higher_edge_attrs,
+                self.higher_gnn_type, self.output_dim, device, batch_agent_task_mappings
+            )
+            
+            # 计算智能体任务分数
+            batch_agent_task_scores = calculate_agent_task_scores(
+                batch_edge_features, batch_agent_task_mappings, self.action_net, 
+                self.invalid_edge_score, device, self.higher_gnn_type
+            )
             
         # else:
         #     # 传统的两步图构建流程
@@ -1546,13 +1002,8 @@ class GNNPolicy(BasePolicy):
         )
         
         valid_mask = create_valid_mask(
-            batch_size, self.max_agents, self.max_tasks,
-            free_agents_num, free_tasks_num,
-            free_agents_nearest_tasks,
-            obs.get("assignable_agent_is_delivering", None) if isinstance(obs, dict) else None,
-            obs.get("assignable_agent_delivering_task_idx", None) if isinstance(obs, dict) else None,
-            obs.get("delivering_tasks_nearest_tasks", None) if isinstance(obs, dict) else None,
-            device
+            batch_size, self.max_agents, self.max_tasks, 
+            free_agents_num, free_tasks_num, free_agents_nearest_tasks, device
         )
 
 
@@ -1951,9 +1402,6 @@ class GNNPolicy(BasePolicy):
             use_undirected=self.use_undirected,
             max_distance=self.max_distance,
             self_attention_layers=self.self_attention_layers,
-            task_truncated_size=getattr(self, "task_truncated_size", 1),
-            use_explicit_path_feature=getattr(self, "use_explicit_path_feature", True),
-            use_split_action_heads=getattr(self, "use_split_action_heads", getattr(self, "task_truncated_size", 1) > 1),
             rl_n_samples=self.rl_n_samples,
         ))
         
@@ -1965,55 +1413,6 @@ class GNNPolicy(BasePolicy):
         Dummy learning rate scheduler for serialization
         """
         return 0.0
-
-    def load_state_dict(self, state_dict, strict: bool = True):
-        """
-        Backward-compatible loading:
-        allow checkpoints saved before introducing truncated_size=2 modules.
-        """
-        allowed_missing = {
-            "node_type_proj.weight",
-            "node_type_proj_complex.weight",
-            "agent_status_proj_complex.weight",
-            "task_cost_proj_complex.weight",
-            "delivering_path_fuse_mlp.0.weight",
-            "delivering_path_fuse_mlp.0.bias",
-            "delivering_path_fuse_mlp.2.weight",
-            "delivering_path_fuse_mlp.2.bias",
-            "fa_action_head.0.weight",
-            "fa_action_head.0.bias",
-            "fa_action_head.2.weight",
-            "fa_action_head.2.bias",
-            "da_action_head.0.weight",
-            "da_action_head.0.bias",
-            "da_action_head.2.weight",
-            "da_action_head.2.bias",
-        }
-        result = super().load_state_dict(state_dict, strict=False)
-        # 兼容旧checkpoint：若分头参数缺失，自动回退到老action_net打分路径
-        missing = set(result.missing_keys)
-        split_head_keys = {
-            "fa_action_head.0.weight",
-            "fa_action_head.0.bias",
-            "fa_action_head.2.weight",
-            "fa_action_head.2.bias",
-            "da_action_head.0.weight",
-            "da_action_head.0.bias",
-            "da_action_head.2.weight",
-            "da_action_head.2.bias",
-        }
-        if split_head_keys.issubset(missing):
-            self.use_split_action_heads = False
-        if strict:
-            unexpected = set(result.unexpected_keys)
-            disallowed_missing = missing - allowed_missing
-            if unexpected or disallowed_missing:
-                raise RuntimeError(
-                    f"Error(s) in loading state_dict for {self.__class__.__name__}: "
-                    f"unexpected_keys={sorted(unexpected)}, "
-                    f"missing_keys={sorted(disallowed_missing)}"
-                )
-        return result
 
     def sample_action(self, distribution, valid_mask, free_agents_num, tasks_num, deterministic=False, expert_actions=None, free_agents_nearest_tasks=None, use_hungarian_for_gumbel=False, use_gumbel_hungarian_mode=False):
         """
@@ -2326,5 +1725,4 @@ class GNNPolicy(BasePolicy):
         returns_all[invalid_mask, 1:] = 0
 
         return log_prob_all, centered_all, returns_all
-
 

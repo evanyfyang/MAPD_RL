@@ -44,12 +44,26 @@ def parse_args():
     parser.add_argument("--learning_rate", type=float, default=1e-4,
                         help="初始学习率.")
     parser.add_argument("--lr_schedule", type=str, default="constant",
-                        choices=["constant", "linear"],
-                        help="学习率调度策略: constant 或 linear.")
+                        choices=["constant", "linear", "step"],
+                        help="学习率调度策略: constant、linear 或 step.")
+    parser.add_argument("--lr_decay_step_size", type=int, default=10000,
+                        help="step学习率调度中，每多少个env steps衰减一次。")
+    parser.add_argument("--lr_decay_gamma", type=float, default=0.5,
+                        help="step学习率调度中，每次衰减乘以的比例。")
+    parser.add_argument("--min_learning_rate", type=float, default=1e-5,
+                        help="学习率下界。")
     parser.add_argument("--gamma", type=float, default=0.99,
                         help="折扣因子 (discount factor).")
     parser.add_argument("--ent_coef", type=float, default=0.0,
                         help="熵正则系数 (entropy coefficient).")
+    parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "adamw"],
+                        help="优化器类型。默认adam。")
+    parser.add_argument("--optimizer_weight_decay", type=float, default=0.0,
+                        help="优化器weight decay（AdamW时常设为1e-4左右）。")
+    parser.add_argument("--max_grad_norm", type=float, default=0.5,
+                        help="梯度裁剪阈值。")
+    parser.add_argument("--target_kl", type=float, default=0.0,
+                        help="KL gate阈值；<=0表示关闭。")
     parser.add_argument("--n_steps", type=int, default=1,
                         help="每次更新的环境步数.")
     parser.add_argument("--normalize_advantage", action="store_true", default=False,
@@ -84,8 +98,14 @@ def parse_args():
                         help="启用环境调试日志（精简、节流）.")
     parser.add_argument("--debug_every", type=int, default=50,
                         help="环境调试日志打印间隔步数（步频节流）.")
-    parser.add_argument("--nearest_tasks_min_k", type=int, default=100,
+    parser.add_argument("--nearest_tasks_min_k", type=int, default=8,
                         help="统一候选上限K。每个agent保留min(K, free_tasks_num)个最近任务。")
+    parser.add_argument("--task_truncated_size", type=int, default=1,
+                        help="每个agent执行队列长度上限（默认1；可设为2以允许delivering接next task）。")
+    parser.add_argument("--use_explicit_path_feature", dest="use_explicit_path_feature", action="store_true", default=True,
+                        help="是否在FA/DA打分头显式使用路径长度特征（默认开启）")
+    parser.add_argument("--no_explicit_path_feature", dest="use_explicit_path_feature", action="store_false",
+                        help="关闭显式路径长度特征（用于ablation）")
 
     # ------------- GNN Policy 相关超参数 -------------
     parser.add_argument("--hidden_dim", type=int, default=64,
@@ -94,7 +114,7 @@ def parse_args():
                         help="网格特征维度.")
     parser.add_argument("--lower_gnn_type", type=str, default="gcn", choices=["gcn", "gat", "sp_mpnn", "cnn_channels"],
                         help="低层级GNN类型: gcn、gat、sp_mpnn 或 cnn_channels.")
-    parser.add_argument("--higher_gnn_type", type=str, default="line_graph", choices=["gat", "line_graph", "self_attention_gat", "edge_gcnn", "edge_node_gnn"],
+    parser.add_argument("--higher_gnn_type", type=str, default="line_graph", choices=["gat", "line_graph", "self_attention_gat", "edge_gcnn", "edge_node_gnn", "edge_node_gnn_complex"],
                         help="高层级GNN类型: gat、line_graph、self_attention_gat 或 edge_gcnn.")
     parser.add_argument("--pretrain_steps", type=int, default=10000,
                         help="预训练步数（使用专家动作）.")
@@ -179,6 +199,25 @@ def linear_schedule(initial_value: float):
     """
     def func(progress_remaining: float) -> float:
         return initial_value * progress_remaining
+    return func
+
+
+def step_decay_schedule(initial_value: float, total_timesteps: int, step_size: int, gamma: float, min_lr: float):
+    """
+    按固定 env steps 做阶梯式学习率衰减。
+    progress_remaining 在 [1.0 -> 0.0] 之间。
+    """
+    total_timesteps = max(int(total_timesteps), 1)
+    step_size = max(int(step_size), 1)
+    gamma = float(gamma)
+    min_lr = float(min_lr)
+
+    def func(progress_remaining: float) -> float:
+        elapsed = int(round((1.0 - float(progress_remaining)) * total_timesteps))
+        num_decays = max(0, elapsed // step_size)
+        lr = float(initial_value) * (gamma ** num_decays)
+        return max(min_lr, lr)
+
     return func
 
 def test_model(model_path, env_kwargs, n_episodes=5, seed=100, infer_decode_mode="sequential"):
@@ -282,6 +321,7 @@ def main():
             debug_env=args.debug_env,
             debug_every=args.debug_every,
             nearest_tasks_min_k=args.nearest_tasks_min_k,
+            task_truncated_size=args.task_truncated_size,
             model_only_eval=args.model_only_eval,
         )
         test_model(
@@ -305,6 +345,7 @@ def main():
         debug_env=args.debug_env,
         debug_every=args.debug_every,
         nearest_tasks_min_k=args.nearest_tasks_min_k,
+        task_truncated_size=args.task_truncated_size,
         model_only_eval=args.model_only_eval,
     )
 
@@ -319,10 +360,26 @@ def main():
     env_fns = [make_thunk(i) for i in range(args.n_envs)]
     vec_env = vec_env_cls(env_fns)
 
+    total_train_steps = args.total_timesteps * args.n_envs
     if args.lr_schedule == "constant":
         lr_func = args.learning_rate
+    elif args.lr_schedule == "step":
+        lr_func = step_decay_schedule(
+            initial_value=args.learning_rate,
+            total_timesteps=total_train_steps,
+            step_size=args.lr_decay_step_size,
+            gamma=args.lr_decay_gamma,
+            min_lr=args.min_learning_rate,
+        )
     else:
         lr_func = linear_schedule(args.learning_rate)
+
+    optimizer_class = torch.optim.AdamW if args.optimizer.lower() == "adamw" else torch.optim.Adam
+    optimizer_kwargs = {}
+    if args.optimizer.lower() == "adamw":
+        optimizer_kwargs["weight_decay"] = float(args.optimizer_weight_decay)
+    elif float(args.optimizer_weight_decay) > 0.0:
+        optimizer_kwargs["weight_decay"] = float(args.optimizer_weight_decay)
 
     # GNN Policy 参数
     policy_kwargs = dict(
@@ -354,6 +411,10 @@ def main():
         rl_policy=args.rl_policy,
         rl_n_samples=args.rl_n_samples,
         infer_decode_mode=args.infer_decode_mode,
+        task_truncated_size=args.task_truncated_size,
+        use_explicit_path_feature=args.use_explicit_path_feature,
+        optimizer_class=optimizer_class,
+        optimizer_kwargs=optimizer_kwargs,
     )
 
     if args.resume_checkpoint is not None:
@@ -362,10 +423,14 @@ def main():
         # 允许通过当前参数覆盖关键训练开关，便于课程阶段切换时微调
         model.ent_coef = args.ent_coef
         model.gamma = args.gamma
+        model.max_grad_norm = args.max_grad_norm
+        model.target_kl = None if args.target_kl <= 0 else float(args.target_kl)
         model.rl_use_centered_adv = (not args.rl_no_centering)
         model.rl_centered_weight = float(max(0.0, min(1.0, args.rl_centered_weight)))
         if hasattr(model, "policy") and hasattr(model.policy, "infer_decode_mode"):
             model.policy.infer_decode_mode = args.infer_decode_mode
+        if hasattr(model, "policy") and hasattr(model.policy, "task_truncated_size"):
+            model.policy.task_truncated_size = max(1, int(args.task_truncated_size))
     else:
         model = REINFORCE(
             policy=GNNPolicy,
@@ -375,6 +440,8 @@ def main():
             n_steps=args.n_steps,               
             gamma=args.gamma,
             ent_coef=args.ent_coef,
+            max_grad_norm=args.max_grad_norm,
+            target_kl=None if args.target_kl <= 0 else float(args.target_kl),
             normalize_advantage=args.normalize_advantage,
             rl_use_centered_adv=(not args.rl_no_centering),
             rl_centered_weight=args.rl_centered_weight,

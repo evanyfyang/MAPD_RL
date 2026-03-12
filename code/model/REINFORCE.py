@@ -1,5 +1,7 @@
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union, Dict
+import warnings
 import sys
+import copy
 import torch as th
 from gymnasium import spaces
 from torch.nn import functional as F
@@ -9,6 +11,9 @@ from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
 from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance
+from stable_baselines3.common.save_util import load_from_zip_file, recursive_setattr
+from stable_baselines3.common.base_class import _convert_space
+from stable_baselines3.common.utils import check_for_correct_spaces
 
 # 导入GNNPolicy
 from model.gnn_policy import GNNPolicy
@@ -60,6 +65,7 @@ class REINFORCE(OnPolicyAlgorithm):
         normalize_advantage: bool = False,
         rl_use_centered_adv: bool = True,
         rl_centered_weight: float = 1.0,
+        target_kl: Optional[float] = None,
         stats_window_size: int = 100,
         tensorboard_log: Optional[str] = None,
         policy_kwargs: Optional[dict[str, Any]] = None,
@@ -114,6 +120,7 @@ class REINFORCE(OnPolicyAlgorithm):
         self.normalize_advantage = normalize_advantage
         self.rl_use_centered_adv = rl_use_centered_adv
         self.rl_centered_weight = float(max(0.0, min(1.0, rl_centered_weight)))
+        self.target_kl = None if target_kl is None or float(target_kl) <= 0.0 else float(target_kl)
         
         if _init_setup_model:
             self._setup_model()
@@ -133,6 +140,89 @@ class REINFORCE(OnPolicyAlgorithm):
         if not hasattr(self.policy, 'pretrain_steps'):
             self.policy.pretrain_steps = 10000
         # 预训练阶段日志基于环境步数 current_step 触发
+
+    @classmethod
+    def load(  # type: ignore[override]
+        cls,
+        path: str,
+        env: Optional[GymEnv] = None,
+        device: Union[th.device, str] = "auto",
+        custom_objects: Optional[Dict[str, Any]] = None,
+        print_system_info: bool = False,
+        force_reset: bool = True,
+        **kwargs,
+    ) -> "REINFORCE":
+        """
+        Backward-compatible load:
+        if optimizer param groups mismatch (after policy architecture update),
+        fallback to loading all module weights while skipping optimizer state.
+        """
+        try:
+            return super(REINFORCE, cls).load(
+                path,
+                env=env,
+                device=device,
+                custom_objects=custom_objects,
+                print_system_info=print_system_info,
+                force_reset=force_reset,
+                **kwargs,
+            )
+        except ValueError as e:
+            if "parameter group" not in str(e):
+                raise
+
+            data, params, pytorch_variables = load_from_zip_file(
+                path,
+                device=device,
+                custom_objects=custom_objects,
+                print_system_info=print_system_info,
+            )
+
+            if "observation_space" not in data or "action_space" not in data:
+                raise KeyError("The observation_space and action_space were not given, can't verify new environments")
+
+            for key in {"observation_space", "action_space"}:
+                data[key] = _convert_space(data[key])
+
+            if env is not None:
+                env = cls._wrap_env(env, data["verbose"])
+                check_for_correct_spaces(env, data["observation_space"], data["action_space"])
+                if force_reset and data is not None:
+                    data["_last_obs"] = None
+                if data is not None:
+                    data["n_envs"] = env.num_envs
+            else:
+                if "env" in data:
+                    env = data["env"]
+
+            model = cls(
+                policy=data["policy_class"],
+                env=env,
+                device=device,
+                _init_setup_model=False,  # type: ignore[call-arg]
+            )
+            model.__dict__.update(data)
+            model.__dict__.update(kwargs)
+            model._setup_model()
+
+            # 跳过optimizer状态，加载其余权重
+            params_wo_optim = {k: v for k, v in params.items() if k != "policy.optimizer"}
+            model.set_parameters(params_wo_optim, exact_match=False, device=device)
+
+            if pytorch_variables is not None:
+                for name in pytorch_variables:
+                    if pytorch_variables[name] is None:
+                        continue
+                    recursive_setattr(model, f"{name}.data", pytorch_variables[name].data)
+
+            if model.use_sde:
+                model.policy.reset_noise()  # type: ignore[operator]
+
+            warnings.warn(
+                "Optimizer state was skipped while loading due to parameter-group mismatch. "
+                "Model weights loaded successfully; this is expected for architecture-evolved checkpoints."
+            )
+            return model
     
     def train(self) -> None:
         """
@@ -146,6 +236,9 @@ class REINFORCE(OnPolicyAlgorithm):
         # 更新优化器学习率
         self._update_learning_rate(self.policy.optimizer)
         
+        last_approx_kl = None
+        last_kl_gate_triggered = False
+
         # 这将只循环一次（一次性获取所有数据）
         for rollout_data in self.rollout_buffer.get(batch_size=None):
             actions = rollout_data.actions
@@ -198,8 +291,49 @@ class REINFORCE(OnPolicyAlgorithm):
                                 nearest_b = _free_agents_nearest_tasks[b] if _free_agents_nearest_tasks is not None else None
                                 m = int(free_agents_num[b].item())
                                 n = int(free_tasks_num[b].item())
-                                if m <= 0 or n <= 0 or nearest_b is None:
+                                if m <= 0 or n <= 0:
                                     return 0.0, 0.0
+
+                                assignable_is_delivering = obs.get("assignable_agent_is_delivering", None) if isinstance(obs, dict) else None
+                                assignable_dt_idx = obs.get("assignable_agent_delivering_task_idx", None) if isinstance(obs, dict) else None
+                                dt_nearest_all = obs.get("delivering_tasks_nearest_tasks", None) if isinstance(obs, dict) else None
+                                assignable_agents = obs.get("free_agents", None) if isinstance(obs, dict) else None
+
+                                def pair_cost(i_idx: int, task_idx: int):
+                                    # 返回 (a2p_like, total_like)
+                                    is_delivering = 0.0
+                                    if assignable_is_delivering is not None:
+                                        try:
+                                            is_delivering = float(assignable_is_delivering[b, i_idx, 0].item())
+                                        except Exception:
+                                            is_delivering = 0.0
+                                    # DA: st + d2p + p2d
+                                    if is_delivering >= 0.5 and dt_nearest_all is not None and assignable_dt_idx is not None:
+                                        try:
+                                            dt_idx = int(assignable_dt_idx[b, i_idx, 0].item())
+                                        except Exception:
+                                            dt_idx = -1
+                                        if dt_idx >= 0 and dt_idx < int(dt_nearest_all.shape[1]):
+                                            dt_nearest = dt_nearest_all[b, dt_idx]
+                                            for kk in range(dt_nearest.shape[0]):
+                                                t_id = int(dt_nearest[kk, 0].item())
+                                                if t_id == task_idx:
+                                                    d2p = float(dt_nearest[kk, 1].item())
+                                                    p2d = float(dt_nearest[kk, 2].item())
+                                                    try:
+                                                        a2d = float(assignable_agents[b, i_idx, 2].item()) if assignable_agents is not None else 0.0
+                                                    except Exception:
+                                                        a2d = 0.0
+                                                    return a2d + d2p, a2d + d2p + p2d
+                                    # FA: a2p + p2d
+                                    if nearest_b is not None:
+                                        for kk in range(nearest_b.shape[1]):
+                                            t_id = int(nearest_b[i_idx, kk, 0].item())
+                                            if t_id == task_idx:
+                                                a2p = float(nearest_b[i_idx, kk, 1].item())
+                                                p2d = float(nearest_b[i_idx, kk, 2].item())
+                                                return a2p, a2p + p2d
+                                    return 1.0 * scale_hw, 2.0 * scale_hw
 
                                 used = set()
                                 sum_a2p = 0.0
@@ -211,19 +345,9 @@ class REINFORCE(OnPolicyAlgorithm):
                                     if a in used:
                                         continue
                                     used.add(a)
-                                    found = False
-                                    for k in range(nearest_b.shape[1]):
-                                        t_id = int(nearest_b[i, k, 0].item())
-                                        if t_id == a:
-                                            a2p = float(nearest_b[i, k, 1].item())
-                                            p2d = float(nearest_b[i, k, 2].item())
-                                            sum_a2p += a2p
-                                            sum_total += (a2p + p2d)
-                                            found = True
-                                            break
-                                    if not found:
-                                        sum_a2p += 1.0 * scale_hw
-                                        sum_total += 2.0 * scale_hw
+                                    c1, c2 = pair_cost(i, a)
+                                    sum_a2p += c1
+                                    sum_total += c2
                                 return sum_a2p, sum_total
 
                             # Hungarian解码（基于同一original_scores），用于与sequential并行诊断
@@ -300,31 +424,58 @@ class REINFORCE(OnPolicyAlgorithm):
                         scale_hw = 56.0
 
                     def compute_costs_for_pairs(b, pairs):
-                        if free_agents_nearest_tasks is None:
-                            return 0.0, 0.0
-                        nearest_b = free_agents_nearest_tasks[b]
+                        nearest_b = free_agents_nearest_tasks[b] if free_agents_nearest_tasks is not None else None
                         num_agents_b = int(free_agents_num[b].item())
                         num_tasks_b = int(free_tasks_num[b].item())
+                        if num_agents_b <= 0 or num_tasks_b <= 0:
+                            return 0.0, 0.0
+
+                        assignable_is_delivering = obs.get("assignable_agent_is_delivering", None) if isinstance(obs, dict) else None
+                        assignable_dt_idx = obs.get("assignable_agent_delivering_task_idx", None) if isinstance(obs, dict) else None
+                        dt_nearest_all = obs.get("delivering_tasks_nearest_tasks", None) if isinstance(obs, dict) else None
+                        assignable_agents = obs.get("free_agents", None) if isinstance(obs, dict) else None
+
+                        def pair_cost(i_idx: int, task_idx: int):
+                            if not (0 <= i_idx < num_agents_b and 0 <= task_idx < num_tasks_b):
+                                return 1.0 * scale_hw, 2.0 * scale_hw
+                            is_delivering = 0.0
+                            if assignable_is_delivering is not None:
+                                try:
+                                    is_delivering = float(assignable_is_delivering[b, i_idx, 0].item())
+                                except Exception:
+                                    is_delivering = 0.0
+                            if is_delivering >= 0.5 and dt_nearest_all is not None and assignable_dt_idx is not None:
+                                try:
+                                    dt_idx = int(assignable_dt_idx[b, i_idx, 0].item())
+                                except Exception:
+                                    dt_idx = -1
+                                if dt_idx >= 0 and dt_idx < int(dt_nearest_all.shape[1]):
+                                    dt_nearest = dt_nearest_all[b, dt_idx]
+                                    for kk in range(dt_nearest.shape[0]):
+                                        t_id = int(dt_nearest[kk, 0].item())
+                                        if t_id == task_idx:
+                                            d2p = float(dt_nearest[kk, 1].item())
+                                            p2d = float(dt_nearest[kk, 2].item())
+                                            try:
+                                                a2d = float(assignable_agents[b, i_idx, 2].item()) if assignable_agents is not None else 0.0
+                                            except Exception:
+                                                a2d = 0.0
+                                            return a2d + d2p, a2d + d2p + p2d
+                            if nearest_b is not None:
+                                for kk in range(nearest_b.shape[1]):
+                                    t_id = int(nearest_b[i_idx, kk, 0].item())
+                                    if t_id == task_idx:
+                                        a2p = float(nearest_b[i_idx, kk, 1].item())
+                                        p2d = float(nearest_b[i_idx, kk, 2].item())
+                                        return a2p, a2p + p2d
+                            return 1.0 * scale_hw, 2.0 * scale_hw
+
                         sum_a2p = 0.0
                         sum_total = 0.0
                         for (i, j) in pairs:
-                            if not (0 <= i < num_agents_b and 0 <= j < num_tasks_b):
-                                sum_a2p += 1.0 * scale_hw
-                                sum_total += 2.0 * scale_hw
-                                continue
-                            found = False
-                            for k in range(nearest_b.shape[1]):
-                                t_id = int(nearest_b[i, k, 0].item())
-                                if t_id == j:
-                                    a2p = float(nearest_b[i, k, 1].item())
-                                    p2d = float(nearest_b[i, k, 2].item())
-                                    sum_a2p += a2p
-                                    sum_total += (a2p + p2d)
-                                    found = True
-                                    break
-                            if not found:
-                                sum_a2p += 1.0 * scale_hw
-                                sum_total += 2.0 * scale_hw
+                            c1, c2 = pair_cost(i, j)
+                            sum_a2p += c1
+                            sum_total += c2
                         return sum_a2p, sum_total
 
                     deltas_total = []
@@ -379,11 +530,14 @@ class REINFORCE(OnPolicyAlgorithm):
                 r0 = rollout_data.returns
                 if isinstance(r0, th.Tensor) and r0.ndim > 1:
                     r0 = r0.squeeze(-1)
-                # 按每个样本的有效agent数量做归一化，减轻动态规模带来的梯度尺度波动
-                agent_denom = None
+                # 按每个样本的 assignable agent 数量做归一化，减轻动态规模带来的梯度尺度波动。
+                # 这里沿用环境中的旧字段名 `free_agents_num`，但在 env_gnn 里其语义已经是：
+                #   truncated_size = 1: free agents 数
+                #   truncated_size > 1: free + delivering 的 assignable agents 数
+                assignable_agent_denom = None
                 if isinstance(rollout_data.observations, dict) and "free_agents_num" in rollout_data.observations:
-                    agent_denom = rollout_data.observations["free_agents_num"].float().to(device=self.device)
-                    agent_denom = th.clamp(agent_denom, min=1.0)
+                    assignable_agent_denom = rollout_data.observations["free_agents_num"].float().to(device=self.device)
+                    assignable_agent_denom = th.clamp(assignable_agent_denom, min=1.0)
                 # 计算多样本 (log_prob_all, centered_all)
                 # Pass cached log_prob/entropy from evaluate_actions to avoid re-sampling bias
                 multi = self.policy.compute_centered_returns(
@@ -392,8 +546,8 @@ class REINFORCE(OnPolicyAlgorithm):
                 )
                 if multi is not None:
                     log_prob_all, centered_all, returns_all = multi  # [B,K], [B,K], [B,K]
-                    if agent_denom is not None:
-                        log_prob_all = log_prob_all / agent_denom.unsqueeze(1)
+                    if assignable_agent_denom is not None:
+                        log_prob_all = log_prob_all / assignable_agent_denom.unsqueeze(1)
                     if self.rl_use_centered_adv:
                         alpha = self.rl_centered_weight
                         mixed_adv = alpha * centered_all.to(device=self.device) + (1.0 - alpha) * returns_all.to(device=self.device)
@@ -405,8 +559,8 @@ class REINFORCE(OnPolicyAlgorithm):
                     # 回退：单样本
                     returns = rollout_data.returns
                     log_prob_rl = log_prob
-                    if agent_denom is not None:
-                        log_prob_rl = log_prob_rl / agent_denom
+                    if assignable_agent_denom is not None:
+                        log_prob_rl = log_prob_rl / assignable_agent_denom
                     policy_loss = -(returns * log_prob_rl).mean()
                     loss = policy_loss
                 
@@ -432,12 +586,51 @@ class REINFORCE(OnPolicyAlgorithm):
             sys.stdout.flush()
             
             # 优化步骤
+            param_backup = None
+            optim_backup = None
+            use_kl_gate = (
+                self.policy.current_step >= self.policy.pretrain_steps
+                and self.target_kl is not None
+                and self.target_kl > 0.0
+            )
+            if use_kl_gate:
+                param_backup = {
+                    name: p.detach().clone()
+                    for name, p in self.policy.named_parameters()
+                    if p.requires_grad
+                }
+                optim_backup = copy.deepcopy(self.policy.optimizer.state_dict())
+
             self.policy.optimizer.zero_grad()
             loss.backward()
             
             # 裁剪梯度范数
             th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
             self.policy.optimizer.step()
+
+            if use_kl_gate:
+                try:
+                    with th.no_grad():
+                        _, log_prob_after, _ = self.policy.evaluate_actions(
+                            rollout_data.observations,
+                            actions,
+                        )
+                    old_log_prob = rollout_data.old_log_prob.to(self.device).reshape_as(log_prob_after)
+                    approx_kl = th.mean(old_log_prob - log_prob_after.detach()).item()
+                    last_approx_kl = approx_kl
+                    if approx_kl > float(self.target_kl):
+                        for name, p in self.policy.named_parameters():
+                            if p.requires_grad and name in param_backup:
+                                p.data.copy_(param_backup[name])
+                        if optim_backup is not None:
+                            self.policy.optimizer.load_state_dict(optim_backup)
+                        last_kl_gate_triggered = True
+                        print(
+                            f"[KLGate] step {self.policy.current_step}: "
+                            f"approx_kl={approx_kl:.6f} > target_kl={float(self.target_kl):.6f}, revert optimizer step."
+                        )
+                except Exception as e:
+                    print(f"[KLGate] warning: failed to evaluate KL gate due to: {e}")
             
             # 更新步数
             self.policy.current_step += self.n_envs * self.n_steps
@@ -448,6 +641,15 @@ class REINFORCE(OnPolicyAlgorithm):
         self.logger.record("train/loss", loss.item())
         if entropy is not None:
             self.logger.record("train/entropy", entropy.mean().item())
+        current_lr = None
+        try:
+            current_lr = float(self.policy.optimizer.param_groups[0]["lr"])
+            self.logger.record("train/learning_rate", current_lr)
+        except Exception:
+            current_lr = None
+        if last_approx_kl is not None:
+            self.logger.record("train/approx_kl", last_approx_kl)
+            self.logger.record("train/kl_gate_triggered", float(last_kl_gate_triggered))
         # 记录当前训练阶段
         stage = "pretrain" if self.policy.current_step < self.policy.pretrain_steps else "policy_gradient"
         self.logger.record("train/stage", stage)

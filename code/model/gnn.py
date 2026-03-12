@@ -1518,3 +1518,74 @@ class EdgeNodeGNN(nn.Module):
             ef = e
         logits = self.score_mlp(torch.cat([x[src], x[dst], ef], dim=-1)).squeeze(-1)
         return logits
+
+
+class EdgeNodeLayerComplex(nn.Module):
+    def __init__(self, node_dim, edge_dim, edge_attr_dim, num_edge_types):
+        super().__init__()
+        self.edge_type_emb = nn.Embedding(num_edge_types, edge_dim)
+        self.enc_eattr = nn.Sequential(
+            nn.Linear(edge_attr_dim, edge_dim),
+            nn.GELU(),
+            nn.Linear(edge_dim, edge_dim),
+        )
+        self.edge_mlp = nn.Sequential(
+            nn.Linear(2 * node_dim + 3 * edge_dim, edge_dim),
+            nn.GELU(),
+            nn.Linear(edge_dim, edge_dim),
+        )
+        self.node_mlp = nn.Sequential(
+            nn.Linear(node_dim + edge_dim, node_dim),
+            nn.GELU(),
+            nn.Linear(node_dim, node_dim),
+        )
+        self.enorm = nn.LayerNorm(edge_dim)
+        self.xnorm = nn.LayerNorm(node_dim)
+
+    def forward(self, x, e, edge_index, edge_attr, edge_type):
+        src, dst = edge_index
+        ea = self.enc_eattr(edge_attr)
+        et = self.edge_type_emb(edge_type.long())
+        e_in = torch.cat([x[src], x[dst], e, ea, et], dim=-1)
+        e_new = self.enorm(e + self.edge_mlp(e_in))
+        m = torch.zeros(x.size(0), e_new.size(1), device=x.device, dtype=x.dtype)
+        m.index_add_(0, dst, e_new)
+        x_new = self.xnorm(x + self.node_mlp(torch.cat([x, m], dim=-1)))
+        return x_new, e_new
+
+
+class EdgeNodeGNNComplex(nn.Module):
+    def __init__(self, node_dim, edge_dim, edge_attr_dim, num_layers=3, num_edge_types=3):
+        super().__init__()
+        self.node_dim = node_dim
+        self.edge_dim = edge_dim
+        self.edge_attr_dim = edge_attr_dim
+        self.num_layers = num_layers
+        self.num_edge_types = num_edge_types
+        self.edge_type_init = nn.Embedding(num_edge_types, edge_dim)
+        self.edge_attr_init = nn.Linear(edge_attr_dim, edge_dim)
+        self.layers = nn.ModuleList([
+            EdgeNodeLayerComplex(node_dim, edge_dim, edge_attr_dim, num_edge_types)
+            for _ in range(num_layers)
+        ])
+        self.score_mlp = nn.Sequential(
+            nn.Linear(2 * node_dim + edge_dim, edge_dim),
+            nn.GELU(),
+            nn.Linear(edge_dim, 1),
+        )
+
+    def forward(self, node_features, edge_index, edge_attr, edge_type, score_mask=None):
+        x = node_features
+        e = self.edge_attr_init(edge_attr) + self.edge_type_init(edge_type.long())
+        for layer in self.layers:
+            x, e = layer(x, e, edge_index, edge_attr, edge_type)
+
+        if score_mask is not None:
+            idx = score_mask
+            src, dst = edge_index[:, idx]
+            ef = e[idx]
+        else:
+            src, dst = edge_index
+            ef = e
+        logits = self.score_mlp(torch.cat([x[src], x[dst], ef], dim=-1)).squeeze(-1)
+        return logits

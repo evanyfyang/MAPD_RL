@@ -145,60 +145,54 @@ bool LNS::run_Hungarian_greedy_without_delivering(int task_truncated_size, int c
     dlib::matrix<int> cost(row, row);
 	for (int i = 0; i < row; i++)
     {
+        for (int j = 0; j < row; j++)
+            cost(i, j) = -1000000;
+
         if (i >= num_of_agents)
         {
-            for (int j = 0; j < row; j++)
-                cost(i, j) = -1000000;
+            continue;
         }
-        else if (al.agents_all[i].is_delivering)
+
+        bool can_assign = true;
+        if (al.agents_all[i].is_delivering)
         {
-            if (task_truncated_size > 1)
-            {
-                if (al.agents_all[i].full_loaded) 
-                {
-                    for (int j = 0; j < row; j++)
-                        cost(i, j) = -1000000;
-                }
-            }
-            else 
-            {
-                for (int j = 0; j < row; j++)
-                    cost(i, j) = -1000000;
-            }
-            
+            // task_truncated_size == 1: delivering agent不能再接单
+            // task_truncated_size > 1: allowing one extra task is controlled downstream by truncation
+            can_assign = (task_truncated_size > 1);
         }
-        else
+
+        if (!can_assign)
         {
-            vector<pair<int, int>> task_costs; 
-            for (int j = 0; j < num_of_tasks; j++)
-            {
-                Task& task = tl.tasks_all[j];
-                Agent& agent = al.agents_all[i];
-                int temp_cost = 0;
-                temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];    
-                temp_cost = max(temp_cost, task.release_time);
-                for (int k = 0; k < task.goal_arr.size()-1; k++)
-                    temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
-                
-                task_costs.push_back(make_pair(j, -temp_cost)); 
-            }
-            
-            sort(task_costs.begin(), task_costs.end(), 
-                [](const pair<int, int>& a, const pair<int, int>& b) {
-                    return a.second > b.second;
-                });
-            
-            for (int j = 0; j < row; j++)
-                cost(i, j) = -1000000;
-            
-            // 独立候选上限K：min(K, task_num)
-            int tasks_to_keep = min(candidate_task_k, (int)task_costs.size());
-            for (int j = 0; j < tasks_to_keep; j++)
-            {
-                int task_idx = task_costs[j].first;
-                int task_cost = task_costs[j].second;
-                cost(i, task_idx) = task_cost;
-            }
+            continue;
+        }
+
+        vector<pair<int, int>> task_costs;
+        for (int j = 0; j < num_of_tasks; j++)
+        {
+            Task& task = tl.tasks_all[j];
+            Agent& agent = al.agents_all[i];
+            int temp_cost = 0;
+            temp_cost = agent.start_timestep + G.heuristics.at(task.goal_arr[0])[agent.start_location];
+            temp_cost = max(temp_cost, task.release_time);
+            for (int k = 0; k < task.goal_arr.size()-1; k++)
+                temp_cost += G.heuristics.at(task.goal_arr[k])[task.goal_arr[k+1]];
+
+            task_costs.push_back(make_pair(j, -temp_cost));
+        }
+
+        sort(task_costs.begin(), task_costs.end(),
+            [](const pair<int, int>& a, const pair<int, int>& b) {
+                return a.second > b.second;
+            });
+
+        // 独立候选上限K：min(K, task_num)
+        int min_agent_to_keep = max(num_of_agents, candidate_task_k);
+        int tasks_to_keep = min(min_agent_to_keep, (int)task_costs.size());
+        for (int j = 0; j < tasks_to_keep; j++)
+        {
+            int task_idx = task_costs[j].first;
+            int task_cost = task_costs[j].second;
+            cost(i, task_idx) = task_cost;
         }
     }
     // cout << "----------------------------" <<endl;

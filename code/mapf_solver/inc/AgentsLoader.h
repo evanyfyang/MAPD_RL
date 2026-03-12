@@ -18,7 +18,6 @@ public:
     vector<int> task_sequence;
     vector<int>* new_task_sequence;
     int task_sequence_makespan;
-    bool full_loaded = false;
     
     Agent() {};
     Agent(int start_location, int agent_id);

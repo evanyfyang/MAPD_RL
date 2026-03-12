@@ -719,6 +719,7 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 			timestep, delivering_finish_time, 0,
 			task_sequences  
 		); 
+		status.task_truncated_size = task_truncated_size;
 		// for (int pp = 0; pp < paths.size();pp ++)
 		// {
 		// 	if (paths[pp].size() <= timestep)

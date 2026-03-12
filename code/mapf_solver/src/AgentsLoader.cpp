@@ -89,10 +89,6 @@ AgentsLoader::AgentsLoader(const KivaGrid& G, const vector<State>& starts,
             this->agents_all[ag].is_delivering = true;
             this->agents_all[ag].start_location = delivering_agents[ag][0];
 
-            if(delivering_agents[ag].size() > 1){
-                this->agents_all[ag].full_loaded = true;
-            }
-
             int startIndex = -1;
             int goalIndex = -1;
             for (int i = 0; i < solution[ag].size(); i++)

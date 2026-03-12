@@ -219,9 +219,10 @@ class PBSSolver
 
 		if (consider_expert && !status.allFinished) {
 			KivaSystemOnline* new_system = dynamic_cast<KivaSystemOnline*>(system->clone());
-			expert_status = new_system->simulate_until_next_assignment(status.agent_task_sequences);
-			set_estimated_service_time(expert_status, status.agent_task_sequences);
-			expert_action = status.agent_task_sequences;
+			vector<vector<int>> expert_input = status.agent_task_sequences;
+			expert_status = new_system->simulate_until_next_assignment(expert_input);
+			set_estimated_service_time(expert_status, expert_input);
+			expert_action = expert_input;
 			system_expert = dynamic_cast<KivaSystemOnline*>(new_system->clone());
 			delete new_system;
 			status.expert_estimated_service_time = expert_status.estimated_service_time;
@@ -253,14 +254,15 @@ class PBSSolver
 		std::set<int> last_task_id = {};
 		std::set<int> delivering_tasks = {};
 
-		for (int i = 0; i < status.agent_task_pair.size(); i++) {
-			delivering_tasks.insert(status.agent_task_pair[i].first);
+		for (const auto& kv : status.agent_task_pair) {
+			delivering_tasks.insert(kv.second.first);
 		}
 
-		for (int i = 0; i < agent_tasks.size(); i++) {
-			for (int j = 0; j < agent_tasks[i].size(); j++) {
-				if (agent_tasks[i][j] != -1) {
-					last_task_id.insert(agent_tasks[i][j]);
+		// 严格使用“本轮传入动作”的任务集合作为比较口径，不回退内部重建序列。
+		for (const auto& seq : agent_tasks) {
+			for (int task_id : seq) {
+				if (task_id != -1) {
+					last_task_id.insert(task_id);
 				}
 			}
 		}
@@ -307,7 +309,6 @@ PYBIND11_MODULE(mapf_solver, m) {
         .def_readwrite("start_timestep", &Agent::start_timestep)
         .def_readwrite("is_delivering", &Agent::is_delivering)
         .def_readwrite("task_sequence", &Agent::task_sequence)
-		.def_readwrite("full_loaded", &Agent::full_loaded)
         ;
 
     py::class_<State>(m, "State")
@@ -342,6 +343,7 @@ PYBIND11_MODULE(mapf_solver, m) {
 		.def_readwrite("estimated_service_time", &AgentTaskStatus::estimated_service_time)
 		.def_readwrite("expert_estimated_finish_time", &AgentTaskStatus::expert_estimated_finish_time)
 		.def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks)
+		.def_readwrite("task_truncated_size", &AgentTaskStatus::task_truncated_size)
 		.def_readwrite("makespan", &AgentTaskStatus::makespan);
 
 	py::class_<PBSSolver>(m, "PBSSolver")

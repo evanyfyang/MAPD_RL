@@ -52,6 +52,7 @@ RL_TOTAL_TIMESTEPS="100000"
 RL_N_SAMPLES="1"
 RL_CENTERED_WEIGHT="0.7"
 NEAREST_TASKS_MIN_K="100"
+TASK_TRUNCATED_SIZE="1"
 
 # Flags
 USE_SINKHORN_FLAG="--use_sinkhorn"
@@ -120,6 +121,8 @@ while [[ $# -gt 0 ]]; do
       RL_CENTERED_WEIGHT="$2"; shift 2 ;;
     --nearest_tasks_min_k)
       NEAREST_TASKS_MIN_K="$2"; shift 2 ;;
+    --task_truncated_size)
+      TASK_TRUNCATED_SIZE="$2"; shift 2 ;;
 
     --use_sinkhorn)
       USE_SINKHORN_FLAG="--use_sinkhorn"; shift ;;
@@ -178,6 +181,7 @@ echo "Two-stage training (Pretrain -> RL Resume)"
 echo "GPU=${GPU_ID}, LR=${LEARNING_RATE}, gamma=${GAMMA}, n_envs=${PROCESS_NUM}"
 echo "Pretrain: pretrain_steps=${PRETRAIN_STEPS}, n_steps=${PRETRAIN_N_STEPS}, total_timesteps=${PRETRAIN_TOTAL_TIMESTEPS}"
 echo "RL: pretrain_steps=0, n_steps=${RL_N_STEPS}, total_timesteps=${RL_TOTAL_TIMESTEPS}, rl_n_samples=${RL_N_SAMPLES}"
+echo "Task Truncated Size: ${TASK_TRUNCATED_SIZE}"
 echo "Model: lower=${LOWER_GNN_TYPE}, higher=${HIGHER_GNN_TYPE}, hidden=${HIDDEN_DIM}"
 echo "Save root: ${BASE_DIR}"
 echo "============================================="
@@ -206,6 +210,7 @@ COMMON_ARGS="\
   --rl_policy row_softmax \
   --rl_centered_weight ${RL_CENTERED_WEIGHT} \
   --nearest_tasks_min_k ${NEAREST_TASKS_MIN_K} \
+  --task_truncated_size ${TASK_TRUNCATED_SIZE} \
   ${USE_SINKHORN_FLAG} \
   ${USE_HUNGARIAN_FLAG} \
   ${USE_UNDIRECTED_FLAG} \

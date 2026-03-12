@@ -420,7 +420,17 @@ def process_grid_features(grid_gnn, grid_node_features, grid_edge_indices, cnn_c
     return processed_grid_features
 
 
-def process_higher_graph(higher_gnn, higher_node_features, higher_edge_indices, higher_edge_attrs, higher_gnn_type, output_dim, device, agent_task_mappings=None):
+def process_higher_graph(
+    higher_gnn,
+    higher_node_features,
+    higher_edge_indices,
+    higher_edge_attrs,
+    higher_gnn_type,
+    output_dim,
+    device,
+    agent_task_mappings=None,
+    higher_edge_types=None,
+):
     """
     处理高层级图，提取边特征
     
@@ -494,6 +504,21 @@ def process_higher_graph(higher_gnn, higher_node_features, higher_edge_indices, 
                         num_free_tasks,
                         forward_mask=forward_mask
                     )
+            elif higher_gnn_type == 'edge_node_gnn_complex':
+                mapping_meta, _, _ = agent_task_mappings[b]
+                edge_index_b = higher_edge_indices[b]
+                edge_type_b = higher_edge_types[b] if higher_edge_types is not None else None
+                score_mask = mapping_meta.get("score_mask", None) if isinstance(mapping_meta, dict) else None
+                if edge_index_b.numel() == 0 or edge_type_b is None or score_mask is None or int(score_mask.sum().item()) == 0:
+                    edge_feats = torch.zeros((0,), device=device)
+                else:
+                    edge_feats = higher_gnn(
+                        higher_node_features[b],
+                        higher_edge_indices[b],
+                        higher_edge_attrs[b],
+                        edge_type_b,
+                        score_mask=score_mask,
+                    )
             else:
                 # HigherGATLayer需要三个参数
                 edge_feats = higher_gnn(
@@ -509,7 +534,15 @@ def process_higher_graph(higher_gnn, higher_node_features, higher_edge_indices, 
     return batch_edge_features
 
 
-def calculate_agent_task_scores(batch_edge_features, agent_task_mappings, action_net, invalid_edge_score, device, higher_gnn_type=None):
+def calculate_agent_task_scores(
+    batch_edge_features,
+    agent_task_mappings,
+    action_net,
+    invalid_edge_score,
+    device,
+    higher_gnn_type=None,
+    use_explicit_path_feature=True,
+):
     """
     计算每个自由智能体对每个任务的分数
     
@@ -524,8 +557,48 @@ def calculate_agent_task_scores(batch_edge_features, agent_task_mappings, action
     batch_size = len(batch_edge_features)
     batch_agent_task_scores = []
     
+    use_split_heads = isinstance(action_net, dict)
+    fa_head = action_net.get("fa", None) if use_split_heads else None
+    da_head = action_net.get("da", None) if use_split_heads else None
+
     for b in range(batch_size):
         agent_task_mapping, num_free_agents, num_free_tasks = agent_task_mappings[b]
+
+        if higher_gnn_type == "edge_node_gnn_complex" and isinstance(agent_task_mapping, dict):
+            scores = torch.full((num_free_agents, num_free_tasks + 1), invalid_edge_score, device=device).float()
+            scores[:, -1] = np.exp(-1)
+
+            score_agent_indices = agent_task_mapping.get("score_agent_indices", [])
+            score_task_indices = agent_task_mapping.get("score_task_indices", [])
+            if len(score_agent_indices) == 0 or batch_edge_features[b].numel() == 0:
+                batch_agent_task_scores.append(scores)
+                continue
+
+            row_idx = torch.tensor(score_agent_indices, device=device, dtype=torch.long)
+            col_idx = torch.tensor(score_task_indices, device=device, dtype=torch.long)
+            edge_vals = batch_edge_features[b].to(device).float()
+            valid_len = min(len(row_idx), len(col_idx), edge_vals.numel())
+            if valid_len <= 0:
+                batch_agent_task_scores.append(scores)
+                continue
+
+            row_idx = row_idx[:valid_len]
+            col_idx = col_idx[:valid_len]
+            edge_vals = edge_vals[:valid_len]
+
+            delta = torch.zeros((num_free_agents, num_free_tasks + 1), device=device, dtype=edge_vals.dtype)
+            delta = delta.index_put((row_idx, col_idx), edge_vals, accumulate=True)
+
+            mask = torch.zeros_like(delta)
+            ones = torch.ones_like(edge_vals, dtype=delta.dtype)
+            mask = mask.index_put((row_idx, col_idx), ones, accumulate=True)
+            mask = (mask > 0).to(delta.dtype)
+
+            base = torch.full_like(delta, invalid_edge_score)
+            base[:, -1] = math.exp(-1)
+            scores = torch.where(mask.bool(), delta, base)
+            batch_agent_task_scores.append(scores)
+            continue
         
         # Create score matrix - 分数越大表示匹配越好
         # 初始化为较小的负值，表示无效边，GNN会学习到更好的分数
@@ -540,13 +613,63 @@ def calculate_agent_task_scores(batch_edge_features, agent_task_mappings, action
         edge_idx = 0
 
         for agent_idx, task_indices in agent_task_mapping.items():
-            for task_idx in task_indices:
+            for mapping_item in task_indices:
                 if edge_idx < batch_edge_features[b].size(0):
+                    if isinstance(mapping_item, dict):
+                        task_idx = int(mapping_item.get("task_idx", -1))
+                        edge_kind = str(mapping_item.get("edge_kind", "fa_ft"))
+                        path_total = float(mapping_item.get("path_total", 0.0))
+                        da_path_total = float(mapping_item.get("da_path_total", 0.0))
+                    else:
+                        # backward compatibility with old mapping format: int task_idx
+                        task_idx = int(mapping_item)
+                        edge_kind = "fa_ft"
+                        path_total = 0.0
+                        da_path_total = 0.0
+                    if task_idx < 0 or task_idx >= num_free_tasks:
+                        edge_idx += 1
+                        continue
                     row_idx.append(agent_idx)
                     col_idx.append(task_idx)
-                    edge_vals.append(batch_edge_features[b][edge_idx])  
+                    base_edge_val = batch_edge_features[b][edge_idx]
+                    if base_edge_val.dim() > 0:
+                        base_edge_val = base_edge_val.reshape(-1)[0]
+                    base_edge_val = base_edge_val.float()
+                    if use_split_heads:
+                        if edge_kind == "da_ft" and da_head is not None:
+                            # 显式DA总路径信息，压缩到稳定尺度
+                            if use_explicit_path_feature:
+                                path_feat = torch.log1p(
+                                    torch.tensor(max(0.0, da_path_total), device=device, dtype=torch.float32)
+                                )
+                            else:
+                                path_feat = torch.zeros((), device=device, dtype=torch.float32)
+                            head_in = torch.stack([base_edge_val, path_feat], dim=0).unsqueeze(0)
+                            edge_score = da_head(head_in).reshape(-1)[0]
+                        elif edge_kind == "fa_ft" and fa_head is not None:
+                            fa_total = path_total if path_total > 0.0 else da_path_total
+                            if use_explicit_path_feature:
+                                path_feat = torch.log1p(
+                                    torch.tensor(max(0.0, fa_total), device=device, dtype=torch.float32)
+                                )
+                            else:
+                                path_feat = torch.zeros((), device=device, dtype=torch.float32)
+                            head_in = torch.stack(
+                                [base_edge_val, path_feat],
+                                dim=0
+                            ).unsqueeze(0)
+                            edge_score = fa_head(head_in).reshape(-1)[0]
+                        else:
+                            edge_score = base_edge_val
+                    else:
+                        edge_score = base_edge_val
+                    edge_vals.append(edge_score)
                     edge_idx += 1
-        
+
+        if len(row_idx) == 0:
+            batch_agent_task_scores.append(scores)
+            continue
+
         row_idx = torch.tensor(row_idx, device=device, dtype=torch.long)
         col_idx = torch.tensor(col_idx, device=device, dtype=torch.long)
         edge_vals = torch.stack(edge_vals).to(device).float()  
@@ -651,7 +774,15 @@ def apply_sinkhorn_to_probabilities(action_probs, sinkhorn, free_agents_num, fre
     return action_probs
 
 
-def create_valid_mask(batch_size, max_agents, max_tasks, free_agents_num, free_tasks_num, free_agents_nearest_tasks, device):
+def create_valid_mask(
+    batch_size, max_agents, max_tasks,
+    free_agents_num, free_tasks_num,
+    free_agents_nearest_tasks,
+    assignable_agent_is_delivering,
+    assignable_agent_delivering_task_idx,
+    delivering_tasks_nearest_tasks,
+    device
+):
     """
     创建有效掩码
     
@@ -672,11 +803,33 @@ def create_valid_mask(batch_size, max_agents, max_tasks, free_agents_num, free_t
     
     valid_mask = torch.bmm(free_agents_mask, tasks_mask)
     for b in range(batch_size):
-        for agent_idx in range(free_agents_num[b]):
-            nearest_tasks_info = free_agents_nearest_tasks[b, agent_idx]
+        n_agents = int(free_agents_num[b].item())
+        for agent_idx in range(n_agents):
+            # 兼容旧链路：缺字段则默认free agent语义
+            is_delivering = 0.0
+            if assignable_agent_is_delivering is not None:
+                try:
+                    is_delivering = float(assignable_agent_is_delivering[b, agent_idx, 0].item())
+                except Exception:
+                    is_delivering = 0.0
+
+            if is_delivering < 0.5:
+                # free agent: 使用free_agents_nearest_tasks
+                if free_agents_nearest_tasks is None:
+                    continue
+                nearest_tasks_info = free_agents_nearest_tasks[b, agent_idx]
+            else:
+                # delivering agent: 使用delivering_tasks_nearest_tasks
+                if delivering_tasks_nearest_tasks is None or assignable_agent_delivering_task_idx is None:
+                    continue
+                dt_idx = int(assignable_agent_delivering_task_idx[b, agent_idx, 0].item())
+                if dt_idx < 0 or dt_idx >= delivering_tasks_nearest_tasks.shape[1]:
+                    continue
+                nearest_tasks_info = delivering_tasks_nearest_tasks[b, dt_idx]
+
             for task_info in nearest_tasks_info:
-                task_idx_int = int(task_info[0].item())  
-                if task_idx_int >= 0 and task_idx_int < max_tasks:
+                task_idx_int = int(task_info[0].item())
+                if 0 <= task_idx_int < max_tasks:
                     valid_mask[b, agent_idx, task_idx_int] = 1
     return valid_mask
 
