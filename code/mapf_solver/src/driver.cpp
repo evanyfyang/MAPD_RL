@@ -243,6 +243,34 @@ class PBSSolver
 		return status;
 	}
 
+	int get_distance(int src, int dst) {
+		if (src < 0 || dst < 0 || src >= G.size() || dst >= G.size()) {
+			return -1;
+		}
+		try {
+			const auto* h = &G.heuristics;
+			auto it = h->find(src);
+			if (it == h->end()) {
+				G.heuristics[src] = G.compute_heuristics(src);
+				it = G.heuristics.find(src);
+			}
+			if (it == G.heuristics.end()) {
+				return -1;
+			}
+			const auto& dist_vec = it->second;
+			if (dst < 0 || dst >= static_cast<int>(dist_vec.size())) {
+				return -1;
+			}
+			double d = dist_vec[dst];
+			if (d >= WEIGHT_MAX || d >= DBL_MAX / 4.0) {
+				return -1;
+			}
+			return static_cast<int>(d);
+		} catch (...) {
+			return -1;
+		}
+	}
+
 	void set_estimated_service_time(AgentTaskStatus& status, const vector<vector<int>>& agent_tasks) {
 		int free_reward = 0;
 		int free_service_reward = 0;
@@ -344,6 +372,8 @@ PYBIND11_MODULE(mapf_solver, m) {
 		.def_readwrite("expert_estimated_finish_time", &AgentTaskStatus::expert_estimated_finish_time)
 		.def_readwrite("delivering_tasks", &AgentTaskStatus::delivering_tasks)
 		.def_readwrite("task_truncated_size", &AgentTaskStatus::task_truncated_size)
+		.def_readwrite("num_finished_tasks", &AgentTaskStatus::num_finished_tasks)
+		.def_readwrite("time_limit_reached", &AgentTaskStatus::time_limit_reached)
 		.def_readwrite("makespan", &AgentTaskStatus::makespan);
 
 	py::class_<PBSSolver>(m, "PBSSolver")
@@ -365,6 +395,12 @@ PYBIND11_MODULE(mapf_solver, m) {
              R"pbdoc(
                 Run the solver's simulate_until_next_assignment method, 
                 and return an AgentTaskStatus.
+             )pbdoc")
+		.def("get_distance", &PBSSolver::get_distance,
+			 py::arg("src"), py::arg("dst"),
+             R"pbdoc(
+                Return shortest-path distance between two map locations.
+                Returns -1 when unreachable or invalid.
              )pbdoc")
         ;
 	

@@ -538,8 +538,6 @@ class REINFORCE(OnPolicyAlgorithm):
                 if isinstance(rollout_data.observations, dict) and "free_agents_num" in rollout_data.observations:
                     assignable_agent_denom = rollout_data.observations["free_agents_num"].float().to(device=self.device)
                     assignable_agent_denom = th.clamp(assignable_agent_denom, min=1.0)
-                # 计算多样本 (log_prob_all, centered_all)
-                # Pass cached log_prob/entropy from evaluate_actions to avoid re-sampling bias
                 multi = self.policy.compute_centered_returns(
                     self.env, rollout_data.observations, actions, r0, deterministic=False,
                     cached_log_prob=log_prob, cached_entropy=entropy
@@ -616,6 +614,9 @@ class REINFORCE(OnPolicyAlgorithm):
                             actions,
                         )
                     old_log_prob = rollout_data.old_log_prob.to(self.device).reshape_as(log_prob_after)
+                    if assignable_agent_denom is not None:
+                        log_prob_after = log_prob_after / assignable_agent_denom
+                        old_log_prob = old_log_prob / assignable_agent_denom
                     approx_kl = th.mean(old_log_prob - log_prob_after.detach()).item()
                     last_approx_kl = approx_kl
                     if approx_kl > float(self.target_kl):

@@ -15,7 +15,8 @@ class MultiAgentPickupEnv(gym.Env):
     def __init__(self, training=True, grid_path=None, seed=40, 
             solver="PBS", agent_num_lower_bound=10, agent_num_higher_bound=50, eval_data_path=None, task_num=500, pos_reward=False,
             sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=100, model_only_eval=False,
-            task_truncated_size=1, obs_candidate_task_k=None):
+            task_truncated_size=1, obs_candidate_task_k=None, eval_max_tasks=None, eval_simulation_time=5000,
+            compute_cnn_distance_maps=True):
         super().__init__()
         self.training = training
         self.solver_name = solver
@@ -35,6 +36,9 @@ class MultiAgentPickupEnv(gym.Env):
         else:
             self.obs_candidate_task_k = min(max(1, int(obs_candidate_task_k)), self.task_num)
         self.model_only_eval = bool(model_only_eval)
+        self.eval_max_tasks = None if eval_max_tasks is None else max(1, int(eval_max_tasks))
+        self.eval_simulation_time = max(1, int(eval_simulation_time))
+        self.compute_cnn_distance_maps = bool(compute_cnn_distance_maps)
         # 调试开关与频率
         self.debug_env = debug_env
         self.debug_every = debug_every
@@ -119,9 +123,10 @@ class MultiAgentPickupEnv(gym.Env):
         self.episode = 0
         self.storage_ready = False
         self.storage_snapshot = None
+        self.heuristics = {}
+        self._distance_missing = -(self.grid_size[0] + self.grid_size[1])
+        self._bfs_dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-        self.cal_heuristics()
-        
         if hasattr(self, 'sp_mpnn_max_distance') and self.sp_mpnn_max_distance > 0:
             self.precompute_sp_mpnn_distances()
         else:
@@ -173,16 +178,14 @@ class MultiAgentPickupEnv(gym.Env):
         self.solver = PBSSolver(args)
 
     def cal_heuristics(self):
-        self.heuristics = {}
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)] 
+        # 兼容旧调用：改为按需缓存，不再全图预计算
+        if not isinstance(self.heuristics, dict):
+            self.heuristics = {}
 
-        for x in range(self.grid_size[0]):
-            for y in range(self.grid_size[1]):
-                if self.grid[x, y] == 0:
-                    self.heuristics[(x, y)] = self.bfs((x, y), directions)
-
-    def bfs(self, start, directions):
-        distances = np.full(self.grid_size, -(self.grid_size[0]+self.grid_size[1]), dtype=np.int32)
+    def bfs(self, start, directions=None):
+        if directions is None:
+            directions = self._bfs_dirs
+        distances = np.full(self.grid_size, self._distance_missing, dtype=np.int32)
         queue = deque([start])
         distances[start] = 0
 
@@ -196,12 +199,48 @@ class MultiAgentPickupEnv(gym.Env):
                 if (0 <= neighbor[0] < self.grid_size[0] and
                     0 <= neighbor[1] < self.grid_size[1] and
                     self.grid[neighbor] == 0 and
-                    distances[neighbor] == -(self.grid_size[0]+self.grid_size[1])):
+                    distances[neighbor] == self._distance_missing):
 
                     distances[neighbor] = current_distance + 1
                     queue.append(neighbor)
 
         return distances
+
+    def _get_dist_map(self, src_loc):
+        key = (int(src_loc[0]), int(src_loc[1]))
+        if key in self.heuristics:
+            return self.heuristics[key]
+        if not (0 <= key[0] < self.grid_size[0] and 0 <= key[1] < self.grid_size[1]):
+            return None
+        if self.grid[key] != 0:
+            return None
+        dist_map = self.bfs(key)
+        self.heuristics[key] = dist_map
+        return dist_map
+
+    def _xy_to_loc_id(self, xy):
+        x, y = int(xy[0]), int(xy[1])
+        return x * self.grid_size[1] + y
+
+    def _get_distance(self, src_loc, dst_loc):
+        src = (int(src_loc[0]), int(src_loc[1]))
+        dst = (int(dst_loc[0]), int(dst_loc[1]))
+        if not (0 <= src[0] < self.grid_size[0] and 0 <= src[1] < self.grid_size[1]):
+            return self._distance_missing
+        if not (0 <= dst[0] < self.grid_size[0] and 0 <= dst[1] < self.grid_size[1]):
+            return self._distance_missing
+        # 优先走C++ solver中的heuristics缓存，避免Python重复BFS。
+        try:
+            if hasattr(self, "solver") and hasattr(self.solver, "get_distance"):
+                d = int(self.solver.get_distance(self._xy_to_loc_id(src), self._xy_to_loc_id(dst)))
+                if d >= 0:
+                    return d
+        except Exception:
+            pass
+        dist_map = self._get_dist_map(src)
+        if dist_map is None:
+            return self._distance_missing
+        return int(dist_map[dst])
     
     def generate_agents_tasks(self):
         agent_num = random.randint(self.agent_num[0]//max(1, int(5-self.episode//2)), 
@@ -261,6 +300,16 @@ class MultiAgentPickupEnv(gym.Env):
         self.storage_ready = True
 
     def build_state(self, status):
+        if getattr(status, "time_limit_reached", False) and status.valid == True:
+            done = True
+            finish_time = int(getattr(status, "estimated_finish_time", 0) or 0)
+            service_time = int(getattr(status, "estimated_service_time", 0) or 0)
+            if finish_time <= 0:
+                finish_time = int(getattr(status, "finished_flowtime", 0) or 0)
+            if service_time <= 0:
+                service_time = int(getattr(status, "finished_service_time", 0) or 0)
+            return None, finish_time, service_time, done, True
+
         if status.allFinished == 1 and status.valid == True:
             done = True
             return None, status.finished_flowtime, status.estimated_service_time, done, True
@@ -348,10 +397,7 @@ class MultiAgentPickupEnv(gym.Env):
             # if task_id not in delivering_tasks_id:
             self.free_task_id_map[free_task_cnt] = task_id
             free_tasks[free_task_cnt] = np.array((pickup+delivery), dtype=np.float32)
-            try:
-                free_task_p2d[free_task_cnt, 0] = float(self.heuristics[tuple(pickup)][tuple(delivery)])
-            except Exception:
-                free_task_p2d[free_task_cnt, 0] = -1.0
+            free_task_p2d[free_task_cnt, 0] = float(self._get_distance(tuple(pickup), tuple(delivery)))
             free_task_cnt += 1
             # else:
         
@@ -413,7 +459,11 @@ class MultiAgentPickupEnv(gym.Env):
             pickup_locations.append(pickup_loc)
             delivery_locations.append(delivery_loc)
         
-        pickup_distances, delivery_distances = self.cal_pickup_delivery_heuristics(pickup_locations, delivery_locations)
+        if self.compute_cnn_distance_maps:
+            pickup_distances, delivery_distances = self.cal_pickup_delivery_heuristics(pickup_locations, delivery_locations)
+        else:
+            pickup_distances = np.full(self.grid_size, -1.0, dtype=np.float32)
+            delivery_distances = np.full(self.grid_size, -1.0, dtype=np.float32)
 
         # Construct CNN channel maps
         obstacle_map = np.zeros(self.grid_size, dtype=np.float32)
@@ -477,8 +527,8 @@ class MultiAgentPickupEnv(gym.Env):
                 task_delivery = tuple(map(int, free_tasks[j][2:]))
                 
                 # 计算两个距离（agent到pickup加上start_timestep）
-                agent_to_pickup = agent_start_timestep + self.heuristics[agent_loc][task_pickup]
-                pickup_to_delivery = self.heuristics[task_pickup][task_delivery]
+                agent_to_pickup = agent_start_timestep + self._get_distance(agent_loc, task_pickup)
+                pickup_to_delivery = self._get_distance(task_pickup, task_delivery)
                 total_distance = agent_to_pickup + pickup_to_delivery  # 与LNS保持一致的总距离
                 
                 # 使用原始距离，不归一化
@@ -502,9 +552,9 @@ class MultiAgentPickupEnv(gym.Env):
             for j in range(i + 1, free_agent_cnt):
                 loc_j = tuple(map(int, free_agents[j][:2]))
                 try:
-                    d = float(self.heuristics[loc_i][loc_j])
+                    d = float(self._get_distance(loc_i, loc_j))
                 except Exception:
-                    d = -1.0
+                    d = float(self._distance_missing)
                 assignable_agent_a2a[i, j] = d
                 assignable_agent_a2a[j, i] = d
 
@@ -515,8 +565,8 @@ class MultiAgentPickupEnv(gym.Env):
             for ft_idx in range(free_task_cnt):
                 task_pickup = tuple(map(int, free_tasks[ft_idx][:2]))
                 task_delivery = tuple(map(int, free_tasks[ft_idx][2:]))
-                d_end_to_pickup = self.heuristics[d_end][task_pickup]
-                pickup_to_delivery = self.heuristics[task_pickup][task_delivery]
+                d_end_to_pickup = self._get_distance(d_end, task_pickup)
+                pickup_to_delivery = self._get_distance(task_pickup, task_delivery)
                 total_distance = d_end_to_pickup + pickup_to_delivery
                 task_info_list.append((ft_idx, total_distance, d_end_to_pickup, pickup_to_delivery))
             task_info_list.sort(key=lambda x: x[1])
@@ -699,8 +749,8 @@ class MultiAgentPickupEnv(gym.Env):
         不可达时给大惩罚，避免负距离污染比较。
         """
         try:
-            d1 = int(self.heuristics[agent_loc][task_pickup])
-            d2 = int(self.heuristics[task_pickup][task_delivery])
+            d1 = int(self._get_distance(agent_loc, task_pickup))
+            d2 = int(self._get_distance(task_pickup, task_delivery))
             if d1 < 0 or d2 < 0:
                 return float(2 * (self.grid_size[0] + self.grid_size[1]))
             return float(agent_start_timestep + d1 + d2)
@@ -754,8 +804,8 @@ class MultiAgentPickupEnv(gym.Env):
                         if 0 <= dt_idx < len(delivering_tasks):
                             d_end_x, d_end_y = map(int, delivering_tasks[dt_idx][3:5])
                             d_end = (d_end_x, d_end_y)
-                            d_end_to_pickup = int(self.heuristics[d_end][task_pickup])
-                            pickup_to_delivery = int(self.heuristics[task_pickup][task_delivery])
+                            d_end_to_pickup = int(self._get_distance(d_end, task_pickup))
+                            pickup_to_delivery = int(self._get_distance(task_pickup, task_delivery))
                             if d_end_to_pickup < 0 or pickup_to_delivery < 0:
                                 cost_matrix[i, j] = float(2 * (self.grid_size[0] + self.grid_size[1]))
                             else:
@@ -915,12 +965,14 @@ class MultiAgentPickupEnv(gym.Env):
                 task_release_time = int(task_release_time)
                 lines = [line.strip().split() for line in f]
                 tasks = [[int(line[0]), int(line[1]), int(line[2])] for line in lines]
+                if self.eval_max_tasks is not None:
+                    tasks = tasks[:self.eval_max_tasks]
 
-        
+        print("before update task")
         if self.training:
             status = self.solver.update_task(tasks, agents, 5000, task_frequency, task_release_time, 1)
         else:
-            status = self.solver.update_task(tasks, [], 5000, task_frequency, task_release_time, 0)
+            status = self.solver.update_task(tasks, [], self.eval_simulation_time, task_frequency, task_release_time, 0)
             self.agent_num_now = len(status.agents_all)
 
         self.step_count = 0
@@ -950,6 +1002,7 @@ class MultiAgentPickupEnv(gym.Env):
 
         self.reset_this_step = True
 
+        print("reset finish")
         if self.training:
             return self.state, {}
         else:
@@ -1073,13 +1126,30 @@ class MultiAgentPickupEnv(gym.Env):
         #     breakpoint()
         # if self.step_count >= self.max_steps:
         #     done = True
-        if self.training:
-            return self.state, reward, done, False, {}
+        info = {
+            "solver_timestep": int(getattr(status, "timestep", 0)),
+            "makespan": int(getattr(status, "timestep", 0)),
+            "assignment_makespan": int(getattr(status, "makespan", 0)),
+            "estimated_finish_time": int(finish_time),
+            "estimated_service_time": int(service_time),
+            "num_finished_tasks": int(getattr(status, "num_finished_tasks", 0)),
+            "pending_tasks": int(len(getattr(status, "tasks", [])) + len(getattr(status, "delivering_tasks", []))),
+            "valid": bool(valid),
+            "time_limit_reached": bool(getattr(status, "time_limit_reached", False)),
+        }
+        if info["time_limit_reached"]:
+            info["done_reason"] = "time_limit"
+        elif done and valid:
+            info["done_reason"] = "all_finished"
+        elif done and not valid:
+            info["done_reason"] = "invalid"
         else:
-            if done:
-                return self.state, service_time, done, False, {}
-            else:
-                return self.state, 0, done, False, {}
+            info["done_reason"] = "ongoing"
+        if self.training:
+            return self.state, reward, done, False, info
+        if done:
+            return self.state, service_time, done, False, info
+        return self.state, 0, done, False, info
 
     
     def evaluate_action_storage(self, action):
@@ -1207,6 +1277,19 @@ class MultiAgentPickupEnv(gym.Env):
         预计算SP-MPNN所需的k-hop距离信息
         这个计算在环境初始化时进行一次，避免在每个step重复计算
         """
+        cache_path = None
+        try:
+            if self.grid_path is not None:
+                cache_path = f"{self.grid_path}_spmpnn_k{int(self.sp_mpnn_max_distance)}.pt"
+            if cache_path is not None and os.path.exists(cache_path):
+                cached = torch.load(cache_path, map_location="cpu")
+                if isinstance(cached, dict):
+                    self.sp_mpnn_distance_edges = cached
+                    print("reading sp_mpnn distance finished.")
+                    return
+        except Exception:
+            pass
+
         height, width = self.grid_size
         num_nodes = height * width
         
@@ -1233,6 +1316,11 @@ class MultiAgentPickupEnv(gym.Env):
         
         # 存储预计算的结果
         self.sp_mpnn_distance_edges = distance_edges
+        try:
+            if cache_path is not None:
+                torch.save(distance_edges, cache_path)
+        except Exception:
+            pass
         # print(f"预计算SP-MPNN距离信息完成，grid大小: {height}x{width}, 最大距离: {self.sp_mpnn_max_distance}")
         for dist in range(1, self.sp_mpnn_max_distance + 1):
             dist_key = f'dist_{dist}'

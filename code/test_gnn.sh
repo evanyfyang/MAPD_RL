@@ -21,6 +21,10 @@ set -e
 #     --use_gumbel: 启用Gumbel噪声 (flag)
 #     --model_only_eval: 测试时关闭expert fallback (flag)
 #     --infer_decode_mode: deterministic推理解码方式 (sequential|hungarian)
+#     --throughput_mode: 启用throughput评测模式（固定步数）
+#     --throughput_horizon: throughput评测步数（默认500）
+#     --throughput_pending_cap: throughput模式pending task上限（默认500）
+#     --eval_simulation_time: solver仿真上限（默认5000）
 #     --verbose: 输出详细信息 (flag)
 ########################################
 
@@ -39,6 +43,10 @@ USE_GUMBEL_FLAG=""
 MODEL_ONLY_EVAL_FLAG=""
 INFER_DECODE_MODE="sequential"
 VERBOSE_FLAG=""
+THROUGHPUT_MODE_FLAG=""
+THROUGHPUT_HORIZON=""
+THROUGHPUT_PENDING_CAP=""
+EVAL_SIMULATION_TIME=""
 HIGHER_GNN_TYPE="edge_node_gnn_complex"
 
 # Parse command line arguments
@@ -100,6 +108,22 @@ while [[ $# -gt 0 ]]; do
       HIGHER_GNN_TYPE="$2"
       shift 2
       ;;
+    --throughput_mode)
+      THROUGHPUT_MODE_FLAG="--throughput_mode"
+      shift
+      ;;
+    --throughput_horizon)
+      THROUGHPUT_HORIZON="$2"
+      shift 2
+      ;;
+    --throughput_pending_cap)
+      THROUGHPUT_PENDING_CAP="$2"
+      shift 2
+      ;;
+    --eval_simulation_time)
+      EVAL_SIMULATION_TIME="$2"
+      shift 2
+      ;;
     --verbose)
       VERBOSE_FLAG="--verbose"
       shift
@@ -159,7 +183,7 @@ fi
 echo "============================================="
 
 # Build the command
-CMD="python -m pdb test_gnn.py \
+CMD="python test_gnn.py \
   --checkpoint \"${CHECKPOINT_PATH}\" \
   --test_data_path \"${TEST_DATA_PATH}\" \
   --hidden_dim ${HIDDEN_DIM} \
@@ -182,6 +206,18 @@ if [ -n "$USE_EXPLICIT_PATH_FEATURE" ]; then
   CMD="${CMD} --use_explicit_path_feature ${USE_EXPLICIT_PATH_FEATURE}"
 fi
 
+if [ -n "$THROUGHPUT_HORIZON" ]; then
+  CMD="${CMD} --throughput_horizon ${THROUGHPUT_HORIZON}"
+fi
+
+if [ -n "$THROUGHPUT_PENDING_CAP" ]; then
+  CMD="${CMD} --throughput_pending_cap ${THROUGHPUT_PENDING_CAP}"
+fi
+
+if [ -n "$EVAL_SIMULATION_TIME" ]; then
+  CMD="${CMD} --eval_simulation_time ${EVAL_SIMULATION_TIME}"
+fi
+
 # Add verbose flag if specified
 if [ -n "$VERBOSE_FLAG" ]; then
   CMD="${CMD} ${VERBOSE_FLAG}"
@@ -195,6 +231,10 @@ fi
 # Add model_only_eval flag if specified
 if [ -n "$MODEL_ONLY_EVAL_FLAG" ]; then
   CMD="${CMD} ${MODEL_ONLY_EVAL_FLAG}"
+fi
+
+if [ -n "$THROUGHPUT_MODE_FLAG" ]; then
+  CMD="${CMD} ${THROUGHPUT_MODE_FLAG}"
 fi
 
 # Append training-aligned defaults

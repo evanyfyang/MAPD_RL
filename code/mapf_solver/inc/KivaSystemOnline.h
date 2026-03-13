@@ -34,6 +34,8 @@ class AgentTaskStatus
 		int expert_estimated_service_time=0;
 		int expert_estimated_finish_time=0;
 		int makespan=0;
+		int num_finished_tasks=0;
+		bool time_limit_reached=false;
 		int task_truncated_size=1;
 
 		vector<vector<int>> agent_task_sequences;

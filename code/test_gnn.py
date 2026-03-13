@@ -11,6 +11,7 @@ import numpy as np
 import torch
 import random
 import gymnasium as gym
+import time
 
 from stable_baselines3.common.utils import set_random_seed
 
@@ -92,6 +93,14 @@ def parse_args():
                         help="测试时仅使用model结果，不回退到expert状态")
     parser.add_argument("--infer_decode_mode", type=str, default="sequential", choices=["sequential", "hungarian"],
                         help="deterministic推理解码方式: sequential 或 hungarian")
+    parser.add_argument("--throughput_mode", action="store_true", default=False,
+                        help="启用throughput评测模式（固定步数，不以done作为终止条件）")
+    parser.add_argument("--throughput_horizon", type=int, default=500,
+                        help="throughput模式评测步数（默认500）")
+    parser.add_argument("--throughput_pending_cap", type=int, default=500,
+                        help="throughput模式下pending task上限（默认500）")
+    parser.add_argument("--eval_simulation_time", type=int, default=5000,
+                        help="solver评测仿真上限（默认5000）")
 
     args = parser.parse_args()
     return args
@@ -145,7 +154,12 @@ def test_model(checkpoint_path, test_data_path, args):
         pos_reward=False,
         model_only_eval=args.model_only_eval,
         task_truncated_size=args.task_truncated_size,
+        eval_simulation_time=args.eval_simulation_time,
+        compute_cnn_distance_maps=(args.lower_gnn_type == "cnn_channels"),
     )
+    if args.throughput_mode:
+        env_kwargs["eval_max_tasks"] = int(args.throughput_pending_cap)
+        env_kwargs["eval_simulation_time"] = max(int(args.eval_simulation_time), int(args.throughput_horizon) + 10)
 
     if expected_agent_cap is not None:
         env_kwargs["agent_num_higher_bound"] = expected_agent_cap
@@ -217,6 +231,10 @@ def test_model(checkpoint_path, test_data_path, args):
     # 运行测试
     episode_rewards = []
     episode_service_times = []
+    episode_makespans = []
+    episode_runtime_seconds = []
+    episode_finished_tasks = []
+    episode_steps = []
     
     print(f"开始测试，共 {args.test_episodes} 个回合...")
     
@@ -228,11 +246,19 @@ def test_model(checkpoint_path, test_data_path, args):
         done = False
         total_reward = 0.0
         step_count = 0
+        final_service_time = 0.0
+        last_info = {}
+        # 只统计“中途推理+交互”耗时，不计模型加载/环境reset的预计算开销
+        runtime_s = 0.0
         
-        while not done:
+        max_steps = int(args.throughput_horizon) if args.throughput_mode else 10**9
+        while (not done) and (step_count < max_steps):
+            t0 = time.perf_counter()
             action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, _, info = test_env.step(action)
+            runtime_s += (time.perf_counter() - t0)
             obs = align_obs_to_model_space(obs, model.observation_space)
+            last_info = info if isinstance(info, dict) else {}
             
             if args.verbose:
                 print(f"步骤 {step_count}: reward = {reward}")
@@ -248,10 +274,21 @@ def test_model(checkpoint_path, test_data_path, args):
         
         episode_rewards.append(total_reward)
         episode_service_times.append(final_service_time if done else total_reward)
+        episode_runtime_seconds.append(runtime_s)
+        episode_steps.append(step_count)
+        episode_makespans.append(int(last_info.get("makespan", step_count)))
+        episode_finished_tasks.append(int(last_info.get("num_finished_tasks", 0)))
         
         print(f"回合 {ep + 1} 完成:")
         print(f"  总奖励: {total_reward:.2f}")
         print(f"  服务时间: {final_service_time if done else total_reward:.2f}")
+        print(f"  Makespan: {int(last_info.get('makespan', step_count))}")
+        print(f"  运行时间(中途累计): {runtime_s:.6f}s")
+        print(f"  终止原因: {last_info.get('done_reason', 'unknown')}")
+        if args.throughput_mode:
+            print(f"  完成任务数: {int(last_info.get('num_finished_tasks', 0))}")
+            print(f"  Pending任务数: {int(last_info.get('pending_tasks', -1))}")
+            print(f"  Throughput(tasks/step): {int(last_info.get('num_finished_tasks', 0)) / max(1, step_count):.6f}")
         print(f"  步数: {step_count}")
     
     # 计算统计信息
@@ -259,11 +296,29 @@ def test_model(checkpoint_path, test_data_path, args):
     std_reward = float(np.std(episode_rewards))
     avg_service_time = float(np.mean(episode_service_times))
     std_service_time = float(np.std(episode_service_times))
+    avg_makespan = float(np.mean(episode_makespans))
+    std_makespan = float(np.std(episode_makespans))
+    avg_runtime_s = float(np.mean(episode_runtime_seconds))
+    avg_runtime_ms_per_step = float(np.mean([
+        (episode_runtime_seconds[i] * 1000.0 / max(1, episode_steps[i]))
+        for i in range(len(episode_steps))
+    ]))
+    avg_finished_tasks = float(np.mean(episode_finished_tasks))
+    avg_throughput = float(np.mean([
+        episode_finished_tasks[i] / max(1, episode_steps[i])
+        for i in range(len(episode_steps))
+    ]))
     
     print(f"\n=== 测试结果 ===")
     print(f"测试回合数: {args.test_episodes}")
     print(f"平均奖励: {avg_reward:.2f} ± {std_reward:.2f}")
     print(f"平均服务时间: {avg_service_time:.2f} ± {std_service_time:.2f}")
+    print(f"平均Makespan: {avg_makespan:.2f} ± {std_makespan:.2f}")
+    print(f"平均运行时间(中途累计): {avg_runtime_s:.6f}s")
+    print(f"平均每步运行时间: {avg_runtime_ms_per_step:.3f} ms/step")
+    if args.throughput_mode:
+        print(f"平均完成任务数: {avg_finished_tasks:.2f}")
+        print(f"平均Throughput(tasks/step): {avg_throughput:.6f}")
     print(f"最佳服务时间: {min(episode_service_times):.2f}")
     print(f"最差服务时间: {max(episode_service_times):.2f}")
     
@@ -272,8 +327,18 @@ def test_model(checkpoint_path, test_data_path, args):
         'std_reward': std_reward,
         'avg_service_time': avg_service_time,
         'std_service_time': std_service_time,
+        'avg_makespan': avg_makespan,
+        'std_makespan': std_makespan,
+        'avg_runtime_s': avg_runtime_s,
+        'avg_runtime_ms_per_step': avg_runtime_ms_per_step,
+        'avg_finished_tasks': avg_finished_tasks,
+        'avg_throughput': avg_throughput,
         'episode_rewards': episode_rewards,
-        'episode_service_times': episode_service_times
+        'episode_service_times': episode_service_times,
+        'episode_makespans': episode_makespans,
+        'episode_runtime_seconds': episode_runtime_seconds,
+        'episode_finished_tasks': episode_finished_tasks,
+        'episode_steps': episode_steps,
     }
 
 

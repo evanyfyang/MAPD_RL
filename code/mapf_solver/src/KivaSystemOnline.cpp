@@ -720,6 +720,8 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 			task_sequences  
 		); 
 		status.task_truncated_size = task_truncated_size;
+		status.num_finished_tasks = num_finished_tasks;
+		status.time_limit_reached = false;
 		// for (int pp = 0; pp < paths.size();pp ++)
 		// {
 		// 	if (paths[pp].size() <= timestep)
@@ -832,7 +834,11 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 
 		if (!move_after_assignment())
 		{
-			return AgentTaskStatus(fltime-finished_release_time, 1);
+			AgentTaskStatus status(fltime-finished_release_time, 1);
+			status.num_finished_tasks = num_finished_tasks;
+			status.timestep = timestep;
+			status.time_limit_reached = false;
+			return status;
 		}
 
 		timestep++;
@@ -885,11 +891,26 @@ AgentTaskStatus KivaSystemOnline::simulate_until_next_assignment(const vector<ve
 
 		if (!move_after_assignment())
 		{
-			return AgentTaskStatus(fltime-finished_release_time, 1);
+			AgentTaskStatus status(fltime-finished_release_time, 1);
+			status.num_finished_tasks = num_finished_tasks;
+			status.timestep = timestep;
+			status.time_limit_reached = false;
+			return status;
 		}
 
 		// check_current_tasks();
 	}
 
-	return AgentTaskStatus();
+	AgentTaskStatus status;
+	status.valid = true;
+	status.allFinished = 0;
+	status.time_limit_reached = true;
+	status.num_finished_tasks = num_finished_tasks;
+	status.timestep = timestep;
+	status.finished_flowtime = fltime;
+	status.finished_service_time = fltime - finished_release_time;
+	status.estimated_finish_time = fltime;
+	status.estimated_service_time = fltime - finished_release_time;
+	status.makespan = timestep;
+	return status;
 }

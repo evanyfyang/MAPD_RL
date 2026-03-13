@@ -323,6 +323,7 @@ def main():
             nearest_tasks_min_k=args.nearest_tasks_min_k,
             task_truncated_size=args.task_truncated_size,
             model_only_eval=args.model_only_eval,
+            compute_cnn_distance_maps=(args.lower_gnn_type == "cnn_channels"),
         )
         test_model(
             args.test_checkpoint,
@@ -347,6 +348,7 @@ def main():
         nearest_tasks_min_k=args.nearest_tasks_min_k,
         task_truncated_size=args.task_truncated_size,
         model_only_eval=args.model_only_eval,
+        compute_cnn_distance_maps=(args.lower_gnn_type == "cnn_channels"),
     )
 
     if args.n_envs > 1:
