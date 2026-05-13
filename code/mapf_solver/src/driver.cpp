@@ -78,6 +78,7 @@ void set_parameters(BasicSystem& system, const boost::program_options::variables
 	system.useDummyPaths = vm["dummy_paths"].as<bool>();
 	system.task_truncated_size = vm["task_truncated_size"].as<int>();
 	system.candidate_task_k = vm["candidate_task_k"].as<int>();
+	system.pending_task_cap = vm["pending_task_cap"].as<int>();
 	system.REPLAN = vm["replan"].as<bool>();
 	system.look_ahead_horizon = vm["look_ahead_horizon"].as<int>();
 	system.neighborhood_size = vm["neighborhood_size"].as<int>();
@@ -113,7 +114,7 @@ class PBSSolver
 				("task", po::value<std::string>()->default_value(""), "input task file")
 				("output,o", po::value<std::string>()->default_value("../exp/test"), "output folder name")
 				("agentNum,k", po::value<int>()->required(), "number of drives")
-				("cutoffTime,t", po::value<int>()->default_value(10), "cutoff time (seconds)")
+				("cutoffTime,t", po::value<int>()->default_value(500), "cutoff time (seconds)")
 				("seed,d", po::value<int>(), "random seed")
 				("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
 				("solver", po::value<string>()->default_value("PBS"), "solver (PBS, WPBS)")
@@ -139,6 +140,7 @@ class PBSSolver
 				("log", po::value<bool>()->default_value(false), "save the search trees (and the priority trees)")
 				("task_truncated_size", po::value<int>()->default_value(1), "task-truncated size in online/offline MAPD")
 				("candidate_task_k", po::value<int>()->default_value(100), "candidate top-K for Hungarian matching in online/offline MAPD")
+				("pending_task_cap", po::value<int>()->default_value(0), "cap for free pending tasks; <=0 disables cap")
 				("replan", po::value<bool>()->default_value(true), "replan variant")
 				("look_ahead_horizon", po::value<int>()->default_value(1), "1 means no look-ahead horizon applied")
 				("neighborhood_size", po::value<int>()->default_value(2), "neighborhood_size")
@@ -192,6 +194,7 @@ class PBSSolver
 	~PBSSolver() {
 		delete system;
 		delete system_storage;
+		delete system_expert;
     }
 
 	AgentTaskStatus update_task(vector<vector<int>>& task, vector<int>& new_agents, int simulation_time, float task_frequency, int task_release_period, int consider_expert)
@@ -205,6 +208,10 @@ class PBSSolver
     AgentTaskStatus update(const vector<vector<int>>& agent_tasks, int consider_expert, int update_storage=0, int inferencing=0) {
 		if (update_storage || system_storage == nullptr){
 			// printf("update_storage\n");
+			if (system_storage != nullptr) {
+				delete system_storage;
+				system_storage = nullptr;
+			}
 			system_storage = dynamic_cast<KivaSystemOnline*>(system->clone());
 		}
 		AgentTaskStatus status = system->simulate_until_next_assignment(agent_tasks);
@@ -212,19 +219,36 @@ class PBSSolver
 		// printf("status.estimated_finish_time: %d\n status.delivering_finish_time: %d\n status.finished_flowtime: %d\n expert_time: %d\n", status.estimated_finish_time, status.delivering_finish_time, status.finished_flowtime, expert_time);
 
 		if (infer_use_expert_fallback && expert_time > -1 && status.estimated_finish_time > expert_time && inferencing){
-			system = system_expert;
-			status = expert_status;
+			// 避免system与system_expert别名导致的双重释放与悬挂引用
+			if (system_expert != nullptr) {
+				KivaSystemOnline* replacement = dynamic_cast<KivaSystemOnline*>(system_expert->clone());
+				delete system;
+				system = replacement;
+				status = expert_status;
+			}
 		}
 		
 
-		if (consider_expert && !status.allFinished) {
+		const bool has_full_agent_sequences =
+			(status.agent_task_sequences.size() == static_cast<size_t>(system->num_of_drives));
+		const bool can_compare_expert =
+			consider_expert &&
+			status.valid &&
+			!status.time_limit_reached &&
+			!status.allFinished &&
+			has_full_agent_sequences;
+		if (can_compare_expert) {
 			KivaSystemOnline* new_system = dynamic_cast<KivaSystemOnline*>(system->clone());
 			vector<vector<int>> expert_input = status.agent_task_sequences;
 			expert_status = new_system->simulate_until_next_assignment(expert_input);
 			set_estimated_service_time(expert_status, expert_input);
 			expert_action = expert_input;
-			system_expert = dynamic_cast<KivaSystemOnline*>(new_system->clone());
-			delete new_system;
+			if (system_expert != nullptr) {
+				delete system_expert;
+				system_expert = nullptr;
+			}
+			// 直接接管new_system所有权，避免额外一次深拷贝引入拷贝链路风险
+			system_expert = new_system;
 			status.expert_estimated_service_time = expert_status.estimated_service_time;
 			status.expert_estimated_finish_time = expert_status.estimated_finish_time;
 			// printf("expert_status.estimated_finish_time: %d\n expert_status.delivering_finish_time: %d\n expert_status.finished_flowtime: %d\n", expert_status.estimated_finish_time, expert_status.delivering_finish_time, expert_status.finished_flowtime);

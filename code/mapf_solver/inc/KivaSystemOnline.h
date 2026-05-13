@@ -7,6 +7,7 @@
 // #include "TasksLoader.h"
 #include <chrono>
 #include <vector>
+#include <set>
 #include <stdlib.h>
 #include <ctime>
 #include <cstdlib>
@@ -51,11 +52,11 @@ class AgentTaskStatus
 			delivering_finish_time(delivering_finish_time), 
 			allFinished(allFinished), 
 			agent_task_sequences(task_sequences)
-			{this->valid=true; this->makespan=0; this->task_truncated_size=1;}
+			{this->valid=true; this->makespan=0; this->task_truncated_size=1; this->allFinished=allFinished;}
 
 		AgentTaskStatus(int finished_service_time, int allFinished):finished_service_time(finished_service_time), allFinished(allFinished){this->valid=true;this->makespan=0;}
 
-		AgentTaskStatus(){this->valid=false; this->makespan=0;}
+		AgentTaskStatus(){this->valid=false; this->makespan=0; this->allFinished=0; this->time_limit_reached=false;}
 };
 
 class KivaSystemOnline :
@@ -126,6 +127,8 @@ private:
 	void update_agent_tasks(const vector<vector<int>>& agent_tasks);
 	AgentTaskStatus get_agent_tasks();
 	void estimate_service_time();
+	std::set<int> get_delivering_task_ids() const;
+	int get_free_pending_task_count() const;
 
 };	
 

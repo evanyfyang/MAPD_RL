@@ -1058,22 +1058,20 @@ class GridSPMPNN(nn.Module):
                         edges_data = obs[obs_key]
                 
                 if isinstance(edges_data, torch.Tensor):
-                    edges_np = edges_data.cpu().numpy()
+                    edges_t = edges_data.to(device=device, dtype=torch.long)
                 else:
-                    edges_np = edges_data
-                
-                if edges_np.shape[1] > 0:
-                    # 去除填充的零
-                    non_zero_cols = np.any(edges_np != 0, axis=0)
-                    if np.any(non_zero_cols):
-                        last_nonzero = np.where(non_zero_cols)[0][-1] + 1
-                        valid_edges = edges_np[:, :last_nonzero]
-                        
+                    edges_t = torch.as_tensor(edges_data, device=device, dtype=torch.long)
+
+                if edges_t.numel() > 0 and edges_t.dim() == 2 and edges_t.size(1) > 0:
+                    # 去除右侧填充列（全0列）
+                    non_zero_cols = (edges_t != 0).any(dim=0)
+                    if bool(non_zero_cols.any()):
+                        last_nonzero = int(torch.nonzero(non_zero_cols, as_tuple=False)[-1].item()) + 1
+                        valid_edges = edges_t[:, :last_nonzero]
                         # 将边索引偏移到正确的batch位置
                         offset = b * num_grid_nodes_per_sample
                         valid_edges = valid_edges + offset
-                        
-                        batch_edges.append(torch.from_numpy(valid_edges.copy()).to(device).long())
+                        batch_edges.append(valid_edges)
             
             # 合并所有batch的边
             if batch_edges:
@@ -1125,8 +1123,8 @@ class GridSPMPNN(nn.Module):
                 dist_key = f'dist_{dist}'
                 
                 # 重置可复用缓冲区（避免in-place操作）
-                target_messages_buffer = torch.zeros_like(target_messages_buffer)
-                neighbor_counts_buffer = torch.zeros_like(neighbor_counts_buffer)
+                target_messages_buffer = torch.zeros_like(all_features)
+                neighbor_counts_buffer = torch.zeros(num_nodes, device=device)
                 
                 if (dist_key in batch_distance_edges and 
                     batch_distance_edges[dist_key].numel() > 0 and 
@@ -1158,8 +1156,8 @@ class GridSPMPNN(nn.Module):
             hetero_edge_types = [et for et in self.edge_types if not et.startswith('dist_')]
             for edge_type in hetero_edge_types:
                 # 重置可复用缓冲区（避免in-place操作）
-                target_messages_buffer = torch.zeros_like(target_messages_buffer)
-                neighbor_counts_buffer = torch.zeros_like(neighbor_counts_buffer)
+                target_messages_buffer = torch.zeros_like(all_features)
+                neighbor_counts_buffer = torch.zeros(num_nodes, device=device)
                 
                 if (edge_type in hetero_edges and 
                     hetero_edges[edge_type].numel() > 0 and 
@@ -1193,14 +1191,8 @@ class GridSPMPNN(nn.Module):
             new_features = self.dropout_layers[layer](new_features)
             all_features = all_features + new_features  # 避免in-place操作，防止梯度计算错误
             
-            # 6. 定期清理GPU缓存（每2层清理一次）
-            if layer % 2 == 1 and torch.cuda.is_available():
-                torch.cuda.empty_cache()
         
-        # 清理临时张量
-        del aggregated_messages, target_messages_buffer, neighbor_counts_buffer
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        # 临时缓冲区由PyTorch内存管理器自动复用，无需手动empty_cache
         
         # 9. 从统一特征中提取各类实体特征
         return self._extract_entity_features_vectorized(all_features, obs, batch_size, node_mappings, device)

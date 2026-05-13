@@ -16,6 +16,7 @@ class MultiAgentPickupEnv(gym.Env):
             solver="PBS", agent_num_lower_bound=10, agent_num_higher_bound=50, eval_data_path=None, task_num=500, pos_reward=False,
             sp_mpnn_max_distance=3, debug_env=False, debug_every=50, nearest_tasks_min_k=100, model_only_eval=False,
             task_truncated_size=1, obs_candidate_task_k=None, eval_max_tasks=None, eval_simulation_time=5000,
+            eval_pending_task_cap=None,
             compute_cnn_distance_maps=True):
         super().__init__()
         self.training = training
@@ -38,6 +39,7 @@ class MultiAgentPickupEnv(gym.Env):
         self.model_only_eval = bool(model_only_eval)
         self.eval_max_tasks = None if eval_max_tasks is None else max(1, int(eval_max_tasks))
         self.eval_simulation_time = max(1, int(eval_simulation_time))
+        self.eval_pending_task_cap = None if eval_pending_task_cap is None else max(1, int(eval_pending_task_cap))
         self.compute_cnn_distance_maps = bool(compute_cnn_distance_maps)
         # 调试开关与频率
         self.debug_env = debug_env
@@ -101,9 +103,15 @@ class MultiAgentPickupEnv(gym.Env):
         
         # 新增：预计算的SP-MPNN k-hop距离信息（展平到顶层，避免嵌套Dict）
         # 为每个距离层级添加单独的观察空间条目
+        # 关键优化：不再用 O((HW)^2) 的极端上界，而用 O(HW) 的线性上界。
+        # 对4连通栅格图，d-hop邻域边数近似与 d*HW 成正比。
+        num_grid_nodes = int(self.grid_size[0] * self.grid_size[1])
+        self.sp_mpnn_max_edges_by_dist = {}
         for dist in range(1, sp_mpnn_max_distance + 1):
-            # 估算最大可能的边数：对于grid图，每个距离层级的边数不会超过总节点数的平方
-            max_edges = self.grid_size[0] * self.grid_size[1] * self.grid_size[0] * self.grid_size[1]
+            # 采用保守线性上界（有向边）：16 * d * HW
+            # 相比旧版 HW*HW，显著降低观测与前向内存占用。
+            max_edges = int(min(num_grid_nodes * num_grid_nodes, max(1, 16 * dist * num_grid_nodes)))
+            self.sp_mpnn_max_edges_by_dist[dist] = max_edges
             self.observation_space.spaces[f"sp_mpnn_dist_{dist}"] = gym.spaces.Box(
                 low=0, high=self.grid_size[0] * self.grid_size[1], 
                 shape=(2, max_edges), 
@@ -175,6 +183,8 @@ class MultiAgentPickupEnv(gym.Env):
             "--candidate_task_k", str(self.candidate_task_k),
             "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]
+        if self.eval_pending_task_cap is not None:
+            args += ["--pending_task_cap", str(self.eval_pending_task_cap)]
         self.solver = PBSSolver(args)
 
     def cal_heuristics(self):
@@ -389,7 +399,11 @@ class MultiAgentPickupEnv(gym.Env):
         delivering_task_cnt = 0
         reversed_delivering_agent_id_map = {v: k for k, v in self.delivering_agent_id_map.items()}
         
+        dropped_free_tasks = 0
         for task in status.tasks:
+            if free_task_cnt >= self.task_num:
+                dropped_free_tasks += 1
+                continue
             task_id = task.task_id
             pickup, delivery = task.goal_arr[:2]
             pickup = self.loc(pickup)
@@ -403,7 +417,11 @@ class MultiAgentPickupEnv(gym.Env):
         
         # print("free_task_id_map:", self.free_task_id_map)
         delivering_task_id_to_local = {}
+        dropped_delivering_tasks = 0
         for task in status.delivering_tasks:
+            if delivering_task_cnt >= self.task_num:
+                dropped_delivering_tasks += 1
+                continue
             task_id = task.task_id
             pickup = self.loc(task.goal_arr[0]) if len(task.goal_arr) > 0 else [-1, -1]
             delivery = self.loc(task.goal_arr[-1]) if len(task.goal_arr) > 0 else [-1, -1]
@@ -412,6 +430,12 @@ class MultiAgentPickupEnv(gym.Env):
             agent_id = reversed_delivering_agent_id_map[delivering_task_agent_map[task_id]]
             delivering_tasks[delivering_task_cnt] = np.array(([agent_id]+pickup+delivery), dtype=np.float32)
             delivering_task_cnt += 1
+
+        if self.debug_env and (dropped_free_tasks > 0 or dropped_delivering_tasks > 0):
+            print(
+                f"[env] task buffer capped by task_num={self.task_num}: "
+                f"dropped_free={dropped_free_tasks}, dropped_delivering={dropped_delivering_tasks}"
+            )
 
         # assignable行到其当前delivering task索引映射（非delivering为-1）
         for local_idx, global_id in self.free_agent_id_map.items():
@@ -614,6 +638,7 @@ class MultiAgentPickupEnv(gym.Env):
         for dist in range(1, self.sp_mpnn_max_distance + 1):
             dist_key = f'dist_{dist}'
             obs_key = f'sp_mpnn_dist_{dist}'  # 新的观察空间键名
+            max_edges = int(self.sp_mpnn_max_edges_by_dist.get(dist, 1))
             
             if dist_key in self.sp_mpnn_distance_edges and self.sp_mpnn_distance_edges[dist_key].numel() > 0:
                 # 转换为numpy数组
@@ -621,15 +646,14 @@ class MultiAgentPickupEnv(gym.Env):
                 edges_np = edges_tensor.numpy().astype(np.int32)
                 
                 # 填充到观察空间的固定形状
-                max_edges = self.grid_size[0] * self.grid_size[1] * self.grid_size[0] * self.grid_size[1]
                 padded_edges = np.zeros((2, max_edges), dtype=np.int32)
                 if edges_np.shape[1] > 0:
-                    padded_edges[:, :edges_np.shape[1]] = edges_np
+                    valid_count = min(edges_np.shape[1], max_edges)
+                    padded_edges[:, :valid_count] = edges_np[:, :valid_count]
                 
                 obs_dict[obs_key] = padded_edges
             else:
                 # 创建空的边索引，符合观察空间形状
-                max_edges = self.grid_size[0] * self.grid_size[1] * self.grid_size[0] * self.grid_size[1]
                 obs_dict[obs_key] = np.zeros((2, max_edges), dtype=np.int32)
         
         self.last_status_payload = self._serialize_status(status)
@@ -938,6 +962,8 @@ class MultiAgentPickupEnv(gym.Env):
             "--candidate_task_k", str(self.candidate_task_k),
             "--infer_use_expert_fallback", "false" if self.model_only_eval else "true",
         ]
+        if self.eval_pending_task_cap is not None:
+            args += ["--pending_task_cap", str(self.eval_pending_task_cap)]
         self.solver = PBSSolver(args)
 
         self.last_total_finish_time = 0
@@ -1133,7 +1159,8 @@ class MultiAgentPickupEnv(gym.Env):
             "estimated_finish_time": int(finish_time),
             "estimated_service_time": int(service_time),
             "num_finished_tasks": int(getattr(status, "num_finished_tasks", 0)),
-            "pending_tasks": int(len(getattr(status, "tasks", [])) + len(getattr(status, "delivering_tasks", []))),
+            # 口径统一：pending_tasks仅统计free tasks（current tasks），不计delivering tasks
+            "pending_tasks": int(len(getattr(status, "tasks", []))),
             "valid": bool(valid),
             "time_limit_reached": bool(getattr(status, "time_limit_reached", False)),
         }

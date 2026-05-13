@@ -31,6 +31,7 @@ public:
     int neighborhood_size;
     int task_truncated_size;
     int candidate_task_k;
+    int pending_task_cap = 0; // <=0 means no cap
     bool use_LNS;
     bool REPLAN;
     int look_ahead_horizon;

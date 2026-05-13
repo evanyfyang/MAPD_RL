@@ -95,8 +95,8 @@ def parse_args():
                         help="deterministic推理解码方式: sequential 或 hungarian")
     parser.add_argument("--throughput_mode", action="store_true", default=False,
                         help="启用throughput评测模式（固定步数，不以done作为终止条件）")
-    parser.add_argument("--throughput_horizon", type=int, default=500,
-                        help="throughput模式评测步数（默认500）")
+    parser.add_argument("--throughput_horizon", type=int, default=1000,
+                        help="throughput模式评测步数（默认1000）")
     parser.add_argument("--throughput_pending_cap", type=int, default=500,
                         help="throughput模式下pending task上限（默认500）")
     parser.add_argument("--eval_simulation_time", type=int, default=5000,
@@ -132,6 +132,7 @@ def test_model(checkpoint_path, test_data_path, args):
 
     expected_agent_cap = None
     expected_candidate_k = None
+    expected_task_cap = None
     try:
         obs_space = model.observation_space
         if hasattr(obs_space, "spaces") and "free_agents_nearest_tasks" in obs_space.spaces:
@@ -139,8 +140,23 @@ def test_model(checkpoint_path, test_data_path, args):
             if len(nearest_shape) == 3:
                 expected_agent_cap = int(nearest_shape[0])
                 expected_candidate_k = int(nearest_shape[1])
+        if hasattr(obs_space, "spaces") and "free_tasks" in obs_space.spaces:
+            free_tasks_shape = obs_space.spaces["free_tasks"].shape
+            if len(free_tasks_shape) >= 1:
+                expected_task_cap = int(free_tasks_shape[0])
     except Exception:
         pass
+
+    effective_task_num = int(args.task_num)
+    if args.throughput_mode:
+        # Throughput模式下确保观测容量不小于pending cap，避免pending超过task_num时越界
+        effective_task_num = max(effective_task_num, int(args.throughput_pending_cap))
+    if expected_task_cap is not None:
+        # 兼容旧checkpoint，确保环境任务维度至少不小于模型期望
+        effective_task_num = max(effective_task_num, expected_task_cap)
+
+    if effective_task_num != int(args.task_num):
+        print(f"[test] auto adjust task_num: {int(args.task_num)} -> {effective_task_num}")
     
     # 环境参数
     env_kwargs = dict(
@@ -150,7 +166,7 @@ def test_model(checkpoint_path, test_data_path, args):
         agent_num_lower_bound=args.agent_num_lower_bound,
         agent_num_higher_bound=args.agent_num_higher_bound,
         eval_data_path=test_data_path,
-        task_num=args.task_num,
+        task_num=effective_task_num,
         pos_reward=False,
         model_only_eval=args.model_only_eval,
         task_truncated_size=args.task_truncated_size,
@@ -158,8 +174,9 @@ def test_model(checkpoint_path, test_data_path, args):
         compute_cnn_distance_maps=(args.lower_gnn_type == "cnn_channels"),
     )
     if args.throughput_mode:
-        env_kwargs["eval_max_tasks"] = int(args.throughput_pending_cap)
-        env_kwargs["eval_simulation_time"] = max(int(args.eval_simulation_time), int(args.throughput_horizon) + 10)
+        env_kwargs["eval_pending_task_cap"] = int(args.throughput_pending_cap)
+        # throughput模式下按solver timestep精确截断
+        env_kwargs["eval_simulation_time"] = int(args.throughput_horizon)
 
     if expected_agent_cap is not None:
         env_kwargs["agent_num_higher_bound"] = expected_agent_cap
@@ -184,7 +201,7 @@ def test_model(checkpoint_path, test_data_path, args):
         lower_gnn_type=args.lower_gnn_type,
         higher_gnn_type=args.higher_gnn_type,
         max_agents=args.agent_num_higher_bound,
-        max_tasks=args.task_num,
+        max_tasks=effective_task_num,
         pretrain_steps=0,
         fix_div=False,
         not_div=False,
@@ -207,16 +224,49 @@ def test_model(checkpoint_path, test_data_path, args):
         对齐环境观测到checkpoint内的observation_space：
         - 删除多余键（新env字段，旧模型不认识）
         - 补齐缺失键（旧env字段缺失时填0）
+        - 处理同名键shape不一致（按checkpoint期望shape做裁剪/零填充）
         """
         if not isinstance(obs_dict, dict):
             return obs_dict
         if not isinstance(obs_space, gym.spaces.Dict):
             return obs_dict
 
+        def _fit_box_shape(value, target_shape, dtype):
+            """将value对齐到target_shape：重叠区域拷贝，其余补0。"""
+            out = np.zeros(target_shape, dtype=dtype)
+            if value is None:
+                return out
+            arr = np.asarray(value)
+            # 若维度不一致，尝试直接reshape失败则返回全0
+            if arr.ndim != len(target_shape):
+                try:
+                    arr = arr.reshape(target_shape)
+                    out[...] = arr.astype(dtype, copy=False)
+                    return out
+                except Exception:
+                    return out
+            # 逐维取重叠区间
+            slices = tuple(slice(0, min(arr.shape[i], target_shape[i])) for i in range(len(target_shape)))
+            out[slices] = arr[slices].astype(dtype, copy=False)
+            return out
+
         aligned = {}
         for key, space in obs_space.spaces.items():
             if key in obs_dict:
-                aligned[key] = obs_dict[key]
+                if isinstance(space, gym.spaces.Box):
+                    v = obs_dict[key]
+                    # shape不同则做裁剪/零填充，保证和checkpoint一致
+                    if np.shape(v) != tuple(space.shape):
+                        aligned[key] = _fit_box_shape(v, tuple(space.shape), space.dtype)
+                    else:
+                        aligned[key] = np.asarray(v, dtype=space.dtype)
+                elif isinstance(space, gym.spaces.Discrete):
+                    v = int(obs_dict[key])
+                    if hasattr(space, "n"):
+                        v = max(0, min(v, int(space.n) - 1))
+                    aligned[key] = v
+                else:
+                    aligned[key] = obs_dict[key]
             else:
                 # 缺失键用0占位，确保predict不会因键缺失报错
                 if isinstance(space, gym.spaces.Box):
@@ -251,8 +301,8 @@ def test_model(checkpoint_path, test_data_path, args):
         # 只统计“中途推理+交互”耗时，不计模型加载/环境reset的预计算开销
         runtime_s = 0.0
         
-        max_steps = int(args.throughput_horizon) if args.throughput_mode else 10**9
-        while (not done) and (step_count < max_steps):
+        max_steps = 10**9
+        while not done:
             t0 = time.perf_counter()
             action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, _, info = test_env.step(action)
@@ -271,6 +321,12 @@ def test_model(checkpoint_path, test_data_path, args):
                 total_reward += reward
             
             step_count += 1
+            if args.throughput_mode:
+                solver_timestep = int(last_info.get("solver_timestep", -1))
+                if solver_timestep >= int(args.throughput_horizon):
+                    break
+            elif step_count >= max_steps:
+                break
         
         episode_rewards.append(total_reward)
         episode_service_times.append(final_service_time if done else total_reward)
@@ -280,16 +336,15 @@ def test_model(checkpoint_path, test_data_path, args):
         episode_finished_tasks.append(int(last_info.get("num_finished_tasks", 0)))
         
         print(f"回合 {ep + 1} 完成:")
-        print(f"  总奖励: {total_reward:.2f}")
-        print(f"  服务时间: {final_service_time if done else total_reward:.2f}")
-        print(f"  Makespan: {int(last_info.get('makespan', step_count))}")
-        print(f"  运行时间(中途累计): {runtime_s:.6f}s")
-        print(f"  终止原因: {last_info.get('done_reason', 'unknown')}")
         if args.throughput_mode:
-            print(f"  完成任务数: {int(last_info.get('num_finished_tasks', 0))}")
-            print(f"  Pending任务数: {int(last_info.get('pending_tasks', -1))}")
-            print(f"  Throughput(tasks/step): {int(last_info.get('num_finished_tasks', 0)) / max(1, step_count):.6f}")
-        print(f"  步数: {step_count}")
+            print(f"  {int(args.throughput_horizon)}步完成任务数: {int(last_info.get('num_finished_tasks', 0))}")
+        else:
+            print(f"  总奖励: {total_reward:.2f}")
+            print(f"  服务时间: {final_service_time if done else total_reward:.2f}")
+            print(f"  Makespan: {int(last_info.get('makespan', step_count))}")
+            print(f"  运行时间(中途累计): {runtime_s:.6f}s")
+            print(f"  终止原因: {last_info.get('done_reason', 'unknown')}")
+            print(f"  步数: {step_count}")
     
     # 计算统计信息
     avg_reward = float(np.mean(episode_rewards))
@@ -311,16 +366,16 @@ def test_model(checkpoint_path, test_data_path, args):
     
     print(f"\n=== 测试结果 ===")
     print(f"测试回合数: {args.test_episodes}")
-    print(f"平均奖励: {avg_reward:.2f} ± {std_reward:.2f}")
-    print(f"平均服务时间: {avg_service_time:.2f} ± {std_service_time:.2f}")
-    print(f"平均Makespan: {avg_makespan:.2f} ± {std_makespan:.2f}")
-    print(f"平均运行时间(中途累计): {avg_runtime_s:.6f}s")
-    print(f"平均每步运行时间: {avg_runtime_ms_per_step:.3f} ms/step")
     if args.throughput_mode:
-        print(f"平均完成任务数: {avg_finished_tasks:.2f}")
-        print(f"平均Throughput(tasks/step): {avg_throughput:.6f}")
-    print(f"最佳服务时间: {min(episode_service_times):.2f}")
-    print(f"最差服务时间: {max(episode_service_times):.2f}")
+        print(f"{int(args.throughput_horizon)}步平均完成任务数: {avg_finished_tasks:.2f}")
+    else:
+        print(f"平均奖励: {avg_reward:.2f} ± {std_reward:.2f}")
+        print(f"平均服务时间: {avg_service_time:.2f} ± {std_service_time:.2f}")
+        print(f"平均Makespan: {avg_makespan:.2f} ± {std_makespan:.2f}")
+        print(f"平均运行时间(中途累计): {avg_runtime_s:.6f}s")
+        print(f"平均每步运行时间: {avg_runtime_ms_per_step:.3f} ms/step")
+        print(f"最佳服务时间: {min(episode_service_times):.2f}")
+        print(f"最差服务时间: {max(episode_service_times):.2f}")
     
     return {
         'avg_reward': avg_reward,

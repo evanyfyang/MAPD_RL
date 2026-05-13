@@ -418,7 +418,8 @@ def draw_case(output_path: str, assignment, paths, path_agent_ids) -> None:
             ax.add_patch(rect)
 
     agent_colors = ["#E74C3C", "#3498DB", "#2ECC71", "#F1C40F", "#9B59B6"]
-    radius = cell_size * 0.5
+    center_offset = cell_size * 0.5
+    agent_radius = cell_size * 0.42
 
     offset_step = cell_size * 0.22
     edge_offsets = build_edge_offsets(paths, path_agent_ids, offset_step)
@@ -453,27 +454,27 @@ def draw_case(output_path: str, assignment, paths, path_agent_ids) -> None:
             )
             ax.add_patch(head)
     for (r, c), color in zip(agents, agent_colors):
-        cx = c * cell_size + radius
-        cy = r * cell_size + radius
-        circle = Circle((cx, cy), radius=radius, facecolor=color, edgecolor="black", linewidth=2.2, zorder=3)
+        cx = c * cell_size + center_offset
+        cy = r * cell_size + center_offset
+        circle = Circle((cx, cy), radius=agent_radius, facecolor=color, edgecolor="black", linewidth=2.2, zorder=3)
         ax.add_patch(circle)
 
     task_colors = build_task_color_map(assignment, agent_colors, len(tasks))
-    shape_radius = cell_size * 0.42
-    square_size = cell_size * 0.75
+    shape_radius = cell_size * 0.35
+    square_size = cell_size * 0.64
     for task_idx, task in enumerate(tasks):
         pr, pc = task["pickup"]
         dr, dc = task["delivery"]
         color = task_colors[task_idx]
 
-        px = pc * cell_size + radius
-        py = pr * cell_size + radius
+        px = pc * cell_size + center_offset
+        py = pr * cell_size + center_offset
         triangle = RegularPolygon((px, py), numVertices=3, radius=shape_radius, orientation=0.0,
                                   facecolor=color, edgecolor="black", linewidth=2.0, zorder=3)
         ax.add_patch(triangle)
 
-        dx = dc * cell_size + radius - square_size / 2
-        dy = dr * cell_size + radius - square_size / 2
+        dx = dc * cell_size + center_offset - square_size / 2
+        dy = dr * cell_size + center_offset - square_size / 2
         square = Rectangle((dx, dy), square_size, square_size, facecolor=color, edgecolor="black", linewidth=2.0, zorder=3)
         ax.add_patch(square)
 

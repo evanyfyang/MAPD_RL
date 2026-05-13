@@ -22,7 +22,7 @@ set -e
 #     --model_only_eval: 测试时关闭expert fallback (flag)
 #     --infer_decode_mode: deterministic推理解码方式 (sequential|hungarian)
 #     --throughput_mode: 启用throughput评测模式（固定步数）
-#     --throughput_horizon: throughput评测步数（默认500）
+#     --throughput_horizon: throughput评测步数（默认1000）
 #     --throughput_pending_cap: throughput模式pending task上限（默认500）
 #     --eval_simulation_time: solver仿真上限（默认5000）
 #     --verbose: 输出详细信息 (flag)

@@ -7,6 +7,7 @@
 #include <ctime>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 
 KivaSystemOnline::KivaSystemOnline(KivaGrid& G, MAPFSolver& solver): BasicSystem(G, solver), G(G) {}
@@ -262,7 +263,6 @@ void KivaSystemOnline::initialize_start_locations()
 void KivaSystemOnline::generate_tasks()
 {
 	int count = 0;
-	// 修复：使用不同的变量名避免冲突，并修改逻辑确保正确处理任务
 	auto it = all_tasks.begin();
 	while (it != all_tasks.end() && count < task_release_period * task_frequency * look_ahead_horizon)
 	{
@@ -274,7 +274,19 @@ void KivaSystemOnline::generate_tasks()
 		{
 			if (task.release_time == timestep + horizon_step * task_release_period)
 			{
-				current_tasks.insert(make_pair(task.task_id, task));
+				// pending_task_cap 仅约束 free pending tasks（不包含delivering tasks）。
+				// 超上限时丢弃新释放任务，避免pending持续膨胀。
+				bool should_drop = false;
+				if (pending_task_cap > 0)
+				{
+					int free_pending = get_free_pending_task_count();
+					if (free_pending >= pending_task_cap)
+						should_drop = true;
+				}
+				if (!should_drop)
+				{
+					current_tasks.insert(make_pair(task.task_id, task));
+				}
 				it = all_tasks.erase(it);  // 删除并更新迭代器
 				count++;
 				task_released = true;
@@ -290,6 +302,44 @@ void KivaSystemOnline::generate_tasks()
 	}
 	// if (count != 0)
 	// 	std::cout << "Generate " << count << " new tasks " << endl;
+}
+
+std::set<int> KivaSystemOnline::get_delivering_task_ids() const
+{
+	std::set<int> delivering_ids;
+	for (int i = 0; i < num_of_drives; i++)
+	{
+		if (i >= (int)task_sequences.size() || task_sequences[i].empty())
+			continue;
+		if (i >= (int)goal_locations.size() || goal_locations[i].empty())
+			continue;
+
+		int tid = task_sequences[i].front();
+		auto cur_it = current_tasks.find(tid);
+		if (cur_it == current_tasks.end())
+			continue;
+
+		const vector<int>& goal_arr = cur_it->second.goal_arr;
+		if (goal_locations[i].size() <= 1 || goal_arr.size() == 1)
+			continue;
+
+		int curr_goal_loc = goal_locations[i].front().first;
+		auto iter = std::find(goal_arr.begin(), goal_arr.end(), curr_goal_loc);
+		if (iter != goal_arr.begin() && iter != goal_arr.end())
+		{
+			delivering_ids.insert(tid);
+		}
+	}
+	return delivering_ids;
+}
+
+int KivaSystemOnline::get_free_pending_task_count() const
+{
+	if (current_tasks.empty())
+		return 0;
+	const std::set<int> delivering_ids = get_delivering_task_ids();
+	const int free_cnt = (int)current_tasks.size() - (int)delivering_ids.size();
+	return std::max(0, free_cnt);
 }
 
 int KivaSystemOnline::choose_good_endpoint(vector<int> current_assigned_endpoints, int last_task_endpoint)
@@ -443,7 +493,11 @@ void KivaSystemOnline::update_agent_tasks(const vector<vector<int>>& agent_tasks
 		// {
 		// 	raise(SIGTRAP);
 		// }
-		task_sequences[i] = agent_tasks[i];
+		if (i < static_cast<int>(agent_tasks.size())) {
+			task_sequences[i] = agent_tasks[i];
+		} else {
+			task_sequences[i].clear();
+		}
 		int idx = remained_agents[i];
 		int current_task_size = 0;
 		if (delivering_agents.find(i) != delivering_agents.end())
@@ -712,8 +766,36 @@ AgentTaskStatus KivaSystemOnline::get_agent_tasks()
 		// }
 			
 		
+		// 避免将TasksLoader内部含heap/handle的Task对象直接跨层拷贝到状态返回中，
+		// 仅保留Python侧实际需要的轻量字段，降低悬挂handle导致的段错误风险。
+		vector<Task> status_tasks;
+		status_tasks.reserve(tl.tasks_all.size());
+		for (const auto& t : tl.tasks_all) {
+			vector<int> goals = t.goal_arr;
+			Task light_t(t.task_id, t.release_time, goals);
+			light_t.pick_up_time = t.pick_up_time;
+			light_t.delivery_time = t.delivery_time;
+			light_t.estimated_service_time = t.estimated_service_time;
+			light_t.estimated_finish_time = t.estimated_finish_time;
+			light_t.is_delivered = t.is_delivered;
+			status_tasks.push_back(light_t);
+		}
+
+		vector<Task> status_delivering_tasks;
+		status_delivering_tasks.reserve(tl.delivering_tasks_all.size());
+		for (const auto& t : tl.delivering_tasks_all) {
+			vector<int> goals = t.goal_arr;
+			Task light_t(t.task_id, t.release_time, goals);
+			light_t.pick_up_time = t.pick_up_time;
+			light_t.delivery_time = t.delivery_time;
+			light_t.estimated_service_time = t.estimated_service_time;
+			light_t.estimated_finish_time = t.estimated_finish_time;
+			light_t.is_delivered = t.is_delivered;
+			status_delivering_tasks.push_back(light_t);
+		}
+
 		AgentTaskStatus status = AgentTaskStatus(
-			tl.tasks_all, tl.delivering_tasks_all, al.agents_all, 
+			status_tasks, status_delivering_tasks, al.agents_all, 
 			paths, agent_task_pair, fltime,
 			fltime-finished_release_time, delivering_service_time, 
 			timestep, delivering_finish_time, 0,
